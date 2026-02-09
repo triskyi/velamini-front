@@ -2,14 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-bg text-textPrimary font-sans;
+@layer base {
+  body {
+    background-color: theme('colors.bg');
+    color: theme('colors.textPrimary');
+    font-family: theme('fontFamily.sans');
+  }
 }
 
 .neon-text {
   text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
 }
 
-.neon-button {
-  @apply bg-neonBlue text-bg font-bold rounded px-4 py-2 hover:bg-neonPurple hover:shadow-neon transition-all duration-300;
+@layer components {
+  .neon-button {
+    background-color: theme('colors.neonBlue');
+    color: theme('colors.bg');
+    font-weight: 700;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s;
+  }
+  .neon-button:hover {
+    background-color: theme('colors.neonPurple');
+    box-shadow: theme('boxShadow.neon');
+  }
 }

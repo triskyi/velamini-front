@@ -8,10 +8,14 @@ import "./globals.css";
 export default function RootLayout({ children}: { children: React.ReactNode}) {
   return (
     <html lang="en">
-      <body className="flex h-screen">
+      <body className="flex h-screen bg-white text-gray-900 dark:bg-bg dark:text-textPrimary font-sans">
         <Sidebar />
-        <ChatPanel />
-        <InfoPanel />
+        <main className="flex-1 min-w-0">
+          <ChatPanel />
+        </main>
+        <aside className="hidden md:block w-72">
+          <InfoPanel />
+        </aside>
         {children}
       </body>
     </html>

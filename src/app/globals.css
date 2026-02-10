@@ -6,6 +6,13 @@
 :root {
   --background: #0b0f1a;
   --foreground: #ededed;
+  
+  /* Neon Colors */
+  --neon-cyan: #00f3ff;
+  --neon-blue: #0066ff;
+  --neon-purple: #9d00ff;
+  --neon-pink: #ff00ff;
+  --neon-green: #39ff14;
 
   --font-sans: var(--font-geist-sans, system-ui, sans-serif);
   --font-mono: var(--font-geist-mono, monospace);
@@ -14,8 +21,52 @@
 /* =========================
    Base Styles
    ========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-[var(--background)] text-[var(--foreground)] font-sans antialiased;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(11, 15, 26, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-purple));
+  border-radius: 4px;
+  &:hover {
+    background: linear-gradient(to bottom, var(--neon-purple), var(--neon-cyan));
+    box-shadow: 0 0 10px var(--neon-cyan);
+  }
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-color: var(--neon-cyan) rgba(11, 15, 26, 0.5);
+  scrollbar-width: thin;
+}
+
+/* Text Selection */
+::selection {
+  background: var(--neon-cyan);
+  color: var(--background);
+  text-shadow: 0 0 10px var(--neon-cyan);
 }
 
 /* =========================
@@ -42,12 +93,41 @@ body {
       0 0 20px rgba(34, 211, 238, 0.2);
   }
 
+  /* Cyan Neon Glow */
+  .neon-cyan-glow {
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
+  }
+
+  /* Purple Neon Glow */
+  .neon-purple-glow {
+    box-shadow: 0 0 20px rgba(157, 0, 255, 0.6);
+  }
+
+  /* Green Neon Glow */
+  .neon-green-glow {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
+  }
+
+  /* Pink Neon Glow */
+  .neon-pink-glow {
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+  }
+
   /* HUD Grid Background */
   .hud-grid {
+    background-image:
+      linear-gradient(0deg, transparent 24%, rgba(0, 243, 255, 0.08) 25%, rgba(0, 243, 255, 0.08) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.08) 75%, rgba(0, 243, 255, 0.08) 76%, transparent 77%, transparent),
+      linear-gradient(90deg, transparent 24%, rgba(0, 243, 255, 0.08) 25%, rgba(0, 243, 255, 0.08) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.08) 75%, rgba(0, 243, 255, 0.08) 76%, transparent 77%, transparent);
+    background-size: 50px 50px;
+  }
+
+  /* Animated Grid Background */
+  .animated-grid {
     background-image:
       linear-gradient(0deg, transparent 24%, rgba(0, 243, 255, 0.1) 25%, rgba(0, 243, 255, 0.1) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.1) 75%, rgba(0, 243, 255, 0.1) 76%, transparent 77%, transparent),
       linear-gradient(90deg, transparent 24%, rgba(0, 243, 255, 0.1) 25%, rgba(0, 243, 255, 0.1) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.1) 75%, rgba(0, 243, 255, 0.1) 76%, transparent 77%, transparent);
     background-size: 50px 50px;
+    animation: grid-move 20s linear infinite;
   }
 
   /* Slow spin (used in InfoPanel) */
@@ -58,6 +138,32 @@ body {
   /* Pulsing neon border */
   .pulse-border {
     animation: pulse-border 2s ease-in-out infinite;
+  }
+
+  /* Neon pulse animation */
+  .pulse-neon {
+    animation: pulse-neon 2s ease-in-out infinite;
+  }
+
+  /* Floating animation */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Focus ring with neon cyan */
+  .focus-cyan {
+    @apply focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:shadow-lg focus:shadow-cyan-500/30 transition-all;
+  }
+
+  /* Smooth transition utility */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Blurred neon background */
+  .blur-neon-cyan {
+    filter: blur(0.5px);
+    background: rgba(0, 243, 255, 0.05);
   }
 }
 
@@ -80,5 +186,72 @@ body {
   }
   50% {
     border-color: rgba(34, 211, 238, 0.7);
+  }
+}
+
+@keyframes pulse-neon {
+  0%,
+  100% {
+    opacity: 1;
+    text-shadow:
+      0 0 5px var(--neon-cyan),
+      0 0 10px var(--neon-cyan),
+      0 0 20px var(--neon-cyan);
+  }
+  50% {
+    opacity: 0.8;
+    text-shadow:
+      0 0 10px var(--neon-cyan),
+      0 0 20px var(--neon-cyan),
+      0 0 30px var(--neon-cyan);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes grid-move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+/* =========================
+   Component-specific Styles
+   ========================= */
+
+/* Chat input focus states */
+input[type="text"]:focus,
+input[type="search"]:focus,
+textarea:focus {
+  @apply outline-none border-cyan-400 shadow-lg shadow-cyan-500/30;
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Links styling */
+a {
+  @apply relative transition-colors duration-300;
+  
+  &:hover {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
   }
 }

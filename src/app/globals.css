@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
+/* =========================
+   CSS Variables (Theme)
+   ========================= */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b0f1a;
+  --foreground: #ededed;
+
+  --font-sans: var(--font-geist-sans, system-ui, sans-serif);
+  --font-mono: var(--font-geist-mono, monospace);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* =========================
+   Base Styles
+   ========================= */
+body {
+  @apply bg-[var(--background)] text-[var(--foreground)] font-sans antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* =========================
+   Reusable UI Utilities
+   ========================= */
+@layer utilities {
+  /* Glassmorphism panel */
+  .glass-panel {
+    @apply backdrop-blur-lg bg-gray-900/30 border border-gray-700/50;
+  }
+
+  /* Neon glow text */
+  .neon-text {
+    text-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 20px currentColor;
+  }
+
+  /* Neon glow box */
+  .neon-glow {
+    box-shadow:
+      0 0 10px rgba(34, 211, 238, 0.4),
+      0 0 20px rgba(34, 211, 238, 0.2);
+  }
+
+  /* HUD Grid Background */
+  .hud-grid {
+    background-image:
+      linear-gradient(0deg, transparent 24%, rgba(0, 243, 255, 0.1) 25%, rgba(0, 243, 255, 0.1) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.1) 75%, rgba(0, 243, 255, 0.1) 76%, transparent 77%, transparent),
+      linear-gradient(90deg, transparent 24%, rgba(0, 243, 255, 0.1) 25%, rgba(0, 243, 255, 0.1) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.1) 75%, rgba(0, 243, 255, 0.1) 76%, transparent 77%, transparent);
+    background-size: 50px 50px;
+  }
+
+  /* Slow spin (used in InfoPanel) */
+  .animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+  }
+
+  /* Pulsing neon border */
+  .pulse-border {
+    animation: pulse-border 2s ease-in-out infinite;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* =========================
+   Keyframes
+   ========================= */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    border-color: rgba(34, 211, 238, 0.3);
+  }
+  50% {
+    border-color: rgba(34, 211, 238, 0.7);
+  }
 }

@@ -1,64 +1,156 @@
 "use client";
-import { useState } from "react";
 
-export default function ChatPanel(){
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, User, Bot } from "lucide-react";
 
-    const [messages, setMessages] = useState([
-        { sender: "Velamini", text: "Good morning, Tre! ready to start your journey with velamini?"},
-    ]);
+type Message = {
+  id: number;
+  text: string;
+  isUser: boolean;
+};
 
-    const [input, setInput] = useState("");
+export default function ChatPanel() {
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 1, text: "Yes, let's get started.", isUser: true },
+    {
+      id: 2,
+      text: "I've analyzed the quantum data patterns. Shall I proceed with optimization?",
+      isUser: false,
+    },
+  ]);
 
-    const handleSend = () => {
-        if (!input) return;
-        setMessages([...messages, { sender: "you", text: input}]);
-        setInput("");
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto scroll
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = () => {
+    if (!message.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now(),
+      text: message,
+      isUser: true,
     };
 
+    setMessages((prev) => [...prev, userMessage]);
+    setMessage("");
+
+    // Fake AI response (placeholder for real API)
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          text: "Optimization in progress. All systems stable.",
+          isUser: false,
+        },
+      ]);
+    }, 700);
+  };
 
   return (
-    <main className="flex-1 flex flex-col p-6">
-      <header className="mb-6">
-        <div className="p-4 rounded-lg flex items-center gap-4 bg-white/60 dark:glass-panel border border-gray-200 dark:border-gray-700">
-          <div className="w-20 h-20 avatar-gradient flex items-center justify-center text-2xl text-neonBlue shadow-neon">V</div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-textPrimary">Velamini</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Your virtual assistant</p>
+    <div className="h-full flex flex-col bg-[#0B0F1A]">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-800/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center mr-3">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-white">Velamini</h3>
+              <p className="text-sm text-cyan-400">Online • Realtime</p>
+            </div>
+          </div>
+          <div className="px-3 py-1 bg-green-400/10 border border-green-400/30 rounded-full">
+            <span className="text-xs text-green-400">ACTIVE</span>
           </div>
         </div>
-      </header>
+      </div>
 
-      <section className="flex-1 grid grid-cols-1 lg:grid-cols-1 gap-4">
-        <div className="p-6 rounded-lg bg-white/60 dark:bg-[rgba(11,15,26,0.45)] dark:panel-border neon-border shadow-neon flex flex-col border border-gray-200 dark:border-transparent">
-          <div className="flex-1 overflow-y-auto mb-4 space-y-4">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`max-w-xs p-3 rounded-xl ${
-                  msg.sender === 'Velamini'
-                    ? 'bg-gray-100 text-gray-900 dark:bg-neonBlue dark:text-bg self-start shadow-neon'
-                    : 'bg-green-100 text-gray-900 dark:bg-neonGreen dark:text-bg self-end shadow-neon'
-                }`}
-              >
-                {msg.text}
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <AnimatePresence>
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className={`flex ${msg.isUser ? "justify-end" : "justify-start"}`}
+            >
+              <div className="max-w-[70%]">
+                <div
+                  className={`flex items-start ${
+                    msg.isUser ? "flex-row-reverse" : ""
+                  }`}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      msg.isUser
+                        ? "ml-3 bg-green-400/20"
+                        : "mr-3 bg-cyan-400/20"
+                    }`}
+                  >
+                    {msg.isUser ? (
+                      <User className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <Bot className="w-4 h-4 text-cyan-400" />
+                    )}
+                  </div>
+
+                  <div>
+                    <div
+                      className={`px-4 py-3 rounded-2xl border ${
+                        msg.isUser
+                          ? "bg-green-400/10 border-green-400/30"
+                          : "bg-cyan-400/10 border-cyan-400/30"
+                      }`}
+                    >
+                      <p className="text-sm text-white">{msg.text}</p>
+                    </div>
+                    <div
+                      className={`text-xs text-gray-400 mt-1 ${
+                        msg.isUser ? "text-right" : ""
+                      }`}
+                    >
+                      {msg.isUser ? "You" : "AI"} • now
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        <div ref={bottomRef} />
+      </div>
 
-          <div className="flex items-center gap-3">
-            <input
-              className="flex-1 p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-textPrimary outline-none border border-gray-300 dark:border-gray-600"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-            />
-            <button onClick={handleSend} className="px-5 py-2 rounded-lg bg-neonBlue text-bg font-semibold shadow-neon hover:opacity-90 transition">
-              Send
-            </button>
-          </div>
+      {/* Input */}
+      <div className="p-6 border-t border-gray-800/50">
+        <div className="relative">
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Type your message..."
+            className="w-full px-6 py-4 bg-gray-900/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(0,255,255,0.2)] transition-all"
+          />
+          <motion.button
+            onClick={sendMessage}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-lg flex items-center"
+          >
+            <Send className="w-4 h-4 text-white mr-2" />
+            <span className="text-sm font-medium text-white">Send</span>
+          </motion.button>
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }
-

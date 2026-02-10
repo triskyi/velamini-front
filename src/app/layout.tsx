@@ -1,5 +1,5 @@
 import Sidebar from "@/components/Sidebar";
-import ChatPanel from "@/components/ChatPanel";
+import  ChatPanel  from "@/components/ChatPanel";
 import InfoPanel from "@/components/InfoPanel";
 import "./globals.css";
 

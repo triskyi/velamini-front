@@ -1,180 +1,148 @@
 "use client";
 
 import React from "react";
+import { MoreVertical, Circle, Clock, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
-import {
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  MoreVertical,
-} from "lucide-react";
 
+// Type (you can move to lib/types)
 type Task = {
   id: number;
   title: string;
-  progress: number;
-  status: "progress" | "pending" | "completed";
-  gradient: string;
+  progress: number; // 0–100
+  status: "pending" | "progress" | "done";
 };
 
 const tasks: Task[] = [
   {
     id: 1,
-    title: "Finish React UI",
+    title: "Finish React UI polish",
     progress: 70,
     status: "progress",
-    gradient: "from-cyan-400 to-blue-500",
   },
   {
     id: 2,
-    title: "Plan AI Memory Layer",
+    title: "Plan long-term memory layer",
     progress: 30,
     status: "pending",
-    gradient: "from-purple-400 to-pink-500",
   },
   {
     id: 3,
-    title: "Review Notes",
+    title: "Review architecture notes",
     progress: 45,
     status: "progress",
-    gradient: "from-green-400 to-emerald-500",
   },
   {
     id: 4,
-    title: "Analyze Data",
+    title: "Run performance benchmarks",
     progress: 85,
     status: "progress",
-    gradient: "from-orange-400 to-red-500",
   },
 ];
 
-const getStatusIcon = (status: Task["status"]) => {
+function StatusIcon({ status }: { status: Task["status"] }) {
   switch (status) {
-    case "progress":
-      return <Clock className="w-4 h-4 text-cyan-400 animate-spin-slow" />;
     case "pending":
-      return <AlertCircle className="w-4 h-4 text-yellow-400" />;
-    case "completed":
-      return <CheckCircle2 className="w-4 h-4 text-green-400" />;
+      return <Circle className="h-4 w-4 text-zinc-500" />;
+    case "progress":
+      return <Clock className="h-4 w-4 text-amber-400" />;
+    case "done":
+      return <CheckCircle2 className="h-4 w-4 text-emerald-400" />;
+    default:
+      return null;
   }
-};
+}
+
+function getProgressColor(progress: number): string {
+  if (progress >= 80) return "bg-emerald-500";
+  if (progress >= 50) return "bg-amber-500";
+  return "bg-blue-500";
+}
 
 export default function InfoPanel() {
+  const inProgress = tasks.filter((t) => t.status === "progress").length;
+
   return (
-    <motion.aside
-      initial={{ x: 80, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="w-80 lg:w-96 h-screen bg-[#0B0F1A]/60 backdrop-blur-lg border-l border-gray-800/50 p-6 overflow-y-auto"
-    >
+    <aside className="w-80 lg:w-96 h-screen bg-zinc-950 border-l border-zinc-800 flex flex-col">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-1">
-          Today’s Tasks
-        </h2>
-        <p className="text-gray-400 text-sm">
-          {tasks.length} tasks •{" "}
-          {tasks.filter((t) => t.status === "progress").length} in progress
+      <div className="p-6 pb-4 border-b border-zinc-800">
+        <h2 className="text-xl font-semibold text-white">Today’s Tasks</h2>
+        <p className="text-sm text-zinc-500 mt-1">
+          {tasks.length} total • {inProgress} in progress
         </p>
       </div>
 
-      {/* Task List */}
-      <div className="space-y-4">
+      {/* Scrollable task list */}
+      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-950">
         {tasks.map((task, index) => (
           <motion.div
             key={task.id}
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08 }}
-            whileHover={{ scale: 1.02 }}
-            className="p-4 rounded-xl bg-gray-800/30 border border-gray-700/50 hover:border-cyan-400/30 transition"
+            transition={{
+              duration: 0.4,
+              delay: index * 0.08,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            className="group rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:border-zinc-700 hover:bg-zinc-900/60 transition-colors duration-200"
           >
-            {/* Title */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center">
-                {getStatusIcon(task.status)}
-                <span className="ml-2 font-medium text-white">
+            {/* Header row */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="mt-0.5">
+                  <StatusIcon status={task.status} />
+                </div>
+                <span className="font-medium text-zinc-100 truncate">
                   {task.title}
                 </span>
               </div>
-              <button className="text-gray-400 hover:text-white transition">
-                <MoreVertical className="w-4 h-4" />
+
+              <button
+                className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 -mr-1 rounded-md hover:bg-zinc-800/50"
+                aria-label="Task actions"
+              >
+                <MoreVertical size={16} />
               </button>
             </div>
 
             {/* Progress */}
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-gray-400">Progress</span>
-                <span className="text-cyan-400 font-semibold">
-                  {task.progress}%
-                </span>
+            {task.status !== "done" && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs text-zinc-500 mb-1.5">
+                  <span>Progress</span>
+                  <span className="font-medium text-zinc-300">
+                    {task.progress}%
+                  </span>
+                </div>
+
+                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${task.progress}%` }}
+                    transition={{
+                      duration: 1.2,
+                      ease: "easeOut",
+                      delay: 0.2 + index * 0.1,
+                    }}
+                    className={`h-full ${getProgressColor(task.progress)} transition-all duration-300`}
+                  />
+                </div>
               </div>
-              <div className="h-2 bg-gray-700/50 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${task.progress}%` }}
-                  transition={{ duration: 0.9, ease: "easeOut" }}
-                  className={`h-full rounded-full bg-gradient-to-r ${task.gradient}`}
-                />
+            )}
+
+            {task.status === "done" && (
+              <div className="mt-4 text-xs text-emerald-400/80 flex items-center gap-1.5">
+                <CheckCircle2 size={14} />
+                Completed
               </div>
-            </div>
+            )}
           </motion.div>
         ))}
       </div>
 
-      {/* Upcoming */}
-      <div className="mt-10">
-        <h3 className="text-lg font-semibold text-white mb-4">
-          Upcoming
-        </h3>
-        <div className="space-y-3">
-          {["Set Reminder", "Team Sync", "Review Metrics"].map(
-            (task, index) => (
-              <motion.div
-                key={task}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-                className="flex items-center p-3 rounded-lg bg-gray-800/20 border border-gray-700/30 hover:border-purple-400/30 transition"
-              >
-                <span className="w-2 h-2 rounded-full bg-purple-400 mr-3" />
-                <span className="text-sm text-gray-300">
-                  {task}
-                </span>
-                <span className="ml-auto text-xs text-gray-500">
-                  Tomorrow
-                </span>
-              </motion.div>
-            )
-          )}
-        </div>
+      {/* Optional subtle footer */}
+      <div className="p-4 border-t border-zinc-800 text-xs text-zinc-600 text-center">
+        Tasks auto-sync every 5 min
       </div>
-
-      {/* Performance */}
-      <div className="mt-10 p-4 rounded-xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-700/50">
-        <h3 className="text-lg font-semibold text-white mb-3">
-          Performance
-        </h3>
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-cyan-400">
-              87%
-            </div>
-            <div className="text-xs text-gray-400">
-              Efficiency
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-green-400">
-              24/7
-            </div>
-            <div className="text-xs text-gray-400">
-              Uptime
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.aside>
+    </aside>
   );
 }

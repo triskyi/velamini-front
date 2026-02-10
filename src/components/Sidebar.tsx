@@ -3,123 +3,89 @@
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import {
-  FiHome,
-  FiMessageCircle,
-  FiCheckSquare,
-  FiSettings,
-} from "react-icons/fi";
+  Home,
+  MessageCircle,
+  CheckSquare,
+  Settings,
+} from "lucide-react";
 
-const menuItems = [
-  {
-    name: "Dashboard",
-    icon: FiHome,
-    text: "text-cyan-400",
-    border: "border-cyan-400",
-    glowBg: "bg-cyan-400/20",
-    shadow: "shadow-cyan-400/40",
-    dot: "bg-cyan-400",
-  },
-  {
-    name: "Chat",
-    icon: FiMessageCircle,
-    text: "text-purple-400",
-    border: "border-purple-400",
-    glowBg: "bg-purple-400/20",
-    shadow: "shadow-purple-400/40",
-    dot: "bg-purple-400",
-  },
-  {
-    name: "Tasks",
-    icon: FiCheckSquare,
-    text: "text-green-400",
-    border: "border-green-400",
-    glowBg: "bg-green-400/20",
-    shadow: "shadow-green-400/40",
-    dot: "bg-green-400",
-  },
-  {
-    name: "Settings",
-    icon: FiSettings,
-    text: "text-pink-400",
-    border: "border-pink-400",
-    glowBg: "bg-pink-400/20",
-    shadow: "shadow-pink-400/40",
-    dot: "bg-pink-400",
-  },
+type MenuItem = {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string; // tailwind color class base (e.g. cyan-500)
+};
+
+const menuItems: MenuItem[] = [
+  { name: "Dashboard", icon: Home, color: "cyan" },
+  { name: "Chat", icon: MessageCircle, color: "purple" },
+  { name: "Tasks", icon: CheckSquare, color: "emerald" },
+  { name: "Settings", icon: Settings, color: "rose" },
 ];
 
 export default function Sidebar() {
-  const [activeIndex, setActiveIndex] = useState(1);
+  const [activeIndex, setActiveIndex] = useState(1); // Chat as default
 
   return (
     <motion.aside
-      initial={{ x: -80, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative h-screen w-24 bg-[#0B0F1A] flex flex-col items-center py-8 space-y-8 border-r border-cyan-500/20 overflow-hidden"
+      initial={{ x: -72 }}
+      animate={{ x: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="relative h-screen w-20 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-10 space-y-6 select-none"
     >
-      {/* Neon edge */}
-      <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-cyan-400 to-purple-500" />
+      {/* Very subtle vertical accent line (optional – comment out if too much) */}
+      {/* <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-zinc-800 via-zinc-700 to-zinc-800" /> */}
 
       {menuItems.map((item, index) => {
-        const Icon = item.icon;
         const isActive = activeIndex === index;
+        const color = item.color;
 
         return (
-          <motion.button
+          <button
             key={item.name}
             onClick={() => setActiveIndex(index)}
-            whileHover={{ scale: 1.12 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative group"
+            className={`
+              group relative w-14 h-14 rounded-xl flex flex-col items-center justify-center
+              transition-all duration-200
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-950 focus:ring-${color}-500/50
+              ${isActive
+                ? `bg-zinc-900/80 border border-${color}-500/40 shadow-sm`
+                : `border border-transparent hover:bg-zinc-900/60 hover:border-zinc-700`
+              }
+            `}
+            aria-label={item.name}
+            aria-current={isActive ? "page" : undefined}
           >
-            {/* Active glow background */}
+            {/* Active indicator pill on the left */}
             {isActive && (
               <motion.div
-                layoutId="sidebar-glow"
-                className={`absolute inset-0 rounded-xl blur-xl ${item.glowBg}`}
-                transition={{ type: "spring", stiffness: 180, damping: 25 }}
+                layoutId="active-indicator"
+                className={`absolute -left-3 w-1.5 h-8 rounded-full bg-${color}-500`}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
               />
             )}
 
-            {/* Icon box */}
-            <div
-              className={`relative z-10 w-16 h-16 rounded-xl flex items-center justify-center border transition-all duration-300
-                ${
-                  isActive
-                    ? `${item.border} shadow-lg ${item.shadow}`
-                    : "border-gray-700 group-hover:border-gray-500"
-                }`}
-            >
-              <Icon
-                className={`w-8 h-8 transition-all duration-300
-                  ${
-                    isActive
-                      ? `${item.text} drop-shadow-[0_0_10px]`
-                      : "text-gray-400 group-hover:text-white"
-                  }`}
-              />
+            <item.icon
+              className={`
+                w-7 h-7 transition-colors duration-200
+                ${isActive ? `text-${color}-400` : `text-zinc-400 group-hover:text-zinc-200`}
+              `}
+            />
 
-              {/* Active dot */}
-              {isActive && (
-                <motion.span
-                  layoutId="active-dot"
-                  className={`absolute -right-3 w-2 h-2 rounded-full ${item.dot} shadow-lg`}
-                />
-              )}
-            </div>
-
-            {/* Tooltip */}
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              whileHover={{ opacity: 1, x: 0 }}
-              className="absolute left-full ml-4 px-3 py-1.5 rounded-md bg-black/90 border border-gray-700 text-xs font-semibold pointer-events-none"
+            <span
+              className={`
+                mt-1.5 text-[10px] font-medium tracking-tight
+                ${isActive ? `text-${color}-300` : `text-zinc-500 group-hover:text-zinc-300`}
+              `}
             >
-              <span className={item.text}>{item.name}</span>
-            </motion.div>
-          </motion.button>
+              {item.name}
+            </span>
+          </button>
         );
       })}
+
+      {/* Optional bottom spacer / branding */}
+      <div className="flex-1" />
+      <div className="text-xs text-zinc-600 pb-4">v2.1</div>
     </motion.aside>
   );
 }

@@ -4,18 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { 
-  Bot, 
   User, 
-  Paperclip, 
   Plus, 
   ArrowUp, 
-  Image as ImageIcon, 
-  Upload, 
-  Monitor, 
-  UserPlus,
-  Zap,
-  Layout,
-  Send
+  MessageSquare,
+  X
 } from "lucide-react";
 
 type Message = {
@@ -34,6 +27,10 @@ export default function ChatPanel() {
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<"positive" | "negative" | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [rating, setRating] = useState(0);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -85,6 +82,37 @@ export default function ChatPanel() {
     }, 1000);
   };
 
+  const text = "Feel lonely chat with me";
+  
+  const container = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.04, delayChildren: 0.04 * i },
+    }),
+  };
+
+  const child = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        damping: 12,
+        stiffness: 200,
+      },
+    },
+    hidden: {
+      opacity: 0,
+      y: 20,
+      transition: {
+        type: "spring" as const,
+        damping: 12,
+        stiffness: 200,
+      },
+    },
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#0A0A0A] text-white font-sans">
       
@@ -102,31 +130,59 @@ export default function ChatPanel() {
            </div>
            <span className="font-bold text-zinc-100 text-2xl tracking-tight">Velamini</span>
         </div>
-        <button 
-          onClick={() => {
-            setMessages([{ id: Date.now(), role: "assistant", content: "Hey. I’m Virtual Tresor. Ask me anything about tresor." }]);
-            setInput("");
-          }}
-          className="btn btn-ghost btn-sm text-zinc-500 hover:text-zinc-200 gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          New Chat
-        </button>
+        
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setShowFeedbackModal(true)}
+            className="btn btn-ghost btn-sm text-zinc-500 hover:text-cyan-400 gap-2"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Feedback
+          </button>
+          <div className="w-px h-6 bg-zinc-800 mx-1" />
+          <button 
+            onClick={() => {
+              setMessages([{ id: Date.now(), role: "assistant", content: "Hey. I’m Virtual Tresor. Ask me anything about tresor." }]);
+              setInput("");
+            }}
+            className="btn btn-ghost btn-sm text-zinc-500 hover:text-zinc-200 gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Chat
+          </button>
+        </div>
       </div>
+
+      {messages.length <= 1 && !isTyping && (
+        <motion.div 
+          variants={container}
+          initial="hidden"
+          animate="visible"
+          className="mt-[15vh] text-center px-4"
+        >
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight flex flex-wrap justify-center gap-x-[0.2em]">
+            {text.split(" ").map((word, index) => (
+              <span key={index} className="inline-block whitespace-nowrap">
+                {word.split("").map((char, charIndex) => (
+                  <motion.span
+                    key={charIndex}
+                    variants={child}
+                    className="inline-block text-[#00f3ff] drop-shadow-[0_0_10px_rgba(0,243,255,0.7)]"
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </span>
+            ))}
+          </h1>
+        </motion.div>
+      )}
 
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col items-center px-4 pt-8 pb-16 overflow-hidden relative transition-all duration-700 ${
         messages.length <= 1 ? "justify-center" : "justify-start"
       }`}>
         
-        {messages.length <= 1 && !isTyping && (
-          <div className="mb-[20vh] text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white px-4">
-              What would you like to know about Tresor?
-            </h1>
-          </div>
-        )}
-
         <div className={`w-full max-w-3xl flex flex-col transition-all duration-500 ${messages.length > 1 ? "flex-1 justify-end pb-8" : "justify-center"}`}>
           
           {/* Messages List - Only shown when there's interaction */}
@@ -236,7 +292,106 @@ export default function ChatPanel() {
             </div>
           </div>
         </div>
+
+        {/* Bottom Spacer - Pushes content up in hero state */}
+        {messages.length <= 1 && <div className="h-24" />}
       </div>
+
+      {/* Feedback Modal */}
+      <AnimatePresence>
+        {showFeedbackModal && (
+          <div className="modal modal-open px-4 py-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="modal-box bg-base-200 shadow-2xl"
+            >
+              <button 
+                onClick={() => setShowFeedbackModal(false)}
+                className="btn btn-sm btn-circle btn-ghost absolute right-4 top-4"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="relative z-10 space-y-8">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2 tracking-tight">Help us improve</h3>
+                  <p className="opacity-60 text-[15px]">How was your experience talking with Virtual Tresor?</p>
+                </div>
+                
+                {/* Emoji Rating */}
+                <div className="flex justify-between gap-3">
+            {[
+              { emoji: "🤩", value: 5 },
+              { emoji: "🙂", value: 4 },
+              { emoji: "😐", value: 3 },
+              { emoji: "☹️", value: 2 },
+              { emoji: "😭", value: 1 },
+            ].map((item) => (
+              <button
+                key={item.value}
+                onClick={() => setRating(item.value)}
+                className={`btn btn-circle text-2xl transition-all duration-200 ${
+                  rating === item.value
+                    ? "btn-primary scale-110"
+                    : "btn-ghost"
+                }`}
+              >
+                {item.emoji}
+              </button>
+            ))}
+          </div>
+
+          {/* Labels */}
+          <div className="flex justify-between text-xs text-base-content/50 uppercase tracking-wider">
+            <span>Satisfied</span>
+            <span>Dissatisfied</span>
+          </div>
+
+          {/* Textarea */}
+          <div>
+            <label className="label">
+              <span className="label-text font-semibold">
+                Additional feedback
+              </span>
+              <span className="label-text-alt">(optional)</span>
+            </label>
+
+            <textarea
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              placeholder="Briefly explain what happened..."
+              className="textarea textarea-bordered w-full min-h-[140px]"
+            />
+          </div>
+
+          {/* Submit */}
+          <div className="modal-action mt-4">
+            <button
+              disabled={rating === 0}
+              onClick={() => {
+                setShowFeedbackModal(false);
+                setFeedbackText("");
+                setRating(0);
+              }}
+              className="btn btn-primary w-full"
+            >
+              Submit Feedback
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Backdrop close */}
+      <div
+        className="modal-backdrop"
+        onClick={() => setShowFeedbackModal(false)}
+      />
+    </div>
+  )}
+</AnimatePresence>
+
     </div>
   );
 }

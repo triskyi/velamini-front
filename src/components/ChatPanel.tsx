@@ -116,11 +116,11 @@ export default function ChatPanel() {
 
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col items-center px-4 pt-8 pb-16 overflow-hidden relative transition-all duration-700 ${
-        messages.length <= 1 ? "justify-center pt-[10vh]" : "justify-start"
+        messages.length <= 1 ? "justify-center" : "justify-start"
       }`}>
         
         {messages.length <= 1 && !isTyping && (
-          <div className="mb-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-[20vh] text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white px-4">
               What would you like to know about Tresor?
             </h1>

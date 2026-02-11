@@ -1,5 +1,5 @@
 import ChatPanel from '@/components/ChatPanel';
-
+import InfoPanel from '@/components/InfoPanel';
 
 export default function Home() {
   return (
@@ -35,7 +35,7 @@ export default function Home() {
         </main>
 
         {/* Info Panel */}
-     
+        <InfoPanel />
       </div>
     </div>
   );

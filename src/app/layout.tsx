@@ -1,11 +1,9 @@
-import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="flex h-screen bg-white text-gray-900 dark:bg-bg dark:text-textPrimary font-sans">
-        <Sidebar />
         {children}
       </body>
     </html>

@@ -73,7 +73,7 @@ export default function ChatPanel() {
         onShowFeedback={() => setShowFeedbackModal(true)} 
         onShowTraining={() => setCurrentView(prev => prev === 'chat' ? 'training' : 'chat')}
         onNewChat={() => {
-          setMessages([{ id: Date.now(), role: "assistant", content: "Hey. I’m Virtual Tresor. Ask me anything about tresor." }]);
+          setMessages([]);
           setInput("");
           setCurrentView('chat');
         }}

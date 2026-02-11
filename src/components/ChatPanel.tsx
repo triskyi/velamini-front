@@ -116,11 +116,11 @@ export default function ChatPanel() {
 
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col items-center px-4 pt-8 pb-16 overflow-hidden relative transition-all duration-700 ${
-        messages.length <= 1 ? "justify-center" : "justify-start"
+        messages.length <= 1 ? "justify-center pt-[10vh]" : "justify-start"
       }`}>
         
         {messages.length <= 1 && !isTyping && (
-          <div className="mb-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-[150px] text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white px-4">
               What would you like to know about Tresor?
             </h1>
@@ -238,7 +238,7 @@ export default function ChatPanel() {
 
             {/* Suggestions - Only shown in hero state */}
             {messages.length <= 1 && (
-              <div className="mt-[120px] mb-4 flex flex-wrap justify-center gap-5 animate-in fade-in slide-in-from-top-2 duration-1000 delay-200">
+              <div className="mt-[180px] mb-4 flex flex-wrap justify-center gap-5 animate-in fade-in slide-in-from-top-2 duration-1000 delay-200">
                 {[
                   { icon: User, label: "Who is Tresor?" },
                   { icon: Layout, label: "Recent Projects" },

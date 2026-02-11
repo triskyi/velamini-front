@@ -19,9 +19,25 @@ export default function ChatPanel() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
-  const [rating, setRating] = useState(0);
+
+  // Load messages from localStorage on mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem("velamini_chat_history");
+    if (savedMessages) {
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (e) {
+        console.error("Failed to parse chat history", e);
+      }
+    }
+  }, []);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("velamini_chat_history", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -65,6 +81,9 @@ export default function ChatPanel() {
     }
   };
 
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
   return (
     <div className="h-screen flex flex-col bg-[#0A0A0A] text-white font-sans overflow-hidden">
       
@@ -74,6 +93,7 @@ export default function ChatPanel() {
         onShowTraining={() => setCurrentView(prev => prev === 'chat' ? 'training' : 'chat')}
         onNewChat={() => {
           setMessages([]);
+          localStorage.removeItem("velamini_chat_history");
           setInput("");
           setCurrentView('chat');
         }}

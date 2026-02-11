@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { retrieveContext } from "@/lib/rag/retriever";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -70,6 +71,21 @@ Guidelines:
 
     const data = await response.json();
     const text = data.choices[0].message.content;
+
+    // 3) SAVE TO DB
+    if (process.env.DATABASE_URL) {
+      try {
+        const chat = await prisma.chat.findFirst() || await prisma.chat.create({ data: {} });
+        await prisma.message.createMany({
+          data: [
+            { chatId: chat.id, role: "user", content: message },
+            { chatId: chat.id, role: "assistant", content: text },
+          ],
+        });
+      } catch (dbErr) {
+        console.error("Persistence Error:", dbErr);
+      }
+    }
 
     return NextResponse.json({ text });
 

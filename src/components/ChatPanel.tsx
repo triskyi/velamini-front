@@ -21,7 +21,7 @@ export default function ChatPanel() {
     {
       id: 1,
       role: "assistant",
-      content: "Hi. I'm Virtual Tresor — your personalized AI. Ask me anything about my work, skills, or projects.",
+      content: "Hey, I'm Tresor. This is my digital version. Ask me anything about my projects, my skills, or what I'm working on.",
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
@@ -34,25 +34,6 @@ export default function ChatPanel() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-
-  const generateAIResponse = (userText: string) => {
-    // Focused on Tresor as a personal AI assistant
-    const text = userText.toLowerCase();
-    
-    if (text.includes("hello") || text.includes("hi")) {
-      return "Hello! I'm the AI version of Tresor. How can I help you learn more about him today?";
-    }
-
-    if (text.includes("who are you")) {
-      return "I am Virtual Tresor — a digital extension of Tresor, built to share my background, expertise, and journey.";
-    }
-
-    if (text.includes("tresor")) {
-      return "Tresor is a visionary developer and creator. I'm here to represent him and answer any questions you have about his work.";
-    }
-
-    return "That's an interesting question. As Tresor's AI, I can tell you more about his projects, goals, or technical background. What would you like to know?";
-  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -111,7 +92,7 @@ export default function ChatPanel() {
       ) : (
         <>
           {messages.length <= 1 && !isTyping && (
-            <HeroSection text="Feel lonely chat with me" />
+            <HeroSection text="Chat with my digital self" />
           )}
 
           {/* Main Content Area */}

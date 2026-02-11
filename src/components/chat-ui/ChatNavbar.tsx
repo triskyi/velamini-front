@@ -41,7 +41,7 @@ export default function ChatNavbar({
           }`}
         >
           <GraduationCap className="w-4 h-4" />
-          {currentView === 'training' ? 'Back to Chat' : 'Train Assistant'}
+          {currentView === 'training' ? 'Back to Chat' : 'Intelligence Hub'}
         </button>
 
         <div className="w-px h-6 bg-zinc-800 mx-1" />

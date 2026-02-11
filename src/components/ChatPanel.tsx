@@ -238,7 +238,7 @@ export default function ChatPanel() {
 
             {/* Suggestions - Only shown in hero state */}
             {messages.length <= 1 && (
-              <div className="mt-24 mb-8 flex flex-wrap justify-center gap-5 animate-in fade-in slide-in-from-top-2 duration-1000 delay-200">
+              <div className="mt-[120px] mb-4 flex flex-wrap justify-center gap-5 animate-in fade-in slide-in-from-top-2 duration-1000 delay-200">
                 {[
                   { icon: User, label: "Who is Tresor?" },
                   { icon: Layout, label: "Recent Projects" },

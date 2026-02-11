@@ -54,7 +54,7 @@ export default function ChatPanel() {
     return "That's an interesting question. As Tresor's AI, I can tell you more about his projects, goals, or technical background. What would you like to know?";
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = {
@@ -67,16 +67,27 @@ export default function ChatPanel() {
     setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const aiReply: Message = {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: generateAIResponse(userMessage.content),
-      };
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage.content }),
+      });
+      const data = await res.json();
 
-      setMessages((prev) => [...prev, aiReply]);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, role: "assistant", content: data.text || data.error || "Error: Something went wrong." },
+      ]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, role: "assistant", content: "I'm having trouble connecting right now." },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   return (

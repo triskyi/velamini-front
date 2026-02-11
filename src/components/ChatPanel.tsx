@@ -120,15 +120,12 @@ export default function ChatPanel() {
       }`}>
         
         {messages.length <= 1 && !isTyping && (
-          <div className="mb-[150px] text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white px-4">
               What would you like to know about Tresor?
             </h1>
           </div>
         )}
-
-        {/* This spacer helps push everything up slightly when in hero mode */}
-        {messages.length <= 1 && <div className="h-20" />}
 
         <div className={`w-full max-w-3xl flex flex-col transition-all duration-500 ${messages.length > 1 ? "flex-1 justify-end pb-8" : "justify-center"}`}>
           
@@ -192,6 +189,8 @@ export default function ChatPanel() {
                         alt="V" 
                         width={40} 
                         height={40} 
+                       
+              
                         className="object-contain"
                       />
                     </div>
@@ -235,26 +234,6 @@ export default function ChatPanel() {
                 </button>
               </div>
             </div>
-
-            {/* Suggestions - Only shown in hero state */}
-            {messages.length <= 1 && (
-              <div className="mt-[180px] mb-4 flex flex-wrap justify-center gap-5 animate-in fade-in slide-in-from-top-2 duration-1000 delay-200">
-                {[
-                  { icon: User, label: "Who is Tresor?" },
-                  { icon: Layout, label: "Recent Projects" },
-                  { icon: Zap, label: "Technical Skills" },
-                  { icon: Monitor, label: "Career Journey" },
-                ].map((item, idx) => (
-                  <button
-                    key={idx}
-                    className="btn btn-outline btn-md rounded-full border-zinc-800 text-zinc-400 font-medium hover:bg-zinc-900 hover:border-zinc-700 hover:text-white transition-all whitespace-nowrap px-6"
-                  >
-                    <item.icon className="w-5 h-5 text-zinc-500" />
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

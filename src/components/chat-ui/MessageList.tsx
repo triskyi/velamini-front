@@ -18,7 +18,7 @@ interface MessageListProps {
 
 export default function MessageList({ messages, isTyping, bottomRef }: MessageListProps) {
   return (
-    <div className="flex-1 overflow-y-auto px-2 py-6 space-y-2 scrollbar-hide">
+    <div className="flex-1 overflow-y-auto px-2 py-6 space-y-2 scrollbar-thumb-zinc-800 scrollbar-track-transparent">
       <AnimatePresence>
         {messages.map((msg) => {
           const isUser = msg.role === "user";
@@ -48,7 +48,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
                 </div>
               </div>
               <div className="chat-header text-zinc-500 text-xs mb-1 px-1">
-                {isUser ? "You" : "Velamini"}
+                {isUser ? "You" : "Tresor"}
                 <time className="ml-2 opacity-50">
                   {new Date(msg.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </time>

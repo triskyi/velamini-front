@@ -85,18 +85,18 @@ export default function ChatPanel() {
         </div>
       ) : (
         <>
-          {messages.length <= 1 && !isTyping && (
+          {messages.length === 0 && !isTyping && (
             <HeroSection text="Chat with my digital self" />
           )}
 
           {/* Main Content Area */}
           <div className={`flex-1 flex flex-col items-center px-4 pt-8 pb-16 overflow-hidden relative transition-all duration-700 ${
-            messages.length <= 1 ? "justify-center" : "justify-start"
+            messages.length === 0 ? "justify-center" : "justify-start"
           }`}>
             
-            <div className={`w-full max-w-3xl flex flex-col transition-all duration-500 ${messages.length > 1 ? "flex-1 justify-end pb-8" : "justify-center"}`}>
+            <div className={`w-full max-w-3xl flex flex-col h-full transition-all duration-500 ${messages.length > 0 ? "flex-1 pb-8" : "justify-center"}`}>
               
-              {messages.length > 1 && (
+              {messages.length > 0 && (
                 <MessageList 
                   messages={messages} 
                   isTyping={isTyping} 
@@ -112,7 +112,7 @@ export default function ChatPanel() {
             </div>
 
             {/* Bottom Spacer - Pushes content up in hero state */}
-            {messages.length <= 1 && <div className="h-24" />}
+            {messages.length === 0 && <div className="h-24" />}
           </div>
         </>
       )}

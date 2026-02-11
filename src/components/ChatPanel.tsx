@@ -17,13 +17,7 @@ type Message = {
 export default function ChatPanel() {
   const [currentView, setCurrentView] = useState<'chat' | 'training'>('chat');
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      role: "assistant",
-      content: "Hey, I'm Tresor. This is my digital version. Ask me anything about my projects, my skills, or what I'm working on.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");

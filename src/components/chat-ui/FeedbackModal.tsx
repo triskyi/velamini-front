@@ -23,7 +23,7 @@ export default function FeedbackModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="modal modal-open px-4 py-8">
+        <div className="modal modal-open px-8 py-8">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -39,9 +39,9 @@ export default function FeedbackModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 20 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="modal-box relative max-w-xl bg-base-200/95 backdrop-blur-xl 
+            className="modal-box m-20 relative max-w-xl bg-base-200/95 backdrop-blur-xl 
                        shadow-2xl border border-base-300/40 
-                       rounded-3xl p-10 space-y-8"
+                        p-10 space-y-8"
           >
             {/* Close Button */}
             <button
@@ -95,9 +95,9 @@ export default function FeedbackModal({
             {/* Textarea */}
             <div>
               <label className="block text-sm font-semibold mb-3">
-                Additional feedback
+                Tell us something more
                 <span className="text-base-content/40 font-normal ml-2 text-xs">
-                  (optional)
+                     
                 </span>
               </label>
 
@@ -107,7 +107,7 @@ export default function FeedbackModal({
                 placeholder="Briefly explain what happened..."
                 className="textarea w-full min-h-[140px] bg-base-300/40 
                            focus:bg-base-300/70 border border-base-300/50 
-                           rounded-2xl resize-none transition-all"
+                           resize-none transition-all"
               />
             </div>
 

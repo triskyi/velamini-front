@@ -1,14 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { MessageSquare, Plus } from "lucide-react";
+import { MessageSquare, Plus, GraduationCap } from "lucide-react";
 
 interface ChatNavbarProps {
   onShowFeedback: () => void;
   onNewChat: () => void;
+  onShowTraining: () => void;
+  currentView: 'chat' | 'training';
 }
 
-export default function ChatNavbar({ onShowFeedback, onNewChat }: ChatNavbarProps) {
+export default function ChatNavbar({ 
+  onShowFeedback, 
+  onNewChat, 
+  onShowTraining,
+  currentView
+}: ChatNavbarProps) {
   return (
     <div className="w-full flex justify-between items-center px-8 py-6">
       <div className="flex items-center gap-3">
@@ -26,13 +33,26 @@ export default function ChatNavbar({ onShowFeedback, onNewChat }: ChatNavbarProp
       
       <div className="flex items-center gap-4">
         <button 
+          onClick={onShowTraining}
+          className={`btn btn-sm gap-2 transition-all ${
+            currentView === 'training' 
+              ? 'bg-cyan-500 text-white border-none shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
+              : 'btn-ghost text-zinc-500 hover:text-cyan-400'
+          }`}
+        >
+          <GraduationCap className="w-4 h-4" />
+          {currentView === 'training' ? 'Back to Chat' : 'Train Assistant'}
+        </button>
+
+        <div className="w-px h-6 bg-zinc-800 mx-1" />
+
+        <button 
           onClick={onShowFeedback}
           className="btn btn-ghost btn-sm text-zinc-500 hover:text-cyan-400 gap-2"
         >
           <MessageSquare className="w-4 h-4" />
           Feedback
         </button>
-        <div className="w-px h-6 bg-zinc-800 mx-1" />
         <button 
           onClick={onNewChat}
           className="btn btn-ghost btn-sm text-zinc-500 hover:text-zinc-200 gap-2"

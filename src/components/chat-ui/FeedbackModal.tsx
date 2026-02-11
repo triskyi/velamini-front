@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -20,6 +21,31 @@ export default function FeedbackModal({
   feedbackText,
   setFeedbackText,
 }: FeedbackModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (rating === 0) return;
+    
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating, comment: feedbackText }),
+      });
+
+      if (response.ok) {
+        setRating(0);
+        setFeedbackText("");
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -29,7 +55,7 @@ export default function FeedbackModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={!isSubmitting ? onClose : undefined}
             className="modal-backdrop bg-black/60 backdrop-blur-sm"
           />
 
@@ -44,12 +70,14 @@ export default function FeedbackModal({
                         p-10 space-y-8"
           >
             {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="btn btn-sm btn-circle btn-ghost absolute right-6 top-6"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {!isSubmitting && (
+              <button
+                onClick={onClose}
+                className="btn btn-sm btn-circle btn-ghost absolute right-6 top-6"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
 
             {/* Header */}
             <div>
@@ -73,13 +101,14 @@ export default function FeedbackModal({
                 ].map((item) => (
                   <button
                     key={item.value}
+                    disabled={isSubmitting}
                     onClick={() => setRating(item.value)}
                     className={`flex-1 aspect-square rounded-2xl text-3xl transition-all duration-300
                       ${
                         rating === item.value
                           ? "bg-primary text-primary-content scale-110 shadow-lg shadow-primary/30"
                           : "bg-base-300/40 hover:bg-base-300/70"
-                      }`}
+                      } ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {item.emoji}
                   </button>
@@ -97,34 +126,38 @@ export default function FeedbackModal({
               <label className="block text-sm font-semibold mb-3">
                 Tell us something more
                 <span className="text-base-content/40 font-normal ml-2 text-xs">
-                     
+                  (Optional)
                 </span>
               </label>
 
               <textarea
                 value={feedbackText}
+                disabled={isSubmitting}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 placeholder="Briefly explain what happened..."
                 className="textarea w-full min-h-[140px] bg-base-300/40 
                            focus:bg-base-300/70 border border-base-300/50 
-                           resize-none transition-all"
+                           resize-none transition-all disabled:opacity-50"
               />
             </div>
 
             {/* Submit */}
             <div className="pt-2">
               <button
-                disabled={rating === 0}
-                onClick={() => {
-                  onClose();
-                  setFeedbackText("");
-                  setRating(0);
-                }}
+                disabled={rating === 0 || isSubmitting}
+                onClick={handleSubmit}
                 className="btn btn-primary w-full rounded-xl text-base font-semibold 
                            shadow-lg shadow-primary/30 
                            disabled:opacity-40 disabled:shadow-none"
               >
-                Submit Feedback
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Feedback"
+                )}
               </button>
             </div>
           </motion.div>

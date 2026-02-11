@@ -9,12 +9,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Rating is required" }, { status: 400 });
     }
 
+    console.log("Saving feedback to DB:", { rating, comment });
     const feedback = await prisma.feedback.create({
       data: {
         rating,
         comment,
       },
     });
+    console.log("Feedback saved successfully:", feedback.id);
 
     return NextResponse.json({ success: true, feedback });
   } catch (error: any) {

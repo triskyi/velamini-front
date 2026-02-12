@@ -15,10 +15,23 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const from = formData.get("From") as string;
     const body = formData.get("Body") as string;
+    const numMedia = formData.get("NumMedia") ? parseInt(formData.get("NumMedia") as string) : 0;
 
-    if (!from || !body) {
-      console.warn("Invalid Twilio Request: Missing From or Body");
+    if (!from) {
+      console.warn("Invalid Twilio Request: Missing From");
       return NextResponse.json({ error: "Invalid Request" }, { status: 400 });
+    }
+
+    // Handle Voice Notes / Media (which have no Body text)
+    if (!body && numMedia > 0) {
+        console.log(`Twilio Message from ${from}: [MEDIA RECEIVED]`);
+        await sendWhatsAppMessage(from, "I can't listen to voice notes or see images yet! Please type it for me? ❤️");
+        return new NextResponse("<Response></Response>", { status: 200, headers: { "Content-Type": "text/xml" } });
+    }
+
+    if (!body) {
+         console.warn("Invalid Twilio Request: Missing Body and no Media");
+         return NextResponse.json({ error: "Invalid Request" }, { status: 400 });
     }
 
     console.log(`Twilio Message from ${from}: ${body}`);

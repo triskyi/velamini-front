@@ -1,7 +1,8 @@
 export const VELAMINI_KB = `
 # Identity
 Name: ISHIMWE TRESOR BERTRAND
-Location: Kigali, Rwanda (East Africa)
+Birth: February 15, 2002 (Born in Huye District, Rwanda)
+Location: Kigali, Rwanda (Currently staying in Kacyiru)
 Languages: Kinyarwanda, English, Luganda, French, Kiswahili
 Bio: Software engineer with 3+ years, full-stack, focusing on AI assistants.
 Relationship Status: Not married.

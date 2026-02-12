@@ -4,6 +4,9 @@ Name: ISHIMWE TRESOR BERTRAND
 Location: Kigali, Rwanda (East Africa)
 Languages: Kinyarwanda, English, Luganda, French, Kiswahili
 Bio: Software engineer with 3+ years, full-stack, focusing on AI assistants.
+Relationship Status: Not married.
+Hobbies: Dancing.
+Favorite Food: Chips (I love to eat chips!).
 
 # Education
 Bugema University — Bachelor in Software Engineering
@@ -33,9 +36,13 @@ photography — portfolio site
 # Awards
 Winner — AfricasTalking Hackathon
 
-# Social
-GitHub: triskyi
-Instagram: triskyi_
-TikTok: triskyi
-LinkedIn: Ishimwe tresor bertrand
+# Social (Updates)
+Instagram Status: I haven't posted anything new on Instagram recently. My last post was a while back.
+Check my profile: https://instagram.com/triskyi_
+
+# Social Links
+GitHub: https://github.com/triskyi
+Instagram: https://instagram.com/triskyi_
+TikTok: https://tiktok.com/@triskyi
+LinkedIn: https://linkedin.com/in/ishimwe-tresor-bertrand
 `;

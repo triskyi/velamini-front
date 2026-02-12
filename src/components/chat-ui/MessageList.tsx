@@ -16,6 +16,28 @@ interface MessageListProps {
   bottomRef: React.RefObject<HTMLDivElement | null>;
 }
 
+// Helper to auto-linkify URLs
+const renderWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a 
+          key={index} 
+          href={part} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-cyan-400 hover:text-cyan-300 hover:underline break-words"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 export default function MessageList({ messages, isTyping, bottomRef }: MessageListProps) {
   return (
     <div className="flex-1 overflow-y-auto px-2 py-6 space-y-2 scrollbar-thumb-zinc-800 scrollbar-track-transparent">
@@ -58,7 +80,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
                   ? "bg-zinc-800 text-zinc-100" 
                   : "bg-zinc-900 border border-zinc-800 text-zinc-200"
               }`}>
-                {msg.content}
+                {renderWithLinks(msg.content)}
               </div>
               <div className="chat-footer opacity-40 text-[10px] mt-1">
                 {isUser ? "Delivered" : "Virtual Tresor"}

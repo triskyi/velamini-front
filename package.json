@@ -9,31 +9,25 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
-    "@prisma/adapter-neon": "^7.4.0",
-    "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "@shadcn/ui": "^0.0.4",
     "@tailwindcss/forms": "^0.5.11",
-    "@types/ws": "^8.18.1",
     "class-variance-authority": "^0.7.1",
     "framer-motion": "^12.34.0",
     "hono": "^4.11.9",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "openai": "^6.21.0",
-    "pg": "^8.18.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-icons": "^5.5.0",
     "recharts": "^3.7.0",
     "shadcn-ui": "^0.9.5",
-    "ws": "^8.19.0"
+    "vercel": "^41.0.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",

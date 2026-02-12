@@ -29,23 +29,25 @@ export async function POST(req: Request) {
       try {
         const examples = await prisma.trainingExample.findMany({
           where: { 
-            rating: { gte: 4 }, 
-            userEdit: { not: null } 
+            rating: { gte: 4 },
+            // We fetch both edited AND unedited high-rated responses
           },
           orderBy: { createdAt: "desc" },
-          take: 3,
+          take: 5,
         });
         
         if (examples.length > 0) {
-          interface TrainingExample {
-            userPrompt: string;
-            userEdit: string;
-          }
-
-          styleExamples = "\n\nSTYLE EXAMPLES (learn from these approved responses):\n" +
-            (examples as TrainingExample[]).map((ex: TrainingExample) => 
-              `Q: ${ex.userPrompt}\nBEST ANSWER: ${ex.userEdit}`
-            ).join("\n\n");
+           styleExamples = "\n\n### STYLE GUIDE (LEARNED FROM FEEDBACK):\n" +
+            "The user prefers the style of the answers below. Mimic their length, tone, and formatting exactly:\n\n" +
+            examples.map(ex => {
+              // If user edited it, that's the gold standard. 
+              // If not, but rated highly, the original answer is the gold standard.
+              const validAnswer = ex.userEdit ? ex.userEdit : ex.aiAnswer;
+              // Clean up newlines for cleaner prompt
+              const cleanPrompt = ex.userPrompt.replace(/\n/g, " ");
+              const cleanAnswer = validAnswer.replace(/\n/g, " ");
+              return `User asks: "${cleanPrompt}"\nYou answer: "${cleanAnswer}"`;
+            }).join("\n\n");
         }
       } catch (err) {
         console.error("Failed to fetch training examples:", err);
@@ -99,7 +101,7 @@ ${styleExamples}`;
     ];
 
     let messages = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: systemPrompt + (styleExamples ? `\n\nREMINDER: Follow the examples above. If the user asks something similar to an example, reply with the EXACT style of the example.` : "") },
       ...history,
       { role: "user", content: `SOURCES:\n${context}\n\nQUESTION:\n${message}` }
     ];

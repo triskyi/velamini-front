@@ -13,6 +13,7 @@ Bugema University — Bachelor in Software Engineering
 Gitwe Adventist College — A2 Diploma (MPC)
 
 # Experience
+OpenFN(Open Function) (Present) — Junior Developer building adaptor
 Bugema University (2023) — Junior Software Developer — ReactJS, Django
 COODIC (Mar 2024 – Jun 2024) — Software Engineer (Remote)
 AfricasTalking (Mar 2024 – Jun 2024) — Developer (Remote)
@@ -25,6 +26,7 @@ Tools: Git, Figma
 Methods: Agile / Scrum
 
 # Projects
+OpenFn Adaptors — Built Flutterwave adaptor, currently working on Browserless adaptor. (Docs: https://docs.openfn.org/adaptors)
 MyGuyAssistantAPI — Python + Flask — API-driven virtual assistant
 Smart-harvest — ML for agriculture yields
 Online-v-System — Online voting system
@@ -34,7 +36,7 @@ lecturers-allocation — Django lecturer allocation tool
 photography — portfolio site
 
 # Awards
-Winner — AfricasTalking Hackathon
+Winner — AfricasTalking Hackathon 3 times
 
 # Social (Updates)
 Instagram Status: I haven't posted anything new on Instagram recently. My last post was a while back.
@@ -44,5 +46,5 @@ Check my profile: https://instagram.com/triskyi_
 GitHub: https://github.com/triskyi
 Instagram: https://instagram.com/triskyi_
 TikTok: https://tiktok.com/@triskyi
-LinkedIn: https://linkedin.com/in/ishimwe-tresor-bertrand
+LinkedIn: https://www.linkedin.com/in/tresor-ishimwe-05b0b1279/
 `;

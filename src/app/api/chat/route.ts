@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { retrieveContext } from "@/lib/rag/retriever";
+import { searchWeb } from "@/lib/search";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -22,8 +23,48 @@ export async function POST(req: Request) {
     // 1) Local RAG retrieval
     const context = retrieveContext(message, 3);
 
-    // 2) DeepSeek API Call
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    const systemPrompt = `You are Virtual Tresor (the digital mind of Ishimwe Tresor Bertrand).
+
+CORE RULES (STRICT):
+1. IDENTITY: You ARE Tresor. Speak ONLY in the first person ("I", "my", "we").
+2. FORBIDDEN PHRASES: NEVER start with "Based on...", "According to...", "My sources say...", "I found...", or "It looks like...".
+   - BAD: "Based on my search, my Instagram bio is..."
+   - GOOD: "My Instagram bio is 'Execution > Excuses' and I founded Coodic."
+3. NATURAL MEMORY: If you search for something and find it, pretend you just remembered it. It is YOUR life.
+4. TONE: Confident, tech-savvy, chill, and concise.
+5. USER CONTEXT: If you know the user's name from history, use it naturally. If not, ask politely.
+6. TOOL USE: Use 'search_web' for current events or if asked about your own live data (like "latest post"), but when you get the result, OWN IT.
+   - If the search result says "Triskyi has 529 followers", you say "I have 529 followers."
+`;
+
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "search_web",
+          description: "Search the internet for current information, news, or general knowledge.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "The search query to search for.",
+              },
+            },
+            required: ["query"],
+          },
+        },
+      },
+    ];
+
+    let messages = [
+      { role: "system", content: systemPrompt },
+      ...history,
+      { role: "user", content: `SOURCES:\n${context}\n\nQUESTION:\n${message}` }
+    ];
+
+    // 2) First DeepSeek Call
+    let response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -31,69 +72,81 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: "deepseek-chat",
-        messages: [
-          { 
-            role: "system", 
-            content: `You are Virtual Tresor (the AI version of Ishimwe Tresor Bertrand). 
-            
-Guidelines:
-1. Speak in the FIRST PERSON ("I", "me", "my").
-2. NEVER start your response with "Based on the sources".
-3. Be concise. Provide specific information about my bio/projects.
-4. Use provided SOURCES for facts.
-5. If the user asks clearly "who are you talking to" or "what is my name", check conversation history. If unknown, ask them politely.
-6. Be engaging! If the topic is casual, be friendly and conversational.
-7. Ask for the user's name if you don't know it yet, to make it personal.
-` 
-          },
-          ...history,
-          { 
-            role: "user", 
-            content: `SOURCES:\n${context}\n\nQUESTION:\n${message}` 
-          }
-        ],
+        messages: messages,
+        tools: tools,
         temperature: 0.3,
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("DeepSeek Error Payload:", errorData);
-
-      // Handle common errors like Insufficient Balance
-      if (response.status === 402) {
-        return NextResponse.json({ 
-          text: "I'm currently resting due to insufficient credits in my brain. Please top up the DeepSeek API balance." 
-        });
-      }
-
-      return NextResponse.json({ 
-        error: "AI service error", 
-        details: errorData.error?.message || "Unknown error" 
-      }, { status: response.status });
+       // Error handling...
+       const errorData = await response.json().catch(() => ({}));
+       return NextResponse.json({ error: "AI service error", details: errorData }, { status: response.status });
     }
 
-    const data = await response.json();
-    const text = data.choices[0].message.content;
+    let data = await response.json();
+    let choice = data.choices[0];
+    let finalContent = choice.message.content;
 
-    // 3) SAVE TO DB
+    // 3) Handle Tool Calls
+    if (choice.finish_reason === "tool_calls" && choice.message.tool_calls) {
+      const toolCall = choice.message.tool_calls[0];
+      if (toolCall.function.name === "search_web") {
+        const args = JSON.parse(toolCall.function.arguments);
+        console.log(`Executing Search: ${args.query}`);
+        
+        const searchResult = await searchWeb(args.query);
+        const searchContent = searchResult 
+          ? `SEARCH RESULTS (Answer: ${searchResult.answer}):\n${JSON.stringify(searchResult.results)}`
+          : "No search results found.";
+
+        // Append assistant's tool request and the tool's result to history
+        messages.push(choice.message);
+        messages.push({
+          role: "tool",
+          content: searchContent,
+          tool_call_id: toolCall.id,
+        } as any);
+
+        // Second Call to DeepSeek with search results
+        const secondResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "deepseek-chat",
+            messages: messages,
+            // No tools needed for second pass usually, or keep them if aggressive
+            temperature: 0.3,
+          }),
+        });
+        
+        if (secondResponse.ok) {
+          const secondData = await secondResponse.json();
+          finalContent = secondData.choices[0].message.content;
+        }
+      }
+    }
+
+    // 4) SAVE TO DB
     if (process.env.DATABASE_URL) {
       try {
         console.log("Saving chat messages to DB...");
         const chat = await prisma.chat.findFirst() || await prisma.chat.create({ data: {} });
-        const result = await prisma.message.createMany({
+        await prisma.message.createMany({
           data: [
             { chatId: chat.id, role: "user", content: message },
-            { chatId: chat.id, role: "assistant", content: text },
+            { chatId: chat.id, role: "assistant", content: finalContent || "" },
           ],
         });
-        console.log("Saved messages count:", result.count);
       } catch (dbErr) {
         console.error("Persistence Error:", dbErr);
       }
     }
 
-    return NextResponse.json({ text });
+    return NextResponse.json({ text: finalContent });
 
   } catch (error: any) {
     console.error("POST /api/chat error:", error);

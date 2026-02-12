@@ -59,10 +59,16 @@ export default function ChatPanel() {
     setIsTyping(true);
 
     try {
+      // Send last 6 messages context + new message
+      const contextMessages = messages.slice(-6).map(m => ({ role: m.role, content: m.content }));
+      
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage.content }),
+        body: JSON.stringify({ 
+          message: userMessage.content,
+          history: contextMessages 
+        }),
       });
       const data = await res.json();
 

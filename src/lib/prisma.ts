@@ -1,18 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
-/**
- * Singleton pattern for PrismaClient. 
- * Prevents multiple instances in development and works with standard Postgres/Prisma Postgres.
- */
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const connectionString = process.env.DATABASE_URL!;
+
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
 export const prisma =
-  globalForPrisma.prisma ||
+  globalForPrisma.prisma ??
   new PrismaClient({
-    // In Prisma 7, connection URLs for Accelerate/Prisma Postgres must be passed here
-    accelerateUrl: process.env.DATABASE_URL || undefined,
-    log: ["error", "warn"] as const,
+    adapter,
+    log: ["error", "warn"],
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

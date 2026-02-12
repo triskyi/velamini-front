@@ -22,11 +22,13 @@ export default function FeedbackModal({
   setFeedbackText,
 }: FeedbackModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (rating === 0) return;
     
     setIsSubmitting(true);
+    setErrorStatus(null);
     try {
       const response = await fetch("/api/feedback", {
         method: "POST",
@@ -38,9 +40,13 @@ export default function FeedbackModal({
         setRating(0);
         setFeedbackText("");
         onClose();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setErrorStatus(data.error || "Submission failed");
       }
     } catch (error) {
       console.error("Error submitting feedback:", error);
+      setErrorStatus("Connection error. Try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -142,7 +148,12 @@ export default function FeedbackModal({
             </div>
 
             {/* Submit */}
-            <div className="pt-2">
+            <div className="pt-2 space-y-3">
+              {errorStatus && (
+                <p className="text-error text-center text-sm font-medium animate-pulse">
+                  {errorStatus}
+                </p>
+              )}
               <button
                 disabled={rating === 0 || isSubmitting}
                 onClick={handleSubmit}

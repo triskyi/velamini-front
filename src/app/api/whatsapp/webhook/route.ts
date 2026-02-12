@@ -3,6 +3,7 @@ import { retrieveContext } from "@/lib/rag/retriever";
 import { searchWeb } from "@/lib/search";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { VIRTUAL_TRESOR_SYSTEM_PROMPT } from "@/lib/ai-config";
+import { prisma } from "@/lib/prisma";
 
 // Force Node.js runtime for FormData compatibility if needed, 
 // though standard Web API Request/Response works in Edge too.
@@ -44,12 +45,40 @@ async function handleIncomingMessage(from: string, userMessage: string) {
       return;
   }
 
+  // 0) Database Persistence: Get/Create Chat & History
+  let chat = await prisma.chat.findFirst({
+      where: { userId: from },
+      orderBy: { createdAt: 'desc' }
+  });
+
+  if (!chat) {
+      chat = await prisma.chat.create({
+          data: { userId: from }
+      });
+  }
+
+  const historyMessages = await prisma.message.findMany({
+      where: { chatId: chat.id },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+  });
+
+  // Save User Message
+  await prisma.message.create({
+      data: {
+          chatId: chat.id,
+          role: 'user',
+          content: userMessage
+      }
+  });
+
   // 1) Context Retrieval
   const context = retrieveContext(userMessage, 3);
   
   // 2) AI Prompt Construction
-  const messages = [
+  const messages: any[] = [
     { role: "system", content: VIRTUAL_TRESOR_SYSTEM_PROMPT },
+    ...historyMessages.reverse().map(msg => ({ role: msg.role, content: msg.content })),
     { role: "user", content: `SOURCES:\n${context}\n\nQUESTION:\n${userMessage}` }
   ];
 
@@ -154,6 +183,15 @@ async function handleIncomingMessage(from: string, userMessage: string) {
 
     // 6) Send Reply via Twilio
     if (finalContent) {
+        // Save Assistant Message
+        await prisma.message.create({
+            data: {
+                chatId: chat.id,
+                role: 'assistant',
+                content: finalContent
+            }
+        });
+
         console.log("Sending WhatsApp reply...");
         await sendWhatsAppMessage(from, finalContent);
     } else {

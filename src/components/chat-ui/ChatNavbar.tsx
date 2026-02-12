@@ -32,7 +32,7 @@ export default function ChatNavbar({
       </div>
       
       <div className="flex items-center gap-4">
-        <button 
+        {/* <button 
           onClick={onShowTraining}
           className={`btn btn-sm gap-2 transition-all ${
             currentView === 'training' 
@@ -44,7 +44,7 @@ export default function ChatNavbar({
           {currentView === 'training' ? 'Back to Chat' : 'Intelligence Hub'}
         </button>
 
-        <div className="w-px h-6 bg-zinc-800 mx-1" />
+        <div className="w-px h-6 bg-zinc-800 mx-1" /> */}
 
         <button 
           onClick={onShowFeedback}

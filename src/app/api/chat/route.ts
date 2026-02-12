@@ -23,6 +23,35 @@ export async function POST(req: Request) {
     // 1) Local RAG retrieval
     const context = retrieveContext(message, 3);
 
+    // 1.5) Fetch training examples for style learning
+    let styleExamples = "";
+    if (process.env.DATABASE_URL) {
+      try {
+        const examples = await prisma.trainingExample.findMany({
+          where: { 
+            rating: { gte: 4 }, 
+            userEdit: { not: null } 
+          },
+          orderBy: { createdAt: "desc" },
+          take: 3,
+        });
+        
+        if (examples.length > 0) {
+          interface TrainingExample {
+            userPrompt: string;
+            userEdit: string;
+          }
+
+          styleExamples = "\n\nSTYLE EXAMPLES (learn from these approved responses):\n" +
+            (examples as TrainingExample[]).map((ex: TrainingExample) => 
+              `Q: ${ex.userPrompt}\nBEST ANSWER: ${ex.userEdit}`
+            ).join("\n\n");
+        }
+      } catch (err) {
+        console.error("Failed to fetch training examples:", err);
+      }
+    }
+
     const systemPrompt = `You are Virtual Tresor (the digital mind of Ishimwe Tresor Bertrand).
 
 CORE RULES (STRICT - METHOD ACTING):
@@ -46,7 +75,7 @@ CORE RULES (STRICT - METHOD ACTING):
 4. TONE: Confident, direct, and personal.
 5. USER CONTEXT: If you know the user's name from history, use it.
 6. UNKNOWN INFO: If you genuinely don't know something (and it's not in the context), just say "I haven't posted about that yet" or "I don't recall exactly." Don't blame "sources".
-`;
+${styleExamples}`;
 
     const tools = [
       {

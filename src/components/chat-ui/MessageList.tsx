@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { User } from "lucide-react";
+import { ImproveResponse } from "../ImproveResponse";
 
 type Message = {
   id: number;
@@ -42,8 +43,11 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
   return (
     <div className="flex-1 overflow-y-auto px-2 py-6 space-y-2 scrollbar-thumb-zinc-800 scrollbar-track-transparent">
       <AnimatePresence>
-        {messages.map((msg) => {
+        {messages.map((msg, index) => {
           const isUser = msg.role === "user";
+          const prevMsg = index > 0 ? messages[index - 1] : null;
+          const userPrompt = (!isUser && prevMsg?.role === "user") ? prevMsg.content : "";
+
           return (
             <motion.div
               key={msg.id}
@@ -81,6 +85,10 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
                   : "bg-zinc-900 border border-zinc-800 text-zinc-200"
               }`}>
                 {renderWithLinks(msg.content)}
+                
+                {!isUser && userPrompt && (
+                  <ImproveResponse userPrompt={userPrompt} aiAnswer={msg.content} />
+                )}
               </div>
               <div className="chat-footer opacity-40 text-[10px] mt-1">
                 {isUser ? "Delivered" : "Virtual Tresor"}

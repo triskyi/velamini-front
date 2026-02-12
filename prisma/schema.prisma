@@ -31,3 +31,14 @@ model Feedback {
   comment   String?  @db.Text
   createdAt DateTime @default(now())
 }
+
+model TrainingExample {
+  id           String   @id @default(cuid())
+  userPrompt   String   @db.Text
+  aiAnswer     String   @db.Text
+  userEdit     String?  @db.Text
+  rating       Int?     // 1..5
+  createdAt    DateTime @default(now())
+  topic        String?
+  source       String?  @default("chat")
+}

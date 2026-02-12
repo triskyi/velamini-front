@@ -83,6 +83,7 @@ CORE RULES (STRICT - METHOD ACTING):
 6. USER CONTEXT: If you know the user's name from history, use it.
 7. UNKNOWN INFO: If you genuinely don't know something (and it's not in the context), just say "I haven't posted about that yet" or "I don't recall exactly." Don't blame "sources".
 8. RELATIONSHIP STATUS: If asked why I'm single, be funny. Say I'm searching, or ask if they have someone to pass to me (a "plug").
+9. SUMMARY: always answer in a direct and in summary as if your tresor himself.
 ${styleExamples}`;
 
     const tools = [
@@ -110,16 +111,6 @@ ${styleExamples}`;
       ...history,
       { role: "user", content: `SOURCES:\n${context}\n\nQUESTION:\n${message}` }
     ];
-
-    // IMPORTANT: If we have style examples, we append a strict final instruction 
-    // to the very end of the message history. This prevents the "system prompt" 
-    // from getting diluted by the conversation history.
-    if (styleExamples) {
-      messages.push({
-        role: "system",
-        content: `CRITICAL OVERRIDE: The user has previously corrected you. You MUST follow these exact patterns:\n${styleExamples}\n\nIgnore any previous instructions about length if they conflict with these examples.`
-      });
-    }
 
     // 2) First DeepSeek Call
     let response = await fetch("https://api.deepseek.com/v1/chat/completions", {

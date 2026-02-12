@@ -98,10 +98,27 @@ CORE RULES (STRICT - METHOD ACTING):
     let data = await response.json();
     let choice = data.choices[0];
     let finalContent = choice.message.content;
+    let toolCalls = choice.message.tool_calls;
+
+    // FALLBACK: Detect DeepSeek DSML leakage (DeepSeek V3 sometimes leaks raw tool tokens)
+    if (!toolCalls && finalContent && finalContent.includes("<｜DSML｜invoke")) {
+      console.log("Detected DSML leakage, attempting to parse...");
+      const match = finalContent.match(/<｜DSML｜invoke name="([^"]+)">.*?<｜DSML｜parameter name="query"[^>]*>(.*?)<\/｜DSML｜parameter>/s);
+      if (match) {
+        toolCalls = [{
+          id: "call_" + Math.random().toString(36).substr(2, 9),
+          type: "function",
+          function: {
+            name: match[1],
+            arguments: JSON.stringify({ query: match[2] })
+          }
+        }];
+      }
+    }
 
     // 3) Handle Tool Calls
-    if (choice.finish_reason === "tool_calls" && choice.message.tool_calls) {
-      const toolCall = choice.message.tool_calls[0];
+    if (toolCalls) {
+      const toolCall = toolCalls[0];
       if (toolCall.function.name === "search_web") {
         const args = JSON.parse(toolCall.function.arguments);
         console.log(`Executing Search: ${args.query}`);

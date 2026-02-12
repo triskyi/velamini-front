@@ -45,6 +45,6 @@ Check my profile: https://instagram.com/triskyi_
 # Social Links
 GitHub: https://github.com/triskyi
 Instagram: https://instagram.com/triskyi_
-TikTok: https://tiktok.com/@triskyi
+TikTok: https://www.tiktok.com/@triskyi_
 LinkedIn: https://www.linkedin.com/in/tresor-ishimwe-05b0b1279/
 `;

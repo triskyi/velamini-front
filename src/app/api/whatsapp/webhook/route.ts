@@ -46,6 +46,7 @@ async function handleIncomingMessage(from: string, userMessage: string) {
   }
 
   // 0) Database Persistence: Get/Create Chat & History
+  // We explicitly check for chats where `userId` matches the phone number
   let chat = await prisma.chat.findFirst({
       where: { userId: from },
       orderBy: { createdAt: 'desc' }
@@ -72,14 +73,16 @@ async function handleIncomingMessage(from: string, userMessage: string) {
       }
   });
 
-  // 1) Context Retrieval
-  const context = retrieveContext(userMessage, 3);
+    const context = retrieveContext(userMessage, 3);
+    
+    // 2) AI Prompt Construction
+    // Note: We do NOT force a web search here. We let the AI decide via tools if it needs one, 
+    // or rely on the "CORE MEMORY" context (Rag) + System Prompt rules.
   
-  // 2) AI Prompt Construction
   const messages: any[] = [
     { role: "system", content: VIRTUAL_TRESOR_SYSTEM_PROMPT },
     ...historyMessages.reverse().map(msg => ({ role: msg.role, content: msg.content })),
-    { role: "user", content: `SOURCES:\n${context}\n\nQUESTION:\n${userMessage}` }
+    { role: "user", content: `CORE MEMORY:\n${context || "Not found in direct memory."}\n\nQUESTION:\n${userMessage}` }
   ];
 
   // 3) Tools Definition
@@ -128,6 +131,7 @@ async function handleIncomingMessage(from: string, userMessage: string) {
     let toolCalls = choice.message.tool_calls;
 
     // DSML Fallback/Leakage Check
+
     if (!toolCalls && finalContent && finalContent.includes("<｜DSML｜invoke")) {
       const match = finalContent.match(/<｜DSML｜invoke name="([^"]+)">.*?<｜DSML｜parameter name="query"[^>]*>(.*?)<\/｜DSML｜parameter>/s);
       if (match) {

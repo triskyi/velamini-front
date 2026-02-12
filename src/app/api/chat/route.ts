@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { retrieveContext } from "@/lib/rag/retriever";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);

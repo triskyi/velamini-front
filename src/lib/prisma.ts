@@ -10,6 +10,8 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient };
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
+    // In Prisma 7, connection URLs for Accelerate/Prisma Postgres must be passed here
+    accelerateUrl: process.env.DATABASE_URL || undefined,
     log: ["error", "warn"] as const,
   });
 

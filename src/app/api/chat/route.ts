@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     let styleExamples = "";
     if (process.env.DATABASE_URL) {
       try {
+        console.log("Fetching training examples...");
         const examples = await prisma.trainingExample.findMany({
           where: { 
             rating: { gte: 4 },
@@ -35,19 +36,23 @@ export async function POST(req: Request) {
           orderBy: { createdAt: "desc" },
           take: 5,
         });
+
+        console.log(`Found ${examples.length} training examples`);
         
         if (examples.length > 0) {
-           styleExamples = "\n\n### STYLE GUIDE (LEARNED FROM FEEDBACK):\n" +
-            "The user prefers the style of the answers below. Mimic their length, tone, and formatting exactly:\n\n" +
+           console.log("Injecting examples:", examples.map(e => e.id)); // Debug log
+           styleExamples = "\n\n### CRITICAL INSTRUCTION - ADAPT TO THIS STYLE:\n" +
+            "The user explicitly defined these correct answers. You MUST abandon your default style and exactly copy the brevity, tone, and format of these examples:\n\n" +
             examples.map(ex => {
-              // If user edited it, that's the gold standard. 
-              // If not, but rated highly, the original answer is the gold standard.
               const validAnswer = ex.userEdit ? ex.userEdit : ex.aiAnswer;
-              // Clean up newlines for cleaner prompt
               const cleanPrompt = ex.userPrompt.replace(/\n/g, " ");
               const cleanAnswer = validAnswer.replace(/\n/g, " ");
-              return `User asks: "${cleanPrompt}"\nYou answer: "${cleanAnswer}"`;
+              return `When User says: "${cleanPrompt}"\nYou MUST say: "${cleanAnswer}"`;
             }).join("\n\n");
+            
+            console.log("Style Prompt Injected:", styleExamples);
+        } else {
+            console.log("No high-rated training examples found.");
         }
       } catch (err) {
         console.error("Failed to fetch training examples:", err);
@@ -101,10 +106,20 @@ ${styleExamples}`;
     ];
 
     let messages = [
-      { role: "system", content: systemPrompt + (styleExamples ? `\n\nREMINDER: Follow the examples above. If the user asks something similar to an example, reply with the EXACT style of the example.` : "") },
+      { role: "system", content: systemPrompt },
       ...history,
       { role: "user", content: `SOURCES:\n${context}\n\nQUESTION:\n${message}` }
     ];
+
+    // IMPORTANT: If we have style examples, we append a strict final instruction 
+    // to the very end of the message history. This prevents the "system prompt" 
+    // from getting diluted by the conversation history.
+    if (styleExamples) {
+      messages.push({
+        role: "system",
+        content: `CRITICAL OVERRIDE: The user has previously corrected you. You MUST follow these exact patterns:\n${styleExamples}\n\nIgnore any previous instructions about length if they conflict with these examples.`
+      });
+    }
 
     // 2) First DeepSeek Call
     let response = await fetch("https://api.deepseek.com/v1/chat/completions", {

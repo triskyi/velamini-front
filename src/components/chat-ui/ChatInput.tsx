@@ -10,7 +10,7 @@ interface ChatInputProps {
 
 export default function ChatInput({ input, setInput, sendMessage }: ChatInputProps) {
   return (
-    <div className="relative w-full max-w-3xl mx-auto">
+    <div className="relative w-full max-w-3xl mx-auto px-4 sm:px-0">
       <div className="relative bg-[#111111] border border-zinc-800 rounded-2xl overflow-hidden focus-within:border-zinc-700 transition-colors shadow-2xl">
         <textarea
           value={input}
@@ -21,11 +21,11 @@ export default function ChatInput({ input, setInput, sendMessage }: ChatInputPro
               sendMessage();
             }
           }}
-          placeholder="Ask me anything about Tresor..."
-          className="w-full bg-transparent border-none px-4 py-6 text-zinc-200 placeholder-zinc-500 focus:outline-none resize-none min-h-[80px] text-center"
+          placeholder="Ask me anything..."
+          className="w-full bg-transparent border-none px-4 py-4 sm:py-6 text-zinc-200 placeholder-zinc-500 focus:outline-none resize-none min-h-[60px] sm:min-h-[80px] text-base sm:text-center text-left"
         />
         
-        <div className="absolute bottom-3 right-3 flex items-center gap-2">
+        <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex items-center gap-2">
           <button
             onClick={sendMessage}
             disabled={!input.trim()}

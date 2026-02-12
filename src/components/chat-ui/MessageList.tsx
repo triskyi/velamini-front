@@ -41,7 +41,7 @@ const renderWithLinks = (text: string) => {
 
 export default function MessageList({ messages, isTyping, bottomRef }: MessageListProps) {
   return (
-    <div className="flex-1 overflow-y-auto px-2 py-6 space-y-2 scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+    <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 scrollbar-thumb-zinc-800 scrollbar-track-transparent">
       <AnimatePresence>
         {messages.map((msg, index) => {
           const isUser = msg.role === "user";
@@ -56,7 +56,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
               exit={{ opacity: 0 }}
               className={`chat ${isUser ? "chat-end" : "chat-start"}`}
             >
-              <div className="chat-image avatar">
+              <div className="chat-image avatar hidden sm:flex">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
                   isUser ? "bg-zinc-800" : "bg-zinc-900 border border-zinc-800 p-0.5"
                 }`}>
@@ -79,7 +79,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
                   {new Date(msg.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </time>
               </div>
-              <div className={`chat-bubble py-2.5 px-4 text-[15px] selection:bg-cyan-500/30 ${
+              <div className={`chat-bubble max-w-[85%] sm:max-w-[70%] py-2.5 px-4 text-[14px] sm:text-[15px] selection:bg-cyan-500/30 ${
                 isUser 
                   ? "bg-zinc-800 text-zinc-100" 
                   : "bg-zinc-900 border border-zinc-800 text-zinc-200"
@@ -99,7 +99,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
       </AnimatePresence>
       {isTyping && (
         <div className="chat chat-start">
-          <div className="chat-image avatar">
+          <div className="chat-image avatar hidden sm:flex">
             <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
               <Image 
                 src="/logo.png" 

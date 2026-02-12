@@ -15,16 +15,16 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnAuth = nextUrl.pathname.startsWith('/auth')
-      const isOnDashboard = nextUrl.pathname === '/' || nextUrl.pathname.startsWith('/dashboard')
+      const isOnProtected = nextUrl.pathname === '/' || nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname.startsWith('/training')
 
       if (isOnAuth) {
         if (isLoggedIn) {
-          return Response.redirect(new URL('/', nextUrl))
+          return Response.redirect(new URL('/Dashboard', nextUrl))
         }
         return true
       }
 
-      if (isOnDashboard) {
+      if (isOnProtected) {
         if (isLoggedIn) return true
         return false // Redirect to login
       }

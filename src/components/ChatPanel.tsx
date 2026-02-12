@@ -6,7 +6,7 @@ import HeroSection from "./chat-ui/HeroSection";
 import MessageList from "./chat-ui/MessageList";
 import ChatInput from "./chat-ui/ChatInput";
 import FeedbackModal from "./chat-ui/FeedbackModal";
-import TrainingPage from "@/app/pages/TrainingPage";
+
 
 type Message = {
   id: number;
@@ -107,7 +107,7 @@ export default function ChatPanel() {
 
       {currentView === 'training' ? (
         <div className="flex-1 overflow-hidden">
-          <TrainingPage />
+        
         </div>
       ) : (
         <>

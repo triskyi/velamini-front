@@ -7,13 +7,14 @@ This is a Next.js application representing the digital twin of Tresor, powered b
 To host this project on Vercel, follow these steps:
 
 ### 1. Database Setup (Cloud)
-Since you are using a local PostgreSQL database, you need to switch to a cloud-based provider for production. 
-*   **Recommended**: [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres) (integrated) or [Neon.tech](https://neon.tech/) (serverless Postgres).
-*   Create a database and get your **Connection String** (it should look like `postgres://...`).
+This project uses **Prisma Postgres** as its primary database.
+*   Go to your [Prisma Dashboard](https://console.prisma.io/).
+*   Create a new project and select **Prisma Postgres**.
+*   Copy your **Connection String** (it starts with `prisma+postgres://`).
 
 ### 2. Environment Variables
 In your Vercel Project Settings > **Environment Variables**, add the following:
-*   `DATABASE_URL`: Your cloud PostgreSQL connection string (Use the "Pooled" connection string if using Neon or Vercel Postgres).
+*   `DATABASE_URL`: Your Prisma Postgres connection string.
 *   `DEEPSEEK_API_KEY`: Your DeepSeek API key.
 
 ### 3. Deploy to Vercel

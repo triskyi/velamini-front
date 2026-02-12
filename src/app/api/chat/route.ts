@@ -75,7 +75,7 @@ Guidelines:
     // 3) SAVE TO DB
     if (process.env.DATABASE_URL) {
       try {
-        console.log("Saving chat messages to Neon DB...");
+        console.log("Saving chat messages to DB...");
         const chat = await prisma.chat.findFirst() || await prisma.chat.create({ data: {} });
         const result = await prisma.message.createMany({
           data: [

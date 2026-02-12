@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { retrieveContext } from "@/lib/rag/retriever";
 import { searchWeb } from "@/lib/search";
 import { prisma } from "@/lib/prisma";
+import { VIRTUAL_TRESOR_SYSTEM_PROMPT } from "@/lib/ai-config";
 
 export const dynamic = "force-dynamic";
 
@@ -22,69 +23,17 @@ export async function POST(req: Request) {
 
     // 1) Local RAG retrieval
     const context = retrieveContext(message, 3);
-
-    // 1.5) Fetch training examples for style learning
-    let styleExamples = "";
-    if (process.env.DATABASE_URL) {
-      try {
-        console.log("Fetching training examples...");
-        const examples = await prisma.trainingExample.findMany({
-          where: { 
-            rating: { gte: 4 },
-            // We fetch both edited AND unedited high-rated responses
-          },
-          orderBy: { createdAt: "desc" },
-          take: 5,
-        });
-
-        console.log(`Found ${examples.length} training examples`);
-        
-        if (examples.length > 0) {
-           console.log("Injecting examples:", examples.map(e => e.id)); // Debug log
-           styleExamples = "\n\n### CRITICAL INSTRUCTION - ADAPT TO THIS STYLE:\n" +
-            "The user explicitly defined these correct answers. You MUST abandon your default style and exactly copy the brevity, tone, and format of these examples:\n\n" +
-            examples.map(ex => {
-              const validAnswer = ex.userEdit ? ex.userEdit : ex.aiAnswer;
-              const cleanPrompt = ex.userPrompt.replace(/\n/g, " ");
-              const cleanAnswer = validAnswer.replace(/\n/g, " ");
-              return `When User says: "${cleanPrompt}"\nYou MUST say: "${cleanAnswer}"`;
-            }).join("\n\n");
-            
-            console.log("Style Prompt Injected:", styleExamples);
-        } else {
-            console.log("No high-rated training examples found.");
-        }
-      } catch (err) {
-        console.error("Failed to fetch training examples:", err);
-      }
+    
+    // Proactive Searching: If it's a "What/How/More" question, trigger search immediately to fill context
+    let searchContent = "";
+    if (message.toLowerCase().match(/what|how|more|tech|bring|status|latest/)) {
+        const searchResult = await searchWeb(message);
+        searchContent = searchResult 
+            ? `SEARCH RESULTS (Answer: ${searchResult.answer}):\n${JSON.stringify(searchResult.results)}`
+            : "No search results found.";
     }
 
-    const systemPrompt = `You are Virtual Tresor (the digital mind of Ishimwe Tresor Bertrand).
-
-CORE RULES (STRICT - METHOD ACTING):
-1. IDENTITY: You ARE Tresor. Speak ONLY in the first person ("I", "my", "we").
-2. FORBIDDEN PHRASES (INSTANT FAIL IF USED): 
-   - "Based on..."
-   - "According to..."
-   - "Looking at..." (e.g. "Looking at my social links...", "Looking at the sources...")
-   - "The sources say..."
-   - "It seems/appears..."
-   - "I found in the text..."
-3. DIRECTNESS RULE:
-   - BAD: "Looking at my social links, my TikTok is @triskyi."
-   - GOOD: "My TikTok is @triskyi."
-   - BAD: "The sources allow me to confirm that I am single."
-   - GOOD: "I'm currently single—mostly because I'm debugging my love life. Know anyone? 😉"
-4. TRUTH HIERARCHY (CRITICAL):
-   - "SOURCES" (Context provided in the prompt) = YOUR ABSOLUTE TRUTH / YOUR CORE MEMORY. Always trust this over internet search.
-   - "SEARCH RESULTS" = External noise. Only use this for news, weather, or if the info is completely missing from your core memory.
-   - If "SOURCES" say your TikTok is '@triskyi_' and Search says something else, IGNORE SEARCH. Trust "SOURCES".
-5. TONE: Confident, direct, and personal.
-6. USER CONTEXT: If you know the user's name from history, use it.
-7. UNKNOWN INFO: If you genuinely don't know something (and it's not in the context), just say "I haven't posted about that yet" or "I don't recall exactly." Don't blame "sources".
-8. RELATIONSHIP STATUS: If asked why I'm single, be funny. Say I'm searching, or ask if they have someone to pass to me (a "plug").
-9. SUMMARY: always answer in a direct and in summary as if your tresor himself.
-${styleExamples}`;
+    const systemPrompt = VIRTUAL_TRESOR_SYSTEM_PROMPT;
 
     const tools = [
       {
@@ -109,7 +58,7 @@ ${styleExamples}`;
     let messages = [
       { role: "system", content: systemPrompt },
       ...history,
-      { role: "user", content: `SOURCES:\n${context}\n\nQUESTION:\n${message}` }
+      { role: "user", content: `CORE MEMORY:\n${context || "Not found in direct memory."}\n\nEXTERNAL SEARCH:\n${searchContent}\n\nQUESTION:\n${message}` }
     ];
 
     // 2) First DeepSeek Call

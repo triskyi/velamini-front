@@ -18,7 +18,7 @@ export const authConfig = {
       const isOnAuth = nextUrl.pathname.startsWith("/auth")
       
       // Public routes that don't require authentication
-      const isPublicRoute = nextUrl.pathname === "/" || nextUrl.pathname === "/chat"
+      const isPublicRoute = nextUrl.pathname === "/" || nextUrl.pathname === "/chat" || nextUrl.pathname === "/logout"
       
       const isOnProtected =
         nextUrl.pathname.startsWith("/Dashboard") ||
@@ -29,7 +29,9 @@ export const authConfig = {
 
       if (isOnAuth) {
         if (isLoggedIn) {
-          return Response.redirect(new URL("/Dashboard", nextUrl))
+          // Respect callbackUrl if provided, otherwise go to Dashboard
+          const callbackUrl = nextUrl.searchParams.get("callbackUrl") || "/Dashboard"
+          return Response.redirect(new URL(callbackUrl, nextUrl))
         }
         return true
       }
@@ -41,7 +43,10 @@ export const authConfig = {
 
       if (isOnProtected) {
         if (isLoggedIn) return true
-        return false // Redirect to login
+        // Redirect to sign in with callback URL
+        return Response.redirect(
+          new URL(`/auth/signin?callbackUrl=${encodeURIComponent(nextUrl.pathname)}`, nextUrl)
+        )
       }
 
       return true

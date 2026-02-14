@@ -14,6 +14,9 @@ interface MessageListProps {
   messages: Message[];
   isTyping: boolean;
   bottomRef: React.RefObject<HTMLDivElement | null>;
+  assistantName?: string;
+  assistantImage?: string | null;
+  assistantFooterText?: string;
 }
 
 // Helper to auto-linkify URLs
@@ -38,7 +41,14 @@ const renderWithLinks = (text: string) => {
   });
 };
 
-export default function MessageList({ messages, isTyping, bottomRef }: MessageListProps) {
+export default function MessageList({ 
+  messages, 
+  isTyping, 
+  bottomRef,
+  assistantName = "Tresor",
+  assistantImage,
+  assistantFooterText
+}: MessageListProps) {
   return (
     <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 scrollbar-thumb-zinc-800 scrollbar-track-transparent">
       <AnimatePresence>
@@ -61,6 +71,12 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
                 }`}>
                   {isUser ? (
                     <User className="w-5 h-5 text-zinc-400" />
+                  ) : assistantImage ? (
+                    <img 
+                      src={assistantImage} 
+                      alt={assistantName} 
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <Image 
                       src="/logo.png" 
@@ -73,7 +89,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
                 </div>
               </div>
               <div className="chat-header text-zinc-500 text-xs mb-1 px-1">
-                {isUser ? "You" : "Tresor"}
+                {isUser ? "You" : assistantName}
                 <time className="ml-2 opacity-50">
                   {new Date(msg.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </time>
@@ -88,7 +104,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
               
               </div>
               <div className="chat-footer opacity-40 text-[10px] mt-1">
-                {isUser ? "Delivered" : "Virtual Tresor"}
+                {isUser ? "Delivered" : (assistantFooterText || `Virtual ${assistantName}`)}
               </div>
             </motion.div>
           );
@@ -98,13 +114,21 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
         <div className="chat chat-start">
           <div className="chat-image avatar hidden sm:flex">
             <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
-              <Image 
-                src="/logo.png" 
-                alt="V" 
-                width={40} 
-                height={40} 
-                className="object-contain"
-              />
+              {assistantImage ? (
+                <img 
+                  src={assistantImage} 
+                  alt={assistantName} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Image 
+                  src="/logo.png" 
+                  alt="V" 
+                  width={40} 
+                  height={40} 
+                  className="object-contain"
+                />
+              )}
             </div>
           </div>
           <div className="chat-bubble bg-zinc-900 border border-zinc-800 flex items-center py-2 px-4 shadow-none">

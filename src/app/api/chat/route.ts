@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { retrieveContext } from "@/lib/rag/retriever";
 import { searchWeb } from "@/lib/search";
 import { prisma } from "@/lib/prisma";
-import { VIRTUAL_TRESOR_SYSTEM_PROMPT } from "@/lib/ai-config";
+import { VIRTUAL_SELF_SYSTEM_PROMPT } from "@/lib/ai-config";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "AI API Key missing. Please check your .env.local" }, { status: 500 });
     }
 
+    // Get user's trained knowledge if authenticated
+    let userKnowledge = "";
+    let userName = "Tresor"; // Default name
+    try {
+      const session = await auth();
+      if (session?.user?.email) {
+        let userId: string | undefined = session.user.id;
+        if (!userId && session.user.email) {
+          const user = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true, name: true },
+          });
+          userId = user?.id;
+          userName = user?.name || userName;
+        } else if (session.user.name) {
+          userName = session.user.name;
+        }
+
+        if (userId) {
+          const knowledgeBase = await prisma.knowledgeBase.findUnique({
+            where: { userId },
+            select: { trainedPrompt: true, isModelTrained: true },
+          });
+
+          if (knowledgeBase?.isModelTrained && knowledgeBase.trainedPrompt) {
+            userKnowledge = `\n\nUSER'S PERSONAL KNOWLEDGE BASE:\n${knowledgeBase.trainedPrompt}`;
+          }
+        }
+      }
+    } catch (authError) {
+      console.log("Could not fetch user knowledge (user may not be logged in):", authError);
+    }
+
     // 1) Local RAG retrieval
     const context = retrieveContext(message, 3);
     
@@ -55,7 +89,7 @@ export async function POST(req: Request) {
             : "No search results found.";
     }
 
-    const systemPrompt = VIRTUAL_TRESOR_SYSTEM_PROMPT;
+    const systemPrompt = VIRTUAL_SELF_SYSTEM_PROMPT.replaceAll("[Person's name]", userName) + userKnowledge;
 
     const tools = [
       {

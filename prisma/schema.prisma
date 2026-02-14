@@ -8,11 +8,16 @@ datasource db {
 }
 
 model Chat {
-  id        String    @id @default(cuid())
-  userId    String?   // Optional: Can be "whatsapp:+123..." or null for web
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  messages  Message[]
+  id              String    @id @default(cuid())
+  userId          String?   // Optional: Can be "whatsapp:+123..." or null for web
+  virtualSelfId   String?   // ID of the user whose virtual self is being chatted with
+  virtualSelf     User?     @relation("VirtualSelfChats", fields: [virtualSelfId], references: [id], onDelete: Cascade)
+  isSharedChat    Boolean   @default(false) // True if this is a shared virtual self chat
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  messages        Message[]
+
+  @@index([virtualSelfId])
 }
 
 model Message {
@@ -33,14 +38,58 @@ model Feedback {
   createdAt DateTime @default(now())
 }
 
-model TrainingExample {
-  id           String   @id @default(cuid())
-  userPrompt   String   @db.Text
-  aiAnswer     String   @db.Text
-  userEdit     String?  @db.Text
-  createdAt    DateTime @default(now())
-  topic        String?
-  source       String?  @default("chat")
+model KnowledgeBase {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Identity
+  fullName           String?
+  birthDate          String?
+  birthPlace         String?
+  currentLocation    String?
+  languages          String?  // Comma-separated or JSON
+  bio                String?  @db.Text
+  relationshipStatus String?
+  hobbies            String?  // Comma-separated or JSON
+  favoriteFood       String?
+  
+  // Education (JSON or Text)
+  education          String?  @db.Text
+  
+  // Experience (JSON or Text)
+  experience         String?  @db.Text
+  
+  // Skills (JSON or Text)
+  skills             String?  @db.Text
+  
+  // Projects (JSON or Text)
+  projects           String?  @db.Text
+  
+  // Awards (JSON or Text)
+  awards             String?  @db.Text
+  
+  // Social Links (JSON or Text)
+  socialLinks        String?  @db.Text
+  
+  // Social Updates
+  socialUpdates      String?  @db.Text
+  
+  // Full raw content (optional backup)
+  rawContent         String?  @db.Text
+  
+  // Training status
+  isModelTrained     Boolean  @default(false)
+  trainedPrompt      String?  @db.Text
+  lastTrainedAt      DateTime?
+  
+  // Sharing
+  shareSlug          String?  @unique // Unique slug for sharing (e.g., "tresor", "john-doe")
+  isPubliclyShared   Boolean  @default(false)
+  shareViews         Int      @default(0) // Track how many times shared link was accessed
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 // NextAuth Models
@@ -73,13 +122,15 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id               String         @id @default(cuid())
+  name             String?
+  email            String?        @unique
+  emailVerified    DateTime?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+  knowledgeBase    KnowledgeBase?
+  virtualSelfChats Chat[]         @relation("VirtualSelfChats")
 }
 
 model VerificationToken {

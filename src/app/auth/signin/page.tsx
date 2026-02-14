@@ -1,8 +1,10 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { Suspense } from "react";
 
 // --- Configurable StarField Animation ---
 const StarField = () => {
@@ -59,9 +61,12 @@ const StarField = () => {
   );
 };
 
-export default function SignInPage() {
+function SignInContent() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/Dashboard";
+
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/Dashboard" });
+    signIn("google", { callbackUrl });
   };
 
   return (
@@ -155,5 +160,17 @@ export default function SignInPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#050505]">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   );
 }

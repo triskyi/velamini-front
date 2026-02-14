@@ -1,15 +1,17 @@
 # Velamini Frontend
 
-Velamini is a Next.js AI assistant app for a "digital twin" experience of Ishimwe Tresor Bertrand.
-It combines:
+Velamini is a Next.js AI assistant platform that enables users to create their own AI-powered "virtual self" - a digital twin trained with their personal knowledge, personality, and expertise.
 
-- conversational chat UI
-- local knowledge retrieval (RAG-style context injection)
-- optional web search augmentation
-- DeepSeek chat completions with tool-calling
-- Google auth (NextAuth v5)
-- PostgreSQL persistence via Prisma
-- WhatsApp integration through Twilio webhook + outbound messages
+## Core Capabilities
+
+- **Virtual Self Training**: 7-step wizard to capture personal information (identity, education, experience, skills, projects, awards, social)
+- **AI-Powered Chat**: Conversational interface with DeepSeek AI integration
+- **Shareable Virtual Selves**: Generate unique links to let others chat with your trained virtual self
+- **Multi-Channel Support**: Web and WhatsApp integration
+- **Knowledge Retrieval**: RAG-style context injection from trained knowledge base
+- **Web Search Integration**: Real-time information through Tavily API
+- **Authentication**: Secure Google OAuth via NextAuth v5
+- **Database Persistence**: PostgreSQL with Prisma ORM
 
 ## Tech Stack
 
@@ -27,39 +29,220 @@ It combines:
 
 ### 1. Public Chat Experience
 
-- Route: `/`
-- Main component: `src/components/ChatPanel.tsx`
-- Features:
-- persistent local chat history in `localStorage` (`velamini_chat_history`)
-- message list with timestamps and avatars
-- hero title when no messages
-- feedback modal (stores user ratings/comments)
-- "Improve response" widget per assistant message (saves training examples)
+- **Route**: `/`
+- **Component**: `src/components/ChatPanel.tsx`
+- **Features**:
+  - Persistent chat history in localStorage
+  - Real-time AI responses
+  - Feedback modal for user ratings
+  - Message editing and improvement suggestions
 
-### 2. Dashboard Area (Authenticated)
+### 2. Dashboard (Authenticated)
 
-- Route: `/Dashboard`
-- Page file: `src/app/Dashboard/page.tsx`
-- Layout:
-- left sidebar (`src/components/Sidebar.tsx`)
-- main content area (currently simple welcome block placeholder)
+- **Route**: `/Dashboard`
+- **Component**: `src/app/Dashboard/page.tsx`
+- **Features**:
+  - Overview statistics (training completion, Q&A pairs, knowledge items)
+  - Navigation to Training, Chat, Profile, and Settings
+  - Dark themed sidebar with workspace navigation
+  - Real-time training progress tracking
 
-### 3. Training Wizard (Authenticated)
+### 3. Virtual Self Training Wizard (Authenticated)
 
-- Route: `/training`
-- Page: `src/app/training/page.tsx`
-- Multi-step profile/training flow:
-- identity
-- personality
-- knowledge/files
-- boundaries
-- workflow
-- review + consent
+- **Route**: `/Dashboard` → Training section
+- **Component**: `src/components/dashboard/training.tsx`
+- **7-Step Process**:
+  1. **Identity**: Name, birth info, location, languages, bio, relationship status, hobbies, favorite food
+  2. **Education**: Schools, degrees, certifications
+  3. **Experience**: Work history, roles, responsibilities
+  4. **Skills**: Technical and soft skills, proficiencies
+  5. **Projects**: Portfolio projects, descriptions, links
+  6. **Awards**: Achievements, recognitions, honors
+  7. **Social**: Social media links, recent updates
+- **Features**:
+  - Progress indicator showing completed steps
+  - Auto-save functionality
+  - Step-by-step navigation
+  -Virtual Self Training System
 
-### 4. Sign-in Portal
+### How It Works
 
-- Route: `/auth/signin`
-- Google sign-in UX with animated visual panel
+#### **Phase 1: Data Collection**
+Users fill out a comprehensive 7-step wizard capturing:
+- Personal identity information
+- Educational background
+- Professional experience
+- Technical and soft skills
+- Portfolio projects
+- Awards and achievements
+- Social media presence and updates
+
+All data is stored in the `KnowledgeBase` table with auto-save functionality.
+
+#### **Phase 2: Model Training**
+When the user clicks "Train Your Model Now":
+
+1. **Data Formatting**: The `formatKnowledgeBasePrompt()` function converts raw database fields into structured sections:
+   ```
+   # Identity
+   Name: John Doe
+   Birth: January 1, 1990
+   Location: New York, USA
+   ...
+
+   # Education
+   Harvard University - Bachelor in Computer Science
+   ...
+
+   # Experience
+   Google (2020-Present) - Senior Software Engineer
+   ...
+   ```
+
+2. **Storage**: The formatted prompt is saved as `trainedPrompt` in the database
+
+3. **Activation**: 
+   - `isModelTrained` flag set to `true`
+   - `lastTrainedAt` timestamp recorded
+
+#### **Phase 3: AI Integration**
+WhenPersonal Chat API (`POST /api/chat`)
+
+File: `src/app/api/chat/route.ts`
+
+Flow:
+
+1. Check if user is authenticated
+2. If authenticated, fetch their `trainedPrompt` from KnowledgeBase
+3. Retrieve top context chunks from local KB (`retrieveContext`)
+4. Optionally pre-trigger web search for certain keywords
+5. Append user's trained knowledge to system prompt
+6. Call DeepSeek with enhanced system prompt + context + optional tool definition (`search_web`)
+7. If tool call is requested, execute Tavily search and run a second DeepSeek call
+8. Persist user/assistant messages to DB with user context
+9. Return `{ text }`
+
+### Shared Chat API (`POST /api/chat/shared`)
+
+File: `src/app/api/chat/shared/route.ts`
+
+Flow:
+
+1. Validate `virtualSelfId` parameter
+2. Fetch virtual self's `trainedPrompt` from KnowledgeBase
+3. Verify `isPubliclyShared` and `isModelTrained` flags
+4. Append virtual self's knowledge to system prompt
+5. Call DeepSeek API with personalized prompt
+6. Save chat to database with `virtualSelfId` and `isSharedChat = true`
+7. Return AI response
+
+### Chat API (`POs
+
+**Base System Prompt**
+- File: `src/lib/ai-config.ts`
+- Export: `VIRTUAL_SELF_SYSTEM_PROMPT`
+- Dynamic and adaptable to any user's virtual self
+- Enforces natural, first-person responses
+- Prohibits robotic phrases like "Based on..." or "According to..."
+- Maintains personality consistency
+
+**User-Specific Enhancement**
+When authenticated user chats or when someone accesses a shared virtual self:
+```
+VIRTUAL_SELF_SYSTEM_PROMPT + "\n\nUSER'S PERSONAL KNOWLEDGE BASE:\n" + trainedPrompt
+```
+
+This creates a unique AI personality for each user.
+3. DeepSeek API receives the combined prompt
+4. AI responds as the person, using their knowledge
+
+### Training API
+
+**Endpoint**: `POST /api/training/train`
+
+**Process**:
+- Validates user authentication
+- Retrieves user's KnowledgeBase
+- Formats data into structured sections
+- Updates database with trained prompt
+- Returns success confirmation
+
+## Sharing System
+
+### How Sharing Works
+
+1. **Enable Sharing** (Settings page):
+   - User creates a unique slug (e.g., "john-doe", "tech-expert")
+   - Slug validation: lowercase letters, numbers, hyphens only
+   - Check for uniqueness in database
+
+2. **Share Link Generation**:
+   - Format: `https://yoursite.com/chat/your-slug`
+   - Stored in `KnowledgeBase.shareSlug`
+   - `isPubliclyShared` flag enabled
+
+3. **Public Access**:
+   - Anyone with the link can visit `/chat/[slug]`
+   - Page loads the  virtual self's information
+   - View count increments automatically
+   - Chat interface branded with owner's name and avatar
+
+4. **Privacy Controls**:
+   - Owner can disable sharing anytime
+   - Disabling preserves slug but blocks public access
+   - Re-enabling uses the same slug
+
+### Sharing API
+
+**Enable Sharing**: `POST /api/share/enable`
+```json
+{
+  "shareSlug": "your-custom-slug"
+}
+```
+
+**Disable Sharing**: `POST /api/share/disable`
+
+**Response**: Returns shareable URL and configurationr Model Now" button upon completion
+
+### 4. Virtual Self Chat (Private)
+
+- **Route**: `/Dashboard` → Chat section
+- **Component**: `src/components/dashboard/dashboardchat.tsx`
+- **Features**:
+  - Chat with your own trained virtual self
+  - Separate chat history from public chat
+  - Powered by your personal knowledge base
+  - Real-time AI responses using your trained prompt
+
+### 5. Shared Virtual Self Chat (Public)
+
+- **Route**: `/chat/[slug]`
+- **Component**: `src/app/chat/[slug]/page.tsx` + `src/components/SharedChatClient.tsx`
+- **Features**:
+  - Public access to someone's virtual self via unique slug
+  - View count tracking
+  - Branded chat interface with owner's name and image
+  - Separate chat history per virtual self
+
+### 6. Settings & Sharing Management
+
+- **Route**: `/Dashboard` → Settings section
+- **Component**: `src/components/dashboard/settings.tsx`
+- **Features**:
+  - Enable/disable public sharing
+  - Create custom share slug (e.g., "john-doe", "your-name")
+  - Copy shareable link with one click
+  - View access statistics (view count)
+  - Account information display
+
+### 7. Sign-in Portal
+
+- **Route**: `/auth/signin`
+- **Features**:
+  - Google OAuth sign-in
+  - Callback URL preservation for post-login redirects
+  - Suspense boundary for proper SSR handling
 
 ## AI Pipeline
 
@@ -68,55 +251,253 @@ It combines:
 File: `src/app/api/chat/route.ts`
 
 Flow:
+### Main Models:
 
-1. validate incoming message
-2. retrieve top context chunks from local KB (`retrieveContext`)
-3. optionally pre-trigger web search for certain keywords
-4. call DeepSeek with system prompt + context + optional tool definition (`search_web`)
-5. if tool call is requested, execute Tavily search and run a second DeepSeek call
-6. persist user/assistant messages to DB if `DATABASE_URL` is set
-7. return `{ text }`
+#### **Chat**
+```prisma
+{
+  id: String             # Unique chat ID
+  userId: String?        # Chat initiator (can be WhatsApp number or null)
+  virtualSelfId: String? # ID of user whose virtual self is being chatted with
+  isSharedChat: Boolean  # True if this is a public shared virtual self chat
+  messages: Message[]    # Related messages
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+```
 
-Also includes fallback parsing for occasional DeepSeek DSML tool-call leakage.
+### Chat Endpoints
+- `POST /api/chat` → AI response with user's trained knowledge (authenticated)
+- `POST /api/chat/shared` → AI response for shared virtual self (public)
 
-### WhatsApp Webhook (`POST /api/whatsapp/webhook`)
+### Training Endpoints
+- `GET /api/training` → Fetch user's knowledge base
+- `Key Features
+
+✅ **Virtual Self Creation**
+- 7-step comprehensive training wizard
+- Capture identity, education, experience, skills, projects, awards, and social information
+- Auto-save functionality for each field
+- Progress tracking with visual indicators
+
+✅ **AI-Powered Conversations**
+- Chat with your own trained virtual self privately
+- AI responds using your personal knowledge and style
+- Context-aware responses based on training data
+- Web search integration for real-time information
+
+✅ **Public Sharing**
+- Generate unique shareable links (yoursite.com/chat/your-slug)
+- Custom slug creation with validation
+- Enable/disable sharing anytime
+- Track view counts and access statistics
+- Branded chat interface for each virtual self
+
+✅ **Multi-User Support**
+- Each user can create their own virtual self
+- Separate knowledge bases per user
+- Private and public chat modes
+- User authentication with Google OAuth
+
+✅ **Database Persistence**
+- All chats saved with ownership tracking
+- Training data securely stored
+- Share configuration management
+- Access analytics and metrics
+
+✅ **Responsive Design**
+- Dark themed dashboard with navigation sidebar
+- Mobile-friendly chat interface
+- Real-time message updates
+- Smooth animations and transitions
+
+## POST /api/training` → Save/update knowledge base fields
+- `POST /api/training/train` → Train model with current knowledge
+
+### Sharing Endpoints
+- `POST /api/share/enable` → Enable public sharing with custom slug
+- `POST /api/share/disable` → Disable public sharing
+
+### Feedback & Data
+- `POST /api/feedback` → Save user feedback (ratings, comments)
+
+### WhatsApp Integration
+- `POST /api/whatsapp/webhook` → Twilio incoming WhatsApp handler
+
+### Authentication
+- `GET|POST /api/auth/[...nextauth]` → NextAuth handlers (Google OAuth)
+
+  # Identity Fields
+  fullName: String?
+  birthDate: String?
+  birthPlace: String?
+  currentLocation: String?
+  languages: String?
+  bio: String?
+  relationshipStatus: String?
+  hobbies: String?
+  favoriteFood: String?
+
+  # Structured Content
+  education: String?     # Text or JSON
+  experience: String?    # Text or JSON
+  skills: String?        # Text or JSON
+  projects: String?      # Text or JSON
+  awards: String?        # Text or JSON
+  socialLinks: String?   # Text or JSON
+  socialUpdates: String? # Text or JSON
+
+  # Training Status
+  isModelTrained: Boolean      # Whether model has been trained
+  trainedPrompt: String?       # Formatted prompt for AI
+  lastTrainedAt: DateTime?     # Last training timestamp
+
+  # Sharing Configuration
+  shareSlug: String?           # Unique URL slug (e.g., "john-doe")
+  isPubliclyShared: Boolean    # Public access toggle
+  shareViews: Int              # Access count tracker
+
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+```
+
+#### **Message**
+```prisma
+{
+  id: String
+  chatId: String         # Foreign key to Chat
+  role: String           # "user" or "assistant"
+  content: String        # Message text
+  createdAt: DateTime
+}
+```
+
+#### **Feedback**
+```prisma
+{
+  id: String
+  rating: Int            # User rating
+  comment: String?       # Optional feedback text
+  createdAt: DateTime
+}
+```
+
+#### **User** (NextAuth)
+```prisma
+{
+  id: String
+  name: String?
+  email: String?
+  emailVerified: DateTime?
+  image: String?
+  accounts: Account[]
+  sessions: Session[]
+  knowledgeBase: KnowledgeBase?    # One-to-one relation
+  virtualSelfChats: Chat[]         # Chats where this user's virtual self is used
+}
+```
+
+### Relations:
+
+- `User` ↔ `KnowledgeBase`: One-to-one
+- `User` ↔ `Chat`: One-to-many (via `virtualSelfChats`)
+- `Chat` ↔ `Message`: One-to-many
+- `Chat` ↔ `User`: Many-to-one (via `virtualSelfId`)
+
+### Notes:
+
+- Web and WhatsApp both write to `Chat` + `Message`
+- WhatsApp maps `Chat.userId` to sender phone number
+- Shared chats use `virtualSelfId` to track whose AI is being used
+- `shareSlug` must be unique across all users
 
 File: `src/app/api/whatsapp/webhook/route.ts`
 
 Flow:
 
-1. read Twilio form payload (`From`, `Body`, `NumMedia`)
-2. reject invalid input, handle media-only messages gracefully
-3. create/find chat by `userId = phone number`
-4. load recent history from DB
-5. run same DeepSeek + tool-call pattern
-6. save assistant message
-7. send reply through Twilio API
+1. read Twilio form payload (`Fro      # NextAuth handlers
+      chat/
+        route.ts                        # Personal/public chat API
+        shared/route.ts                 # Shared virtual self chat API
+      feedback/route.ts                 # User feedback collection
+      training/
+        route.ts                        # Knowledge base CRUD
+        train/route.ts                  # Model training endpoint
+      share/
+        enable/route.ts                 # Enable public sharing
+        disable/route.ts                # Disable public sharing
+      whatsapp/webhook/route.ts         # WhatsApp integration
+    auth/signin/page.tsx                # Sign-in page
+    chat/[slug]/page.tsx                # Public shared chat page
+    Dashboard/page.tsx                  # Main dashboard
+    logout/page.tsx                     # Logout handler
+    page.tsx                            # Home/public chat
+    layout.tsx                          # Root layout
+  components/
+    chat-ui/                            # Chat interface components
+      ChatInput.tsx
+      ChatNavbar.tsx
+      FeedbackModal.tsx
+      HeroSection.tsx
+      MessageList.tsx
+    dashboard/                          # Dashboard components
+      dashboard.tsx                     # Overview/stats
+      dashboardchat.tsx                 # Private virtual self chat
+      DashboardWrapper.tsx              # Layout wrapper
+      profile.tsx                       # User profile
+      settings.tsx                      # Settings & sharing
+      Sidebar.tsx                       # Navigation sidebar
+      training.tsx                      # 7-step training wizard
+      types.ts                          # TypeScript definitions
+    ChatPanel.tsx                       # Main public chat component
+    SharedChatClient.tsx                # Public shared chat client
+  lib/
+    ai-config.ts                        # System prompts
+    prisma.ts                           # Prisma client
+    search.ts                           # Tavily web search
+    whatsapp.ts                         # Twilio integration
+    utils.ts                            # Utility functions
+    rag/
+      retriever.ts                      # Knowledge retrieval
+    Knowledge/
+      velamini-kb.ts                    # Knowledge base data
+  types/
+    next-auth.d.ts                      # NextAuth type extensions
+  auth.ts                               # NextAuth configuration
+  auth.config.ts                        # Auth middleware config
+  middleware.ts                         # Route protection
+prisma/
+  schema.prisma                         # Database schema
+```
 
-### System Prompt
+## Current Status & Roadmap
 
-- File: `src/lib/ai-config.ts`
-- Encodes strong identity/tone/behavior rules for "Virtual Tresor."
+### ✅ Completed Features
+- Virtual self training system (7-step wizard)
+- AI model training with user knowledge
+- Private virtual self chat in dashboard
+- Public sharing with custom slugs
+- Shared virtual self public chat pages
+- User authentication (Google OAuth)
+- Database persistence for all features
+- Settings page with sharing controls
+- View count tracking
+- Dashboard navigation and stats
 
-## RAG / Knowledge Retrieval
+### 🚧 In Progress
+- Enhanced analytics and insights
+- Export/import training data
+- Multiple AI model support
+- Advanced customization options
 
-- Knowledge base: `src/lib/Knowledge/velamini-kb.ts`
-- Retriever: `src/lib/rag/retriever.ts`
-- Current method:
-- text chunking with overlap
-- keyword frequency scoring against normalized query
-- top-k chunk injection into prompt as `SOURCE N`
-
-## Database Models (Prisma)
-
-File: `prisma/schema.prisma`
-
-Main models:
-
-- `Chat`
-- `Message`
-- `Feedback`
-- `TrainingExample`
+### 📋 Planned Features
+- Voice interaction support
+- File/document upload for training
+- Conversation history export
+- API access for developers
+- Team collaboration features
+- White-label deployment options
 - NextAuth models: `User`, `Account`, `Session`, `VerificationToken`
 
 Notes:

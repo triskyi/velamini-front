@@ -15,7 +15,6 @@ type Message = {
 };
 
 export default function ChatPanel() {
-  const [currentView, setCurrentView] = useState<'chat' | 'training'>('chat');
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -94,23 +93,13 @@ export default function ChatPanel() {
     <div className="h-screen flex flex-col bg-[#0A0A0A] text-white font-sans overflow-hidden">
       
       <ChatNavbar 
-        currentView={currentView}
         onShowFeedback={() => setShowFeedbackModal(true)} 
-        onShowTraining={() => setCurrentView(prev => prev === 'chat' ? 'training' : 'chat')}
         onNewChat={() => {
           setMessages([]);
           localStorage.removeItem("velamini_chat_history");
           setInput("");
-          setCurrentView('chat');
         }}
       />
-
-      {currentView === 'training' ? (
-        <div className="flex-1 overflow-hidden">
-        
-        </div>
-      ) : (
-        <>
           {messages.length === 0 && !isTyping && (
             <HeroSection text="Reka ture ibyaribyo" />
           )}
@@ -140,8 +129,6 @@ export default function ChatPanel() {
             {/* Bottom Spacer - Pushes content up in hero state */}
             {messages.length === 0 && <div className="h-24" />}
           </div>
-        </>
-      )}
 
       <FeedbackModal 
         isOpen={showFeedbackModal}

@@ -66,16 +66,18 @@ export default function MessageList({
               className={`chat ${isUser ? "chat-end" : "chat-start"}`}
             >
               <div className="chat-image avatar hidden sm:flex">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden relative ${
                   isUser ? "bg-zinc-800" : "bg-zinc-900 border border-zinc-800 p-0.5"
                 }`}>
                   {isUser ? (
                     <User className="w-5 h-5 text-zinc-400" />
                   ) : assistantImage ? (
-                    <img 
+                    <Image 
                       src={assistantImage} 
                       alt={assistantName} 
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      unoptimized
                     />
                   ) : (
                     <Image 
@@ -113,12 +115,14 @@ export default function MessageList({
       {isTyping && (
         <div className="chat chat-start">
           <div className="chat-image avatar hidden sm:flex">
-            <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
+            <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden p-0.5 relative">
               {assistantImage ? (
-                <img 
+                <Image 
                   src={assistantImage} 
                   alt={assistantName} 
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               ) : (
                 <Image 

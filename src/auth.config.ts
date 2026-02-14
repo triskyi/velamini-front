@@ -16,6 +16,10 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnAuth = nextUrl.pathname.startsWith("/auth")
+      
+      // Public routes that don't require authentication
+      const isPublicRoute = nextUrl.pathname === "/" || nextUrl.pathname === "/chat"
+      
       const isOnProtected =
         nextUrl.pathname.startsWith("/Dashboard") ||
         nextUrl.pathname.startsWith("/dashboard") ||
@@ -27,6 +31,11 @@ export const authConfig = {
         if (isLoggedIn) {
           return Response.redirect(new URL("/Dashboard", nextUrl))
         }
+        return true
+      }
+
+      // Allow access to public routes without authentication
+      if (isPublicRoute) {
         return true
       }
 

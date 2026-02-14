@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth"
 import Google from "next-auth/providers/google"
 
 export const authConfig = {
+  secret: process.env.AUTH_SECRET,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -15,7 +16,7 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnAuth = nextUrl.pathname.startsWith('/auth')
-      const isOnProtected = nextUrl.pathname === '/' || nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname.startsWith('/training')
+      const isOnProtected = nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname.startsWith('/training')
 
       if (isOnAuth) {
         if (isLoggedIn) {

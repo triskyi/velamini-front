@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Velamini | Virtual Tresor",
-  description: "The digital twin of Ishimwe Tresor Bertrand.",
+  title: "Velamini",
+  description: "The virtual Tresor.",
   icons: {
     icon: "/icon.png",
   },

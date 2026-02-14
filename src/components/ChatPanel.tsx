@@ -112,7 +112,7 @@ export default function ChatPanel() {
       ) : (
         <>
           {messages.length === 0 && !isTyping && (
-            <HeroSection text="Chat with my digital self" />
+            <HeroSection text="Reka ture ibyaribyo" />
           )}
 
           {/* Main Content Area */}

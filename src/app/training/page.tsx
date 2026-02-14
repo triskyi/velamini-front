@@ -1,17 +1,12 @@
 import { auth } from "@/auth";
-import { DashboardLayout } from "@/components/DashboardLayout";
 
 export default async function TrainingPage() {
   const session = await auth();
 
   return (
-    <DashboardLayout user={session?.user}>
-      <div className="p-6 lg:p-8">
-        <div className="max-w-7xl">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Training</h1>
-          <p className="mt-1 text-sm text-slate-500">Manage your training modules and courses.</p>
-        </div>
-      </div>
-    </DashboardLayout>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold">Training</h1>
+      <p className="text-slate-500 mt-2">Train your virtual self.</p>
+    </div>
   );
 }

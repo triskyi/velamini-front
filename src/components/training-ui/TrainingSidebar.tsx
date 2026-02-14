@@ -55,7 +55,7 @@ export default function TrainingSidebar({ steps, currentStep, setCurrentStep }: 
       
       <div className="p-6 bg-zinc-900/50 rounded-2xl border border-zinc-800">
         <p className="text-xs text-zinc-400 leading-relaxed italic">
-          "Teach Velamini your style, preferences, and workflow—so it can guide you like you guide yourself."
+          &quot;Teach Velamini your style, preferences, and workflow-so it can guide you like you guide yourself.&quot;
         </p>
       </div>
     </div>

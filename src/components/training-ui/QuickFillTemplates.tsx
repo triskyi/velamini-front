@@ -2,6 +2,14 @@
 
 import { Code, GraduationCap, Briefcase, Rocket } from "lucide-react";
 
+type TemplateData = {
+  tone: string;
+  speakingStyle: string;
+  skills: string;
+  tools: string;
+  helpWith: string[];
+};
+
 const TEMPLATES = [
   {
     id: "dev",
@@ -42,7 +50,7 @@ const TEMPLATES = [
 ];
 
 interface QuickFillTemplatesProps {
-  onSelect: (data: any) => void;
+  onSelect: (data: Partial<TemplateData>) => void;
 }
 
 export default function QuickFillTemplates({ onSelect }: QuickFillTemplatesProps) {

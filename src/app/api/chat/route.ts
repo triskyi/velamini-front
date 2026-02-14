@@ -6,6 +6,28 @@ import { VIRTUAL_TRESOR_SYSTEM_PROMPT } from "@/lib/ai-config";
 
 export const dynamic = "force-dynamic";
 
+type ToolCall = {
+  id: string;
+  type: "function";
+  function: { name: string; arguments: string };
+};
+
+type ChatMessage = {
+  role: "system" | "user" | "assistant" | "tool";
+  content: string;
+  tool_call_id?: string;
+  tool_calls?: ToolCall[];
+};
+
+type DeepSeekResponse = {
+  choices: Array<{
+    message: {
+      content: string;
+      tool_calls?: ToolCall[];
+    };
+  }>;
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
@@ -55,14 +77,14 @@ export async function POST(req: Request) {
       },
     ];
 
-    let messages = [
+    const messages: ChatMessage[] = [
       { role: "system", content: systemPrompt },
       ...history,
       { role: "user", content: `CORE MEMORY:\n${context || "Not found in direct memory."}\n\nEXTERNAL SEARCH:\n${searchContent}\n\nQUESTION:\n${message}` }
     ];
 
     // 2) First DeepSeek Call
-    let response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -82,8 +104,8 @@ export async function POST(req: Request) {
        return NextResponse.json({ error: "AI service error", details: errorData }, { status: response.status });
     }
 
-    let data = await response.json();
-    let choice = data.choices[0];
+    const data = (await response.json()) as DeepSeekResponse;
+    const choice = data.choices[0];
     let finalContent = choice.message.content;
     let toolCalls = choice.message.tool_calls;
 
@@ -107,7 +129,7 @@ export async function POST(req: Request) {
     if (toolCalls) {
       const toolCall = toolCalls[0];
       if (toolCall.function.name === "search_web") {
-        const args = JSON.parse(toolCall.function.arguments);
+        const args = JSON.parse(toolCall.function.arguments) as { query: string };
         console.log(`Executing Search: ${args.query}`);
         
         const searchResult = await searchWeb(args.query);
@@ -121,7 +143,7 @@ export async function POST(req: Request) {
           role: "tool",
           content: searchContent,
           tool_call_id: toolCall.id,
-        } as any);
+        });
 
         // Second Call to DeepSeek with search results
         const secondResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {
@@ -163,8 +185,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ text: finalContent });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/chat error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

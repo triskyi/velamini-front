@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const https = require('https');
 
 console.log("Testing connection to accounts.google.com...");

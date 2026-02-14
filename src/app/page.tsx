@@ -14,10 +14,10 @@ export default function Home() {
             key={i}
             className="absolute h-1 w-1 rounded-full bg-cyan-400 animate-float"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
+              left: `${(i * 17) % 100}%`,
+              top: `${(i * 29) % 100}%`,
+              animationDelay: `${(i % 7) * 0.5}s`,
+              animationDuration: `${3 + (i % 5)}s`,
             }}
           />
         ))}

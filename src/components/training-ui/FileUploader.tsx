@@ -1,12 +1,19 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, File, X, Image as ImageIcon, FileText } from "lucide-react";
+import { Upload, X, Image as ImageIcon, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+type UploadedFile = {
+  id: string;
+  name: string;
+  size: string;
+  type: string;
+};
+
 interface FileUploaderProps {
-  files: any[];
-  onUpload: (files: any[]) => void;
+  files: UploadedFile[];
+  onUpload: (files: UploadedFile[]) => void;
 }
 
 export default function FileUploader({ files, onUpload }: FileUploaderProps) {
@@ -15,7 +22,7 @@ export default function FileUploader({ files, onUpload }: FileUploaderProps) {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map(file => ({
+      const newFiles: UploadedFile[] = Array.from(e.target.files).map(file => ({
         name: file.name,
         size: (file.size / 1024 / 1024).toFixed(2) + " MB",
         type: file.type,
@@ -38,7 +45,7 @@ export default function FileUploader({ files, onUpload }: FileUploaderProps) {
           e.preventDefault();
           setIsDragging(false);
           if (e.dataTransfer.files) {
-            const droppedFiles = Array.from(e.dataTransfer.files).map(file => ({
+            const droppedFiles: UploadedFile[] = Array.from(e.dataTransfer.files).map(file => ({
               name: file.name,
               size: (file.size / 1024 / 1024).toFixed(2) + " MB",
               type: file.type,

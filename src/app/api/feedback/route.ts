@@ -21,10 +21,11 @@ export async function POST(req: Request) {
     console.log("Feedback saved successfully:", feedback.id);
 
     return NextResponse.json({ success: true, feedback });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to save feedback";
     console.error("Feedback API Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to save feedback" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

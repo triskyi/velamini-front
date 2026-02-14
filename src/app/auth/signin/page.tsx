@@ -2,25 +2,17 @@
 
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import Image from "next/image";
 
 // --- Configurable StarField Animation ---
 const StarField = () => {
-  const [stars, setStars] = useState<
-    { id: number; top: number; left: number; size: number; duration: number }[]
-  >([]);
-
-  useEffect(() => {
-    const newStars = Array.from({ length: 120 }, (_, i) => ({
-      id: i,
-      top: Math.random() * 100,
-      left: Math.random() * 100,
-      size: Math.random() * 2 + 0.5,
-      duration: Math.random() * 20 + 10,
-    }));
-    setStars(newStars);
-  }, []);
+  const stars = Array.from({ length: 120 }, (_, i) => ({
+    id: i,
+    top: (i * 37) % 100,
+    left: (i * 53) % 100,
+    size: 0.5 + (i % 4) * 0.5,
+    duration: 10 + (i % 11) * 1.5,
+  }));
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-[#020202]">
@@ -33,10 +25,10 @@ const StarField = () => {
             scale: [1, 1.2, 1],
           }}
           transition={{
-            duration: Math.random() * 3 + 2,
+            duration: star.duration,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: Math.random() * 5,
+            delay: (star.id % 10) * 0.4,
           }}
           className="absolute rounded-full bg-white"
           style={{
@@ -155,7 +147,7 @@ export default function SignInPage() {
             <div className="absolute inset-0 flex items-center justify-center z-10 p-12">
                 <div className="p-8 bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg text-center shadow-2xl">
                     <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 leading-relaxed font-serif italic">
-                      "A year spent in artificial intelligence is enough to make one believe in God"
+                      &quot;A year spent in artificial intelligence is enough to make one believe in God&quot;
                     </h3>
                 </div>
             </div>

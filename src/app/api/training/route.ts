@@ -23,8 +23,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ok: true, created });
-  } catch (e: any) {
-    console.error("training save error:", e);
-    return NextResponse.json({ ok: false, error: e?.message ?? "Unknown error" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("training save error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ ok: false, error: errorMessage }, { status: 500 });
   }
 }

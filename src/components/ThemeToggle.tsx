@@ -2,19 +2,16 @@
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState<boolean>(false);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    const saved = localStorage.getItem("velamini-theme");
+    if (saved) return saved === "dark";
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem("velamini-theme");
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (saved) {
-      setIsDark(saved === "dark");
-      document.documentElement.classList.toggle("dark", saved === "dark");
-    } else {
-      setIsDark(prefersDark);
-      document.documentElement.classList.toggle("dark", prefersDark);
-    }
-  }, []);
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
 
   const toggle = () => {
     const next = !isDark;

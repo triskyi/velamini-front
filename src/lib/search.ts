@@ -1,4 +1,15 @@
 export async function searchWeb(query: string) {
+  type TavilyResult = {
+    title: string;
+    url: string;
+    content: string;
+  };
+
+  type TavilyResponse = {
+    answer: string;
+    results: TavilyResult[];
+  };
+
   const apiKey = process.env.TAVILY_API_KEY;
   
   if (!apiKey) {
@@ -24,8 +35,8 @@ export async function searchWeb(query: string) {
       throw new Error(`Tavily API error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    const results = data.results.map((r: any) => ({
+    const data = (await response.json()) as TavilyResponse;
+    const results = data.results.map((r) => ({
       title: r.title,
       url: r.url,
       content: r.content,

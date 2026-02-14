@@ -35,9 +35,33 @@ const STEPS = [
   { id: 6, title: "Review", icon: FileText },
 ];
 
+type TrainingFormData = {
+  nickname: string;
+  pronouns: string;
+  language: string;
+  timezone: string;
+  socials: { linkedin: string; twitter: string; instagram: string; github: string };
+  tone: string;
+  speakingStyle: string;
+  wordsILike: string;
+  wordsIHate: string;
+  emojiPreference: "none" | "light" | "lots";
+  role: string;
+  skills: string;
+  projects: string;
+  tools: string;
+  files: Array<{ id: string; name: string; size: string; type: string }>;
+  dontDo: string;
+  confidential: string;
+  dailyTasks: string;
+  helpWith: string[];
+  consentUsed: boolean;
+  anonymizedData: boolean;
+};
+
 export default function TrainingPage() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TrainingFormData>({
     // Basics
     nickname: "",
     pronouns: "",
@@ -67,11 +91,11 @@ export default function TrainingPage() {
     anonymizedData: true,
   });
 
-  const updateField = (field: string, value: any) => {
+  const updateField = <K extends keyof TrainingFormData>(field: K, value: TrainingFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const applyTemplate = (templateData: any) => {
+  const applyTemplate = (templateData: Partial<TrainingFormData>) => {
     setFormData(prev => ({ ...prev, ...templateData }));
   };
 
@@ -177,7 +201,7 @@ export default function TrainingPage() {
           
           <div className="chat chat-start">
             <div className="chat-bubble bg-zinc-900 border border-zinc-800 text-zinc-400 text-sm">
-              I'm processing your profile...
+              {"I'm processing your profile..."}
             </div>
           </div>
           
@@ -185,13 +209,15 @@ export default function TrainingPage() {
             <div className="chat-bubble bg-[#111111] border border-zinc-800 text-zinc-100 text-[15px] p-6 rounded-2xl shadow-xl">
               <p>Hello {formData.nickname || "[Name]"}!</p>
               <p className="mt-3">
-                I'll respond with a <span className="text-cyan-400 font-bold">{formData.tone}</span> tone 
+                {"I'll respond with a "}<span className="text-cyan-400 font-bold">{formData.tone}</span> tone 
                 and keep my answers <span className="text-cyan-400 font-bold">{formData.speakingStyle}</span>. 
                 {formData.role && ` Since I know you are a ${formData.role}, `}
-                I'm ready to help you with {formData.helpWith.length > 0 ? formData.helpWith.join(", ") : "your specific projects"}.
+                {"I'm ready to help you with "}{formData.helpWith.length > 0 ? formData.helpWith.join(", ") : "your specific projects"}.
               </p>
               <p className="mt-3 leading-relaxed text-zinc-400 italic text-sm">
-                "{formData.wordsILike ? `I'll be sure to use phrases like: ${formData.wordsILike}` : "I'm still learning your unique catchphrases."}"
+                {formData.wordsILike
+                  ? `I'll be sure to use phrases like: ${formData.wordsILike}`
+                  : "I'm still learning your unique catchphrases."}
               </p>
               <p className="mt-3">Shall we get started? {formData.emojiPreference === 'lots' ? '🚀✨🔥' : formData.emojiPreference === 'light' ? '✨' : ''}</p>
             </div>

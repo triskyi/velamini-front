@@ -1,11 +1,42 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, Instagram, Linkedin, Twitter, Globe, Github } from "lucide-react";
+import { AlertCircle, CheckCircle2, Instagram, Linkedin, Twitter, Github } from "lucide-react";
 import FileUploader from "./FileUploader";
 
+type UploadedFile = {
+  id: string;
+  name: string;
+  size: string;
+  type: string;
+};
+
+type TrainingFormData = {
+  nickname: string;
+  pronouns: string;
+  language: string;
+  timezone: string;
+  socials: { linkedin: string; twitter: string; instagram: string; github: string };
+  tone: string;
+  speakingStyle: string;
+  wordsILike: string;
+  wordsIHate: string;
+  emojiPreference: "none" | "light" | "lots";
+  role: string;
+  skills: string;
+  projects: string;
+  tools: string;
+  files: UploadedFile[];
+  dontDo: string;
+  confidential: string;
+  dailyTasks: string;
+  helpWith: string[];
+  consentUsed: boolean;
+  anonymizedData: boolean;
+};
+
 interface StepProps {
-  formData: any;
-  updateField: (field: string, value: any) => void;
+  formData: TrainingFormData;
+  updateField: <K extends keyof TrainingFormData>(field: K, value: TrainingFormData[K]) => void;
 }
 
 export const IdentityStep = ({ formData, updateField }: StepProps) => (
@@ -319,7 +350,7 @@ export const ReviewStep = ({ formData, updateField }: StepProps) => (
           <p className="text-zinc-500 mb-1 uppercase text-[10px] font-bold tracking-widest">Attached Knowledge</p>
           <div className="flex gap-2 flex-wrap mt-2">
             {(formData.files || []).length > 0 ? (
-              formData.files.map((file: any) => (
+              formData.files.map((file) => (
                 <div key={file.id} className="px-3 py-1 bg-zinc-800 rounded-lg text-xs border border-zinc-700">
                   {file.name}
                 </div>

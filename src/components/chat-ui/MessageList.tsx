@@ -66,18 +66,17 @@ export default function MessageList({
               className={`chat ${isUser ? "chat-end" : "chat-start"}`}
             >
               <div className="chat-image avatar hidden sm:flex">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden relative ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
                   isUser ? "bg-zinc-800" : "bg-zinc-900 border border-zinc-800 p-0.5"
                 }`}>
                   {isUser ? (
                     <User className="w-5 h-5 text-zinc-400" />
                   ) : assistantImage ? (
-                    <Image 
+                    <img 
                       src={assistantImage} 
                       alt={assistantName} 
-                      fill
-                      className="object-cover"
-                      unoptimized
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <Image 
@@ -115,14 +114,13 @@ export default function MessageList({
       {isTyping && (
         <div className="chat chat-start">
           <div className="chat-image avatar hidden sm:flex">
-            <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden p-0.5 relative">
+            <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
               {assistantImage ? (
-                <Image 
+                <img 
                   src={assistantImage} 
                   alt={assistantName} 
-                  fill
-                  className="object-cover"
-                  unoptimized
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <Image 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import HeroSection from "./chat-ui/HeroSection";
@@ -111,18 +110,17 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
         </Link>
         
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-zinc-800 flex items-center justify-center overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-500 relative">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-zinc-800 flex items-center justify-center overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-500">
             {virtualSelf.image && !imageError ? (
-              <Image 
+              <img 
                 src={virtualSelf.image} 
                 alt={virtualSelf.name} 
-                fill
-                className="object-cover"
+                className="w-full h-full object-cover"
                 onError={() => {
                   console.error("Failed to load image:", virtualSelf.image);
                   setImageError(true);
                 }}
-                unoptimized
+                referrerPolicy="no-referrer"
               />
             ) : (
               <span className="text-white font-bold text-lg">

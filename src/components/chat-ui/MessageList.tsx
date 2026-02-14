@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { User } from "lucide-react";
-import { ImproveResponse } from "../ImproveResponse";
 
 type Message = {
   id: number;
@@ -86,9 +85,7 @@ export default function MessageList({ messages, isTyping, bottomRef }: MessageLi
               }`}>
                 {renderWithLinks(msg.content)}
                 
-                {!isUser && userPrompt && (
-                  <ImproveResponse userPrompt={userPrompt} aiAnswer={msg.content} />
-                )}
+              
               </div>
               <div className="chat-footer opacity-40 text-[10px] mt-1">
                 {isUser ? "Delivered" : "Virtual Tresor"}

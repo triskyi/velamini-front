@@ -16,7 +16,12 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnAuth = nextUrl.pathname.startsWith("/auth")
-      const isOnProtected = nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/training")
+      const isOnProtected =
+        nextUrl.pathname.startsWith("/Dashboard") ||
+        nextUrl.pathname.startsWith("/dashboard") ||
+        nextUrl.pathname.startsWith("/training") ||
+        nextUrl.pathname.startsWith("/profile") ||
+        nextUrl.pathname.startsWith("/settings")
 
       if (isOnAuth) {
         if (isLoggedIn) {

@@ -1,114 +1,148 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight, CheckCircle2, GraduationCap, Settings, UserRound, Wrench } from "lucide-react";
+import {
+  Brain,
+  MessageSquare,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
+import { DashboardUser } from "@/components/dashboard/types";
 
 interface DashboardContentProps {
-  user?: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
+  user?: DashboardUser;
 }
 
 export default function DashboardContent({ user }: DashboardContentProps) {
+  // TODO: Replace with actual data from database
+  const stats = [
+    { label: "TRAINING ENTRIES", value: "1", icon: Brain, bgColor: "bg-cyan-50", iconColor: "text-cyan-600" },
+    { label: "Q&A PAIRS", value: "0", icon: MessageSquare, bgColor: "bg-slate-50", iconColor: "text-slate-600" },
+    { label: "PERSONALITY TRAITS", value: "0", icon: Sparkles, bgColor: "bg-slate-50", iconColor: "text-slate-600" },
+    { label: "KNOWLEDGE ITEMS", value: "1", icon: TrendingUp, bgColor: "bg-slate-50", iconColor: "text-slate-600" },
+  ];
+
+  // Calculate training completion percentage
+  const totalPossibleEntries = 10; // Minimum recommended entries
+  const currentEntries = parseInt(stats[0].value);
+  const completionPercentage = Math.min((currentEntries / totalPossibleEntries) * 100, 100);
+
   return (
-    <div className="min-h-screen bg-[#eef3f8] px-6 py-8 md:px-10">
-      <div className="mx-auto max-w-5xl space-y-5">
-        <section id="dashboard" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-700">Dashboard</p>
-          <h1 className="mt-2 text-3xl font-semibold text-slate-900">Welcome, {user?.name || "User"}</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            This is your starter control center. Use the sections below to set up your virtual self.
+    <div className="min-h-[calc(100vh-80px)] bg-slate-50 px-6 py-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        {/* Header Section */}
+        <section>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Overview of your virtual self training progress.
           </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Setup Progress</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">65%</p>
-            </div>
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Conversations</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">12</p>
-            </div>
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Quality Score</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">4.6/5</p>
-            </div>
-          </div>
         </section>
 
-        <section id="training" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-700">Training</p>
-              <h2 className="mt-2 inline-flex items-center gap-2 text-xl font-semibold text-slate-900">
-                <GraduationCap className="h-5 w-5" />
-                Train Your Assistant
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">Complete identity, personality, and workflow to get better answers.</p>
-            </div>
-            <Link
-              href="/training"
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+        {/* Stats Grid */}
+        <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <article 
+              key={stat.label} 
+              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
             >
-              Open Training
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    {stat.label}
+                  </p>
+                  <p className="mt-3 text-4xl font-bold text-slate-900">
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.bgColor}`}>
+                  <stat.icon className={`h-6 w-6 ${stat.iconColor}`} />
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+
+        {/* Virtual Self Status Section */}
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Virtual Self Status</h2>
+          
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-cyan-500">
+              <Brain className="h-7 w-7 text-white" />
+            </div>
+            
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-slate-900">Getting Started</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Add more training data for better results.
+              </p>
+              
+              <div className="mt-4">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div 
+                    className="h-full rounded-full bg-cyan-500 transition-all duration-500"
+                    style={{ width: `${completionPercentage}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  {Math.round(completionPercentage)}% training completion
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section id="profile" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-700">Profile</p>
-          <h2 className="mt-2 inline-flex items-center gap-2 text-xl font-semibold text-slate-900">
-            <UserRound className="h-5 w-5" />
-            Your Profile
-          </h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Name</p>
-              <p className="mt-1 font-semibold text-slate-900">{user?.name || "Not set"}</p>
-            </div>
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Email</p>
-              <p className="mt-1 font-semibold text-slate-900">{user?.email || "Not set"}</p>
-            </div>
-          </div>
-        </section>
+        {/* Quick Actions */}
+        <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-base font-semibold text-slate-900 mb-4">Next Steps</h3>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 h-5 w-5 rounded-full bg-cyan-100 flex items-center justify-center shrink-0">
+                  <div className="h-2 w-2 rounded-full bg-cyan-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Add Training Data</p>
+                  <p className="text-xs text-slate-600">Create Q&A pairs to train your virtual self</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <div className="h-2 w-2 rounded-full bg-slate-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Define Personality</p>
+                  <p className="text-xs text-slate-600">Set traits to personalize responses</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <div className="h-2 w-2 rounded-full bg-slate-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Test Your AI</p>
+                  <p className="text-xs text-slate-600">Chat with your virtual self</p>
+                </div>
+              </li>
+            </ul>
+          </article>
 
-        <section id="settings" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-700">Settings</p>
-          <h2 className="mt-2 inline-flex items-center gap-2 text-xl font-semibold text-slate-900">
-            <Settings className="h-5 w-5" />
-            Workspace Settings
-          </h2>
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-              <span className="text-sm font-medium text-slate-700">Notification emails</span>
-              <span className="text-xs font-semibold text-emerald-700">Enabled</span>
+          <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-base font-semibold text-slate-900 mb-4">Training Tips</h3>
+            <div className="space-y-4">
+              <div className="rounded-lg bg-cyan-50 p-4">
+                <p className="text-sm font-medium text-cyan-900">Quality over Quantity</p>
+                <p className="mt-1 text-xs text-cyan-700">
+                  Focus on detailed, authentic responses that reflect your communication style.
+                </p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-4">
+                <p className="text-sm font-medium text-slate-900">Be Consistent</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Regular training updates help maintain accuracy and relevance.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-              <span className="text-sm font-medium text-slate-700">Auto-save training edits</span>
-              <span className="text-xs font-semibold text-emerald-700">Enabled</span>
-            </div>
-          </div>
-        </section>
-
-        <section id="tools" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-700">Tools</p>
-          <h2 className="mt-2 inline-flex items-center gap-2 text-xl font-semibold text-slate-900">
-            <Wrench className="h-5 w-5" />
-            Quick Tools
-          </h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <button className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-              Export basic report
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-            </button>
-            <button className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-              Backup profile data
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-            </button>
-          </div>
+          </article>
         </section>
       </div>
     </div>

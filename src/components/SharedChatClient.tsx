@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import HeroSection from "./chat-ui/HeroSection";
@@ -26,7 +27,14 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Debug: Log the image URL
+  useEffect(() => {
+    console.log("Virtual Self Image URL:", virtualSelf.image);
+    console.log("Virtual Self Data:", virtualSelf);
+  }, [virtualSelf]);
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -103,9 +111,19 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
         </Link>
         
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-zinc-800 flex items-center justify-center overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-500">
-            {virtualSelf.image ? (
-              <img src={virtualSelf.image} alt={virtualSelf.name} className="w-full h-full object-cover" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-zinc-800 flex items-center justify-center overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-500 relative">
+            {virtualSelf.image && !imageError ? (
+              <Image 
+                src={virtualSelf.image} 
+                alt={virtualSelf.name} 
+                fill
+                className="object-cover"
+                onError={() => {
+                  console.error("Failed to load image:", virtualSelf.image);
+                  setImageError(true);
+                }}
+                unoptimized
+              />
             ) : (
               <span className="text-white font-bold text-lg">
                 {virtualSelf.name[0].toUpperCase()}

@@ -53,7 +53,7 @@ export default function Sidebar({ user }: SidebarProps) {
           <p className="mb-4 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">
             Main
           </p>
-          <nav className="space-y-1">
+          <nav className="space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -63,10 +63,10 @@ export default function Sidebar({ user }: SidebarProps) {
                   key={item.label}
                   href={item.href}
                   className={[
-                    "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                    "group flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all border border-transparent",
                     isActive
-                      ? "bg-teal-500/10 text-teal-400"
-                      : "text-slate-400 hover:bg-slate-800/30 hover:text-slate-300",
+                      ? "bg-teal-500/10 text-teal-400 border-teal-500/20"
+                      : "text-slate-400 hover:bg-slate-800/30 hover:text-slate-300 hover:border-slate-700/30",
                   ].join(" ")}
                 >
                   <Icon className="h-5 w-5" strokeWidth={2} />

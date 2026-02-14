@@ -8,18 +8,13 @@ export async function POST(req: Request) {
     const userPrompt = String(body.userPrompt ?? "").trim();
     const aiAnswer = String(body.aiAnswer ?? "").trim();
     const userEdit = body.userEdit ? String(body.userEdit).trim() : null;
-    const rating = body.rating !== undefined ? Number(body.rating) : null;
 
     if (!userPrompt || !aiAnswer) {
       return NextResponse.json({ error: "Missing userPrompt or aiAnswer" }, { status: 400 });
     }
 
-    if (rating !== null && (Number.isNaN(rating) || rating < 1 || rating > 5)) {
-      return NextResponse.json({ error: "rating must be 1..5" }, { status: 400 });
-    }
-
     const created = await prisma.trainingExample.create({
-      data: { userPrompt, aiAnswer, userEdit, rating, source: "chat" },
+      data: { userPrompt, aiAnswer, userEdit, source: "chat" },
     });
 
     return NextResponse.json({ ok: true, created });

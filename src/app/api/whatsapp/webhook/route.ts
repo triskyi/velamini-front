@@ -116,7 +116,10 @@ async function handleIncomingMessage(from: string, userMessage: string) {
   
   const messages: ChatMessage[] = [
     { role: "system", content: VIRTUAL_TRESOR_SYSTEM_PROMPT },
-    ...historyMessages.reverse().map(msg => ({ role: msg.role, content: msg.content })),
+    ...historyMessages.reverse().map(msg => ({ 
+      role: msg.role as "system" | "user" | "assistant" | "tool", 
+      content: msg.content 
+    })),
     { role: "user", content: `CORE MEMORY:\n${context || "Not found in direct memory."}\n\nQUESTION:\n${userMessage}` }
   ];
 
@@ -193,7 +196,11 @@ async function handleIncomingMessage(from: string, userMessage: string) {
             ? `SEARCH RESULTS (Answer: ${searchResult.answer}):\n${JSON.stringify(searchResult.results)}`
             : "No search results found.";
 
-            messages.push(choice.message);
+            messages.push({
+                role: "assistant",
+                content: choice.message.content,
+                tool_calls: choice.message.tool_calls,
+            });
             messages.push({
                 role: "tool",
                 content: searchContent,

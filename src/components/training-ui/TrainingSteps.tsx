@@ -179,7 +179,7 @@ export const PersonalityStep = ({ formData, updateField }: StepProps) => (
       <div className="form-control md:col-span-2">
         <label className="label"><span className="label-text font-bold">Emoji Preference</span></label>
         <div className="flex gap-4">
-          {['none', 'light', 'lots'].map((level) => (
+          {(['none', 'light', 'lots'] as const).map((level) => (
             <button
               key={level}
               onClick={() => updateField("emojiPreference", level)}

@@ -38,7 +38,6 @@ model TrainingExample {
   userPrompt   String   @db.Text
   aiAnswer     String   @db.Text
   userEdit     String?  @db.Text
-  rating       Int?     // 1..5
   createdAt    DateTime @default(now())
   topic        String?
   source       String?  @default("chat")

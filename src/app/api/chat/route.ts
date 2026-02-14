@@ -138,7 +138,11 @@ export async function POST(req: Request) {
           : "No search results found.";
 
         // Append assistant's tool request and the tool's result to history
-        messages.push(choice.message);
+        messages.push({
+          role: "assistant",
+          content: choice.message.content,
+          tool_calls: choice.message.tool_calls,
+        });
         messages.push({
           role: "tool",
           content: searchContent,

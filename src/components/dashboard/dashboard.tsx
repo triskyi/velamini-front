@@ -58,20 +58,20 @@ export default function Dashboard({ stats }: DashboardContentProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Header Section */}
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
             Welcome Back 👋
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base lg:text-lg">
             Here's what's happening with your virtual self today
           </p>
         </div>
 
         {/* Stats Grid with Modern Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {statsCards.map((stat, index) => (
             <div
               key={index}
@@ -105,13 +105,13 @@ export default function Dashboard({ stats }: DashboardContentProps) {
         </div>
 
         {/* Training Progress Card */}
-        <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 shadow-lg">
-          <div className="flex items-start justify-between mb-6">
+        <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-lg">
+          <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 Virtual Self Status
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
                 Your AI is learning and evolving every day
               </p>
             </div>
@@ -145,7 +145,7 @@ export default function Dashboard({ stats }: DashboardContentProps) {
             </div>
 
             {/* Milestones */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                 <div className="p-2 rounded-lg bg-teal-500/10">
                   <Target className="h-5 w-5 text-teal-500" />
@@ -182,12 +182,12 @@ export default function Dashboard({ stats }: DashboardContentProps) {
         {/* Action Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Next Steps Card */}
-          <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
                 <TrendingUp className="h-6 w-6 text-white" strokeWidth={2.5} />
               </div>
-              <h3 className="text-2xl font-bold">Next Steps</h3>
+              <h3 className="text-xl sm:text-2xl font-bold">Next Steps</h3>
             </div>
             <ul className="space-y-4">
               <li className="flex items-start gap-4 group">
@@ -215,12 +215,12 @@ export default function Dashboard({ stats }: DashboardContentProps) {
           </div>
 
           {/* Training Tips Card */}
-          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
                 <Lightbulb className="h-6 w-6 text-white" strokeWidth={2.5} />
               </div>
-              <h3 className="text-2xl font-bold">Training Tips</h3>
+              <h3 className="text-xl sm:text-2xl font-bold">Training Tips</h3>
             </div>
             <ul className="space-y-4">
               <li className="flex items-start gap-4 group">

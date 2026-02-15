@@ -15,10 +15,10 @@ export default function Navbar({ user }: NavbarProps) {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl hidden lg:block">
       <div className="flex h-16 items-center justify-between px-6">
         {/* Search Bar */}
-        <div className="flex-1 max-w-2xl">
+        <div className="flex-1 max-w-2xl hidden md:block">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <input
@@ -28,6 +28,11 @@ export default function Navbar({ user }: NavbarProps) {
             />
           </div>
         </div>
+
+        {/* Mobile Search Button */}
+        <button className="md:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+          <Search className="h-5 w-5" strokeWidth={2} />
+        </button>
 
         {/* Right Section */}
         <div className="flex items-center gap-3 ml-6">
@@ -57,7 +62,7 @@ export default function Navbar({ user }: NavbarProps) {
 
           {/* User Profile */}
           <div className="flex items-center gap-3 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
-            <div className="text-right">
+            <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-slate-900 dark:text-white">
                 {user?.name || "User"}
               </p>
@@ -65,9 +70,17 @@ export default function Navbar({ user }: NavbarProps) {
                 Administrator
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-sm font-bold text-white shadow-lg">
-              {(user?.name?.[0] || "U").toUpperCase()}
-            </div>
+            {user?.image ? (
+              <img
+                src={user.image}
+                alt={user.name || "User"}
+                className="h-10 w-10 rounded-xl shadow-lg object-cover ring-2 ring-teal-500/20"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-sm font-bold text-white shadow-lg">
+                {(user?.name?.[0] || "U").toUpperCase()}
+              </div>
+            )}
           </div>
         </div>
       </div>

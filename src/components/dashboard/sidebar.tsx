@@ -35,9 +35,9 @@ export default function Sidebar({ user, activeView = "dashboard", onViewChange }
   return (
     <aside
       aria-label={`${user?.name || "User"} sidebar`}
-      className="h-screen w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-200 flex-shrink-0 border-r border-slate-800/50"
+      className="h-screen w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-200 flex-shrink-0 border-r border-slate-800/50 hidden lg:flex flex-col"
     >
-      <div className="flex h-full flex-col">
+      <>
         {/* Header with Modern Gradient */}
         <div className="px-6 py-6 border-b border-slate-800/50">
           <div className="flex items-center gap-3">
@@ -91,9 +91,17 @@ export default function Sidebar({ user, activeView = "dashboard", onViewChange }
           {/* User Card with Glassmorphism */}
           <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl p-4 border border-slate-700/50 shadow-xl">
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-base font-bold text-white shadow-lg shadow-purple-500/25">
-                {(user?.name?.[0] || "U").toUpperCase()}
-              </div>
+              {user?.image ? (
+                <img
+                  src={user.image}
+                  alt={user?.name || "User"}
+                  className="h-11 w-11 rounded-xl shadow-lg shadow-purple-500/25 object-cover ring-2 ring-purple-500/20"
+                />
+              ) : (
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-base font-bold text-white shadow-lg shadow-purple-500/25">
+                  {(user?.name?.[0] || "U").toUpperCase()}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">
                   {user?.name || "User"}
@@ -110,7 +118,7 @@ export default function Sidebar({ user, activeView = "dashboard", onViewChange }
             </button>
           </div>
         </div>
-      </div>
+      </>
     </aside>
   );
 }

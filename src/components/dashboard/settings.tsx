@@ -90,14 +90,14 @@ export default function SettingsView({ user }: SettingsViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
             Settings
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base lg:text-lg">
             Manage your virtual self and sharing preferences
           </p>
         </div>
@@ -116,16 +116,16 @@ export default function SettingsView({ user }: SettingsViewProps) {
         )}
 
         {/* Share Your Virtual Self - Modern Card */}
-        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-2xl">
-          <div className="flex items-start gap-6 mb-8">
+        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-2xl">
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
-              <Share2 className="h-8 w-8 text-white" strokeWidth={2.5} />
+              <Share2 className="h-6 w-6 sm:h-8 sm:w-8 text-white" strokeWidth={2.5} />
             </div>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 Share Your Virtual Self
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
                 Allow others to chat with your AI-powered virtual self using a unique link
               </p>
             </div>
@@ -207,8 +207,8 @@ export default function SettingsView({ user }: SettingsViewProps) {
         </div>
 
         {/* Account Settings */}
-        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-2xl">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-2xl">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-4 sm:mb-6">
             Account Settings
           </h2>
           <div className="space-y-6">

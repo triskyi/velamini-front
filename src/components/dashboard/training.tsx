@@ -138,7 +138,7 @@ const handleTrainModel = async () => {
     switch (currentStep) {
       case 1: // Identity
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -391,14 +391,14 @@ const handleTrainModel = async () => {
   const StepIcon = STEPS[currentStep - 1].icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-8">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
             Training Center
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base lg:text-lg">
             Build your intelligent virtual self step by step
           </p>
         </div>
@@ -417,14 +417,14 @@ const handleTrainModel = async () => {
         )}
 
         {/* Modern Progress Steps */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-xl">
-          <div className="mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-xl">
+          <div className="mb-4 sm:mb-6">
             <div className="flex items-center justify-between">
               {STEPS.map((step, index) => (
                 <div key={step.id} className="flex items-center flex-1">
                   <button
                     onClick={() => goToStep(step.id)}
-                    className={`group relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ${
+                    className={`group relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl transition-all duration-300 ${
                       currentStep === step.id
                         ? "bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/30 scale-110"
                         : currentStep > step.id
@@ -433,9 +433,9 @@ const handleTrainModel = async () => {
                     }`}
                   >
                     {currentStep > step.id ? (
-                      <Check className="h-6 w-6" strokeWidth={2.5} />
+                      <Check className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
                     ) : (
-                      <step.icon className="h-6 w-6" strokeWidth={2} />
+                      <step.icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2} />
                     )}
                   </button>
                   {index < STEPS.length - 1 && (
@@ -476,16 +476,16 @@ const handleTrainModel = async () => {
         </div>
 
         {/* Step Content Card with Modern Design */}
-        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-10 shadow-2xl">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
-              <StepIcon className="h-8 w-8 text-white" strokeWidth={2.5} />
+        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-10 shadow-2xl">
+          <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
+              <StepIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
                 {STEPS[currentStep - 1].name}
               </h2>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
                 Step {currentStep} of {STEPS.length}
               </p>
             </div>
@@ -495,7 +495,7 @@ const handleTrainModel = async () => {
         </div>
 
         {/* Navigation Buttons with Modern Design */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
           <button
             onClick={prevStep}
             disabled={currentStep === 1}

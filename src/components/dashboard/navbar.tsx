@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Moon, Sun } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface NavbarProps {
   user?: {
@@ -13,7 +13,41 @@ interface NavbarProps {
 }
 
 export default function Navbar({ user }: NavbarProps) {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Check current state from DOM
+    const isDark = document.documentElement.classList.contains('dark');
+    setIsDarkMode(isDark);
+    console.log('Initial theme state:', isDark ? 'dark' : 'light');
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    
+    // Update document class
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+    
+    // Force a small delay to ensure class is applied
+    setTimeout(() => {
+      console.log('Theme changed to:', newTheme ? 'dark' : 'light');
+      console.log('HTML classes:', document.documentElement.className);
+    }, 100);
+  };
+
+  // Prevent flash during hydration
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl hidden lg:block">
@@ -22,7 +56,7 @@ export default function Navbar({ user }: NavbarProps) {
         <div className="flex items-center gap-3">
           {/* Theme Toggle */}
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={toggleTheme}
             className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-110 active:scale-95"
             aria-label="Toggle theme"
           >

@@ -5,8 +5,8 @@
    CSS Variables (Theme)
    ========================= */
 :root {
-  --background: #0b0f1a;
-  --foreground: #ededed;
+  --background: #ffffff;
+  --foreground: #0f172a;
   
   /* Neon Colors */
   --neon-cyan: #00f3ff;
@@ -17,6 +17,11 @@
 
   --font-sans: var(--font-geist-sans, system-ui, sans-serif);
   --font-mono: var(--font-geist-mono, monospace);
+}
+
+.dark {
+  --background: #0b0f1a;
+  --foreground: #ededed;
 }
 
 /* =========================
@@ -35,7 +40,7 @@ html {
 body {
   @apply bg-[var(--background)] text-[var(--foreground)] font-sans antialiased;
   overflow-x: hidden;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Scrollbar Styling */
@@ -45,29 +50,34 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(11, 15, 26, 0.5);
+  @apply bg-slate-100 dark:bg-slate-900/50;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-purple));
-  border-radius: 4px;
+  @apply bg-gradient-to-b from-teal-400 to-cyan-500 rounded;
   &:hover {
-    background: linear-gradient(to bottom, var(--neon-purple), var(--neon-cyan));
-    box-shadow: 0 0 10px var(--neon-cyan);
+    @apply from-teal-500 to-cyan-600;
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
   }
 }
 
 /* Firefox Scrollbar */
 * {
-  scrollbar-color: var(--neon-cyan) rgba(11, 15, 26, 0.5);
+  scrollbar-color: rgb(20, 184, 166) rgba(241, 245, 249, 0.5);
   scrollbar-width: thin;
+}
+
+.dark * {
+  scrollbar-color: rgb(20, 184, 166) rgba(15, 23, 42, 0.5);
 }
 
 /* Text Selection */
 ::selection {
-  background: var(--neon-cyan);
-  color: var(--background);
-  text-shadow: 0 0 10px var(--neon-cyan);
+  @apply bg-teal-500 text-white;
+}
+
+.dark ::selection {
+  @apply bg-cyan-500 text-slate-900;
 }
 
 /* =========================

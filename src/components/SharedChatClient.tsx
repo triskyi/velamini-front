@@ -27,6 +27,7 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [visitorName, setVisitorName] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Debug: Log the image URL
@@ -35,15 +36,21 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
     console.log("Virtual Self Data:", virtualSelf);
   }, [virtualSelf]);
 
-  // Load messages from localStorage on mount
+  // Load messages and visitor name from localStorage on mount
   useEffect(() => {
     const savedMessages = localStorage.getItem(`shared_chat_${virtualSelf.slug}`);
+    const savedName = localStorage.getItem(`shared_chat_name_${virtualSelf.slug}`);
+    
     if (savedMessages) {
       try {
         setMessages(JSON.parse(savedMessages));
       } catch (e) {
         console.error("Failed to parse chat history", e);
       }
+    }
+    
+    if (savedName) {
+      setVisitorName(savedName);
     }
   }, [virtualSelf.slug]);
 
@@ -57,6 +64,36 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Extract visitor name from messages if they introduce themselves
+  useEffect(() => {
+    if (!visitorName && messages.length > 0) {
+      // Simple pattern matching for name introduction
+      const lastUserMessage = messages.filter(m => m.role === "user").slice(-1)[0];
+      if (lastUserMessage) {
+        const content = lastUserMessage.content.toLowerCase();
+        // Patterns: "my name is...", "i'm...", "i am...", "call me..."
+        const namePatterns = [
+          /my name is ([a-z]+)/i,
+          /i'm ([a-z]+)/i,
+          /i am ([a-z]+)/i,
+          /call me ([a-z]+)/i,
+          /this is ([a-z]+)/i
+        ];
+        
+        for (const pattern of namePatterns) {
+          const match = content.match(pattern);
+          if (match && match[1] && match[1].length > 1) {
+            const name = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+            setVisitorName(name);
+            localStorage.setItem(`shared_chat_name_${virtualSelf.slug}`, name);
+            console.log("Extracted visitor name:", name);
+            break;
+          }
+        }
+      }
+    }
+  }, [messages, visitorName, virtualSelf.slug]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -81,6 +118,7 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
           message: userMessage.content,
           history: contextMessages,
           virtualSelfId: virtualSelf.id,
+          visitorName: visitorName, // Pass visitor name to AI
         }),
       });
       const data = await res.json();

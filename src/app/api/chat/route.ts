@@ -69,13 +69,16 @@ export async function POST(req: Request) {
           });
 
           if (knowledgeBase?.isModelTrained && knowledgeBase.trainedPrompt) {
-            userKnowledge = `\n\nUSER'S PERSONAL KNOWLEDGE BASE:\n${knowledgeBase.trainedPrompt}`;
+            userKnowledge = `\n\nUSER'S PERSONAL KNOWLEDGE BASE (This is YOUR information about yourself, [Person's name]):\n${knowledgeBase.trainedPrompt}`;
           }
         }
       }
     } catch (authError) {
       console.log("Could not fetch user knowledge (user may not be logged in):", authError);
     }
+
+    // Add Velamini context
+    const velaminiContext = `\n\nABOUT VELAMINI:\nVelamini is the platform that created you - it allows people to build their virtual selves/digital twins. The website is ${process.env.NEXT_PUBLIC_APP_URL || 'https://velamini.com'}. When visitors ask about you or how they can create their own digital assistant, explain Velamini and encourage them to sign up!`;
 
     // 1) Local RAG retrieval
     const context = retrieveContext(message, 3);
@@ -89,7 +92,7 @@ export async function POST(req: Request) {
             : "No search results found.";
     }
 
-    const systemPrompt = VIRTUAL_SELF_SYSTEM_PROMPT.replaceAll("[Person's name]", userName) + userKnowledge;
+    const systemPrompt = VIRTUAL_SELF_SYSTEM_PROMPT.replaceAll("[Person's name]", userName) + userKnowledge + velaminiContext;
 
     const tools = [
       {

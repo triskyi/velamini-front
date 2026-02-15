@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import ChatNavbar from "../chat-ui/ChatNavbar";
 import HeroSection from "../chat-ui/HeroSection";
 import MessageList from "../chat-ui/MessageList";
 import ChatInput from "../chat-ui/ChatInput";
@@ -99,15 +98,6 @@ export default function DashboardChat({ user }: DashboardChatProps) {
 
   return (
     <div className="h-full w-full flex flex-col bg-[#0A0A0A] text-white font-sans overflow-hidden">
-      
-      <ChatNavbar 
-        onShowFeedback={() => setShowFeedbackModal(true)} 
-        onNewChat={() => {
-          setMessages([]);
-          localStorage.removeItem("velamini_dashboard_chat_history");
-          setInput("");
-        }}
-      />
 
       {messages.length === 0 && !isTyping && (
         <HeroSection text="Chat with Your Virtual Self" />

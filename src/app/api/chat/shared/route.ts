@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing message or virtualSelfId" }, { status: 400 });
     }
 
-    const { message, history = [], virtualSelfId } = body;
+    const { message, history = [], virtualSelfId, visitorName = null } = body;
     const apiKey = process.env.DEEPSEEK_API_KEY;
 
     if (!apiKey) {
@@ -51,10 +51,21 @@ export async function POST(req: Request) {
 
     const userName = knowledgeBase.user?.name || "the person";
     const userKnowledge = knowledgeBase.trainedPrompt
-      ? `\n\nUSER'S PERSONAL KNOWLEDGE BASE:\n${knowledgeBase.trainedPrompt}`
+      ? `\n\nUSER'S PERSONAL KNOWLEDGE BASE (This is YOUR information about yourself, [Person's name]):\n${knowledgeBase.trainedPrompt}`
       : "";
 
-    const systemPrompt = VIRTUAL_SELF_SYSTEM_PROMPT.replaceAll("[Person's name]", userName) + userKnowledge;
+    // Add Velamini context
+    const velaminiContext = `\n\nABOUT VELAMINI:\nVelamini is the platform that created you - it allows people to build their virtual selves/digital twins. The website is ${process.env.NEXT_PUBLIC_APP_URL || 'https://velamini.com'}. Encourage visitors to create their own virtual self there!`;
+
+    // Add visitor context if name is known
+    const visitorContext = visitorName 
+      ? `\n\nVISITOR CONTEXT:\nYou're chatting with ${visitorName}. Use their name naturally in conversation.`
+      : `\n\nVISITOR CONTEXT:\nYou're chatting with someone new. If they haven't introduced themselves, ask for their name naturally!`;
+
+    const systemPrompt = VIRTUAL_SELF_SYSTEM_PROMPT.replaceAll("[Person's name]", userName) 
+      + userKnowledge 
+      + velaminiContext
+      + visitorContext;
 
     const messages: ChatMessage[] = [
       { role: "system", content: systemPrompt },

@@ -55,7 +55,7 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900 lg:h-screen">
       {/* Desktop Sidebar */}
       <Sidebar user={user} activeView={activeView} onViewChange={handleViewChange} />
       
@@ -63,30 +63,30 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/80 dark:bg-slate-950/90 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-r border-slate-800/50 overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/50">
+          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border-r border-slate-200 dark:border-slate-800/50 overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800/50">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/25">
                   <span className="text-white font-bold text-lg">V</span>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-white tracking-tight">Velamini</p>
-                  <p className="text-xs text-slate-400">AI Workspace</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Velamini</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">AI Workspace</p>
                 </div>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             
             <div className="px-4 pt-8 pb-6">
-              <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 Navigation
               </p>
               <nav className="space-y-1">
@@ -103,10 +103,10 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
                       key={item.label}
                       onClick={() => handleViewChange(item.view)}
                       className={[
-                        "group flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 relative overflow-hidden",
+                        "group flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-300 relative overflow-hidden",
                         isActive
-                          ? "bg-gradient-to-r from-teal-500/10 to-cyan-500/10 text-teal-400 shadow-lg shadow-teal-500/5"
-                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50",
+                          ? "bg-gradient-to-r from-teal-500/10 to-cyan-500/10 text-teal-600 dark:text-teal-400 shadow-lg shadow-teal-500/5"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50",
                       ].join(" ")}
                     >
                       {isActive && (
@@ -125,7 +125,7 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
         </div>
       )}
       
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
           <button
@@ -155,7 +155,7 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
 
         <Navbar user={user} />
         
-        <main className="flex-1 overflow-auto w-full">
+        <main className="min-h-0 flex-1 overflow-y-auto w-full">
           {renderView()}
         </main>
       </div>

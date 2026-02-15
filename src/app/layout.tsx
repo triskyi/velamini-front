@@ -12,7 +12,23 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="flex h-screen bg-white text-gray-900 dark:bg-bg dark:text-textPrimary font-sans" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme');
+                if (!theme || theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans antialiased transition-colors duration-300" suppressHydrationWarning>
         {children}
       </body>
     </html>

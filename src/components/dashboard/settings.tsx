@@ -20,10 +20,9 @@ export default function SettingsView({ user }: SettingsViewProps) {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    // Load current sharing status
     fetch("/api/training")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.ok && data.knowledgeBase) {
           if (data.knowledgeBase.isPubliclyShared && data.knowledgeBase.shareSlug) {
             setIsSharing(true);
@@ -33,7 +32,7 @@ export default function SettingsView({ user }: SettingsViewProps) {
           }
         }
       })
-      .catch(err => console.error("Failed to load sharing status:", err));
+      .catch(() => {});
   }, []);
 
   const handleEnableSharing = async () => {
@@ -41,14 +40,12 @@ export default function SettingsView({ user }: SettingsViewProps) {
       setMessage({ type: "error", text: "Please enter a share slug" });
       return;
     }
-
     try {
       const res = await fetch("/api/share/enable", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ shareSlug: shareSlug.toLowerCase().replace(/\s+/g, "-") }),
       });
-
       const data = await res.json();
       if (data.ok) {
         setIsSharing(true);
@@ -58,17 +55,14 @@ export default function SettingsView({ user }: SettingsViewProps) {
       } else {
         setMessage({ type: "error", text: data.error || "Failed to enable sharing" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Network error occurred" });
     }
   };
 
   const handleDisableSharing = async () => {
     try {
-      const res = await fetch("/api/share/disable", {
-        method: "POST",
-      });
-
+      const res = await fetch("/api/share/disable", { method: "POST" });
       const data = await res.json();
       if (data.ok) {
         setIsSharing(false);
@@ -78,7 +72,7 @@ export default function SettingsView({ user }: SettingsViewProps) {
       } else {
         setMessage({ type: "error", text: data.error || "Failed to disable sharing" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Network error occurred" });
     }
   };
@@ -89,52 +83,54 @@ export default function SettingsView({ user }: SettingsViewProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const inputClass =
+    "w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-colors";
+
   return (
-    <div className="h-full w-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-y-auto">
-      <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+    <div className="h-full w-full bg-slate-50 dark:bg-slate-950 overflow-y-auto">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 sm:pb-20 space-y-6">
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             Settings
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base lg:text-lg">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-1">
             Manage your virtual self and sharing preferences
           </p>
         </div>
 
-        {/* Message Alert */}
         {message && (
           <div
-            className={`p-5 rounded-2xl shadow-lg border ${
+            className={`rounded-2xl p-4 border ${
               message.type === "success"
-                ? "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                : "bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700 dark:text-red-300 border-red-500/20"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
             }`}
           >
-            <p className="font-semibold">{message.text}</p>
+            <p className="font-medium text-sm">{message.text}</p>
           </div>
         )}
 
-        {/* Share Your Virtual Self - Modern Card */}
-        <div className="group bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-1">
-          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25 group-hover:shadow-teal-500/40 group-hover:scale-110 transition-all duration-500">
-              <Share2 className="h-6 w-6 sm:h-8 sm:w-8 text-white group-hover:rotate-12 transition-transform duration-300" strokeWidth={2.5} />
+        {/* Share Card */}
+        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-sm">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="p-3 rounded-xl bg-teal-500/10">
+              <Share2 className="h-6 w-6 text-teal-500" strokeWidth={2} />
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 Share Your Virtual Self
               </h2>
-              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                 Allow others to chat with your AI-powered virtual self using a unique link
               </p>
             </div>
           </div>
 
           {!isSharing ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Create your unique share slug
                 </label>
                 <input
@@ -142,11 +138,11 @@ export default function SettingsView({ user }: SettingsViewProps) {
                   value={shareSlug}
                   onChange={(e) => setShareSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                   placeholder="e.g., john-doe, my-virtual-self"
-                  className="w-full px-5 py-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                  className={inputClass}
                 />
-                <div className="mt-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Your link will be:</p>
-                  <p className="text-sm font-semibold text-teal-600 dark:text-teal-400 break-all">
+                <div className="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Your link will be:</p>
+                  <p className="text-sm font-medium text-teal-600 dark:text-teal-400 break-all">
                     {typeof window !== "undefined" ? window.location.origin : ""}/chat/{shareSlug || "your-slug"}
                   </p>
                 </div>
@@ -154,50 +150,46 @@ export default function SettingsView({ user }: SettingsViewProps) {
               <button
                 onClick={handleEnableSharing}
                 disabled={!shareSlug.trim()}
-                className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none hover:scale-105 active:scale-95"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <Unlock className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
+                <Unlock className="h-5 w-5" strokeWidth={2} />
                 Enable Sharing
               </button>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500/20">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3 text-emerald-700 dark:text-emerald-300 font-semibold text-lg">
-                    <div className="p-2 rounded-lg bg-emerald-500/20">
-                      <Eye className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-medium">
+                    <Eye className="h-5 w-5" />
                     Sharing is Active
                   </div>
-                  <div className="px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                      {shareViews} views
-                    </span>
-                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                    {shareViews} views
+                  </span>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
                   Anyone with this link can chat with your virtual self:
                 </p>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={shareUrl}
                     readOnly
-                    className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-sm font-medium"
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-sm text-slate-900 dark:text-white"
                   />
                   <button
                     onClick={copyToClipboard}
-                    className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl hover:from-teal-600 hover:to-cyan-700 transition-all flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-300"
+                    className="px-4 py-2.5 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 transition-colors flex items-center gap-2"
                   >
-                    {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     {copied ? "Copied!" : "Copy"}
                   </button>
                 </div>
               </div>
               <button
                 onClick={handleDisableSharing}
-                className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-red-500/10 text-red-600 dark:text-red-400 border-2 border-red-500/20 rounded-xl font-semibold hover:bg-red-500/20 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium border border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
               >
                 <Lock className="h-5 w-5" />
                 Disable Sharing
@@ -207,40 +199,37 @@ export default function SettingsView({ user }: SettingsViewProps) {
         </div>
 
         {/* Account Settings */}
-        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-2xl">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-4 sm:mb-6">
+        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
             Account Settings
           </h2>
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Full Name
               </label>
               <input
                 type="text"
                 value={user?.name || ""}
                 readOnly
-                className="w-full px-5 py-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900/50 text-slate-900 dark:text-white font-medium cursor-not-allowed"
+                className={`${inputClass} bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed`}
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Email Address
               </label>
               <input
                 type="email"
                 value={user?.email || ""}
                 readOnly
-                className="w-full px-5 py-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900/50 text-slate-900 dark:text-white font-medium cursor-not-allowed"
+                className={`${inputClass} bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed`}
               />
             </div>
-            
-            <div className="pt-4">
-              <div className="p-5 rounded-xl bg-blue-500/5 border border-blue-500/20">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  💡 Account details are managed through your authentication provider. Contact support for changes.
-                </p>
-              </div>
+            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Account details are managed through your authentication provider. Contact support for changes.
+              </p>
             </div>
           </div>
         </div>

@@ -134,6 +134,9 @@ const handleTrainModel = async () => {
     setCurrentStep(step);
   };
 
+  const inputClass =
+    "w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-colors";
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1: // Identity
@@ -148,7 +151,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.fullName || ""}
                   onChange={(e) => updateField("fullName", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., ISHIMWE TRESOR BERTRAND"
                 />
               </div>
@@ -160,7 +163,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.birthDate || ""}
                   onChange={(e) => updateField("birthDate", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., February 15, 2002"
                 />
               </div>
@@ -172,7 +175,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.birthPlace || ""}
                   onChange={(e) => updateField("birthPlace", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., Huye District, Rwanda"
                 />
               </div>
@@ -184,7 +187,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.currentLocation || ""}
                   onChange={(e) => updateField("currentLocation", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., Kigali, Rwanda"
                 />
               </div>
@@ -196,7 +199,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.languages || ""}
                   onChange={(e) => updateField("languages", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., Kinyarwanda, English, French"
                 />
               </div>
@@ -208,7 +211,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.relationshipStatus || ""}
                   onChange={(e) => updateField("relationshipStatus", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., Single, Married"
                 />
               </div>
@@ -220,7 +223,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.hobbies || ""}
                   onChange={(e) => updateField("hobbies", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., Dancing, Reading"
                 />
               </div>
@@ -232,7 +235,7 @@ const handleTrainModel = async () => {
                   type="text"
                   value={formData.favoriteFood || ""}
                   onChange={(e) => updateField("favoriteFood", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="e.g., Chips"
                 />
               </div>
@@ -245,7 +248,7 @@ const handleTrainModel = async () => {
                 value={formData.bio || ""}
                 onChange={(e) => updateField("bio", e.target.value)}
                 rows={4}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className={inputClass}
                 placeholder="e.g., Software engineer with 3+ years experience..."
               />
             </div>
@@ -262,7 +265,7 @@ const handleTrainModel = async () => {
               value={formData.education || ""}
               onChange={(e) => updateField("education", e.target.value)}
               rows={8}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={inputClass}
               placeholder="e.g., Bugema University — Bachelor in Software Engineering&#10;Gitwe Adventist College — A2 Diploma (MPC)"
             />
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -281,7 +284,7 @@ const handleTrainModel = async () => {
               value={formData.experience || ""}
               onChange={(e) => updateField("experience", e.target.value)}
               rows={8}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={inputClass}
               placeholder="e.g., OpenFN (Present) — Junior Developer&#10;COODIC (Mar 2024 – Jun 2024) — Software Engineer"
             />
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -300,7 +303,7 @@ const handleTrainModel = async () => {
               value={formData.skills || ""}
               onChange={(e) => updateField("skills", e.target.value)}
               rows={8}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={inputClass}
               placeholder="e.g., Languages: HTML, CSS, Python, JavaScript&#10;Frameworks: ReactJS, Django, Flask&#10;Databases: MySQL, PostgreSQL"
             />
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -319,7 +322,7 @@ const handleTrainModel = async () => {
               value={formData.projects || ""}
               onChange={(e) => updateField("projects", e.target.value)}
               rows={8}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={inputClass}
               placeholder="e.g., OpenFn Adaptors — Built Flutterwave adaptor&#10;MyGuyAssistantAPI — Python + Flask API"
             />
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -338,7 +341,7 @@ const handleTrainModel = async () => {
               value={formData.awards || ""}
               onChange={(e) => updateField("awards", e.target.value)}
               rows={6}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={inputClass}
               placeholder="e.g., Winner — AfricasTalking Hackathon 3 times"
             />
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -358,7 +361,7 @@ const handleTrainModel = async () => {
                 value={formData.socialLinks || ""}
                 onChange={(e) => updateField("socialLinks", e.target.value)}
                 rows={6}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className={inputClass}
                 placeholder="e.g., GitHub: https://github.com/username&#10;LinkedIn: https://linkedin.com/in/username&#10;Instagram: https://instagram.com/username"
               />
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -373,7 +376,7 @@ const handleTrainModel = async () => {
                 value={formData.socialUpdates || ""}
                 onChange={(e) => updateField("socialUpdates", e.target.value)}
                 rows={4}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className={inputClass}
                 placeholder="e.g., Instagram Status: I haven't posted anything new recently..."
               />
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -391,14 +394,14 @@ const handleTrainModel = async () => {
   const StepIcon = STEPS[currentStep - 1].icon;
 
   return (
-    <div className="h-full w-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-y-auto">
-      <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+    <div className="h-full w-full bg-slate-50 dark:bg-slate-950 overflow-y-auto">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 sm:pb-20 space-y-6">
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Training Center
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Training
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base lg:text-lg">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-1">
             Build your intelligent virtual self step by step
           </p>
         </div>
@@ -406,18 +409,18 @@ const handleTrainModel = async () => {
         {/* Success/Error Message */}
         {message && (
           <div
-            className={`rounded-2xl p-5 shadow-lg border ${
+            className={`rounded-2xl p-4 border ${
               message.type === "success"
-                ? "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                : "bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700 dark:text-red-300 border-red-500/20"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
             }`}
           >
-            <p className="font-semibold">{message.text}</p>
+            <p className="font-medium text-sm">{message.text}</p>
           </div>
         )}
 
-        {/* Modern Progress Steps */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-xl">
+        {/* Progress Steps */}
+        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-4 sm:p-6 shadow-sm">
           <div className="mb-4 sm:mb-6">
             <div className="flex items-center justify-between">
               {STEPS.map((step, index) => (
@@ -475,8 +478,8 @@ const handleTrainModel = async () => {
           </div>
         </div>
 
-        {/* Step Content Card with Modern Design */}
-        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-10 shadow-2xl">
+        {/* Step Content Card */}
+        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-4 sm:p-6 lg:p-8 shadow-sm">
           <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
             <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
               <StepIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" strokeWidth={2.5} />
@@ -499,7 +502,7 @@ const handleTrainModel = async () => {
           <button
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 px-8 py-4 rounded-2xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
             Previous
@@ -508,7 +511,7 @@ const handleTrainModel = async () => {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 dark:text-purple-400 rounded-2xl font-semibold hover:from-purple-500/20 hover:to-pink-500/20 border-2 border-purple-500/20 hover:border-purple-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-medium border border-purple-500/20 hover:bg-purple-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <Save className="h-5 w-5" strokeWidth={2.5} />
             {isSaving ? "Saving..." : "Save Progress"}
@@ -517,7 +520,7 @@ const handleTrainModel = async () => {
           {currentStep < STEPS.length ? (
             <button
               onClick={nextStep}
-              className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-2xl font-semibold hover:from-teal-600 hover:to-cyan-700 transition-all shadow-xl hover:shadow-2xl"
+              className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 transition-colors"
             >
               Next Step
               <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
@@ -526,7 +529,7 @@ const handleTrainModel = async () => {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-semibold hover:from-emerald-600 hover:to-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl disabled:shadow-none"
+              className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Check className="h-5 w-5" strokeWidth={2.5} />
               {isSaving ? "Completing..." : "Complete"}
@@ -534,13 +537,11 @@ const handleTrainModel = async () => {
           )}
         </div>
 
-        {/* Train Model Section - Modern Card */}
+        {/* Train Model Section */}
         {currentStep === STEPS.length && (
-          <div className="relative overflow-hidden rounded-3xl border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/10 via-cyan-500/10 to-blue-500/10 p-8 shadow-2xl">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-full blur-3xl -mt-32 -mr-32"></div>
-            
-            <div className="relative flex items-start gap-6">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-2xl shadow-teal-500/30">
+          <div className="rounded-2xl border border-teal-500/30 bg-teal-500/5 dark:bg-teal-500/10 p-6 sm:p-8 shadow-sm">
+            <div className="flex items-start gap-5 sm:gap-6">
+              <div className="p-4 rounded-xl bg-teal-500 shadow-md">
                 <Sparkles className="h-10 w-10 text-white" strokeWidth={2.5} />
               </div>
               <div className="flex-1">
@@ -568,7 +569,7 @@ const handleTrainModel = async () => {
                 <button
                   onClick={handleTrainModel}
                   disabled={isTraining}
-                  className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500 text-white rounded-2xl font-bold hover:from-teal-600 hover:via-cyan-600 hover:to-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xl hover:shadow-3xl disabled:shadow-none text-lg"
+                  className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <Sparkles className="h-6 w-6" strokeWidth={2.5} />
                   {isTraining ? "Training Model..." : formData.isModelTrained ? "Retrain Model" : "Train Your Model Now"}

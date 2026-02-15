@@ -54,11 +54,9 @@ export default function HeroSection({ text }: HeroSectionProps) {
                 variants={child}
                 whileHover={{ 
                   scale: 1.2, 
-                  color: "#ffffff",
-                  textShadow: "0 0 20px #00f3ff, 0 0 40px #00f3ff",
                   transition: { duration: 0.2 } 
                 }}
-                className="inline-block text-[#00f3ff]  filter brightness-110 cursor-default"
+                className="inline-block text-teal-500 dark:text-teal-400 hover:text-teal-600 dark:hover:text-teal-300 cursor-default"
               >
                 {char}
               </motion.span>

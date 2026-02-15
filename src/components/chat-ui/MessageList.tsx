@@ -31,7 +31,7 @@ const renderWithLinks = (text: string) => {
           href={part} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="text-cyan-400 hover:text-cyan-300 hover:underline break-words"
+          className="text-teal-500 dark:text-teal-400 hover:text-teal-600 dark:hover:text-teal-300 hover:underline break-words"
         >
           {part}
         </a>
@@ -50,7 +50,7 @@ export default function MessageList({
   assistantFooterText
 }: MessageListProps) {
   return (
-    <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 px-2 sm:px-4 py-4 sm:py-6 space-y-4">
       <AnimatePresence>
         {messages.map((msg, index) => {
           const isUser = msg.role === "user";
@@ -63,14 +63,14 @@ export default function MessageList({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className={`chat ${isUser ? "chat-end" : "chat-start"}`}
+              className={`chat min-w-0 w-full ${isUser ? "chat-end" : "chat-start"}`}
             >
               <div className="chat-image avatar hidden sm:flex">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
-                  isUser ? "bg-zinc-800" : "bg-zinc-900 border border-zinc-800 p-0.5"
+                  isUser ? "bg-slate-200 dark:bg-slate-700" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5"
                 }`}>
                   {isUser ? (
-                    <User className="w-5 h-5 text-zinc-400" />
+                    <User className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                   ) : assistantImage ? (
                     <img 
                       src={assistantImage} 
@@ -89,18 +89,18 @@ export default function MessageList({
                   )}
                 </div>
               </div>
-              <div className="chat-header text-zinc-500 text-xs mb-1 px-1">
+              <div className="chat-header text-slate-500 dark:text-slate-400 text-xs mb-1 px-1">
                 {isUser ? "You" : assistantName}
                 <time className="ml-2 opacity-50">
                   {new Date(msg.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </time>
               </div>
-              <div className={`chat-bubble max-w-[85%] sm:max-w-[70%] py-2.5 px-4 text-[14px] sm:text-[15px] selection:bg-cyan-500/30 ${
+              <div className={`chat-bubble max-w-[85%] sm:max-w-[70%] min-w-0 py-2.5 px-4 text-[14px] sm:text-[15px] rounded-2xl overflow-hidden break-words ${
                 isUser 
-                  ? "bg-zinc-800 text-zinc-100" 
-                  : "bg-zinc-900 border border-zinc-800 text-zinc-200"
+                  ? "bg-teal-500 text-white" 
+                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
               }`}>
-                {renderWithLinks(msg.content)}
+                <span className="break-words block">{renderWithLinks(msg.content)}</span>
                 
               
               </div>
@@ -114,7 +114,7 @@ export default function MessageList({
       {isTyping && (
         <div className="chat chat-start">
           <div className="chat-image avatar hidden sm:flex">
-            <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
               {assistantImage ? (
                 <img 
                   src={assistantImage} 
@@ -133,8 +133,8 @@ export default function MessageList({
               )}
             </div>
           </div>
-          <div className="chat-bubble bg-zinc-900 border border-zinc-800 flex items-center py-2 px-4 shadow-none">
-            <span className="loading loading-dots loading-sm text-zinc-600"></span>
+          <div className="chat-bubble bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center py-2 px-4 rounded-2xl">
+            <span className="loading loading-dots loading-sm text-teal-500"></span>
           </div>
         </div>
       )}

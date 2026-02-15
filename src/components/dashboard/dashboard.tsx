@@ -1,6 +1,7 @@
 "use client";
 
-import { TrendingUp, Lightbulb } from "lucide-react";
+import { Brain, MessageSquare, Sparkles, TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface DashboardContentProps {
   stats: {
@@ -9,84 +10,95 @@ interface DashboardContentProps {
     personalityTraits: number;
     knowledgeItems: number;
   };
+  onNavigate?: (view: "training" | "chat" | "profile" | "settings") => void;
 }
 
-export default function Dashboard({ stats }: DashboardContentProps) {
-  void stats;
+const statCards = [
+  { key: "trainingEntries", label: "Training Entries", icon: Brain },
+  { key: "qaPairs", label: "Q&A Pairs", icon: MessageSquare },
+  { key: "personalityTraits", label: "Personality Traits", icon: Sparkles },
+  { key: "knowledgeItems", label: "Knowledge Items", icon: TrendingUp },
+] as const;
+
+export default function Dashboard({ stats, onNavigate }: DashboardContentProps) {
+  const trainingProgress = Math.min(100, (stats.knowledgeItems / 5) * 100);
 
   return (
-    <div className="w-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
-      <div className="w-full p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 lg:gap-6 pb-2">
-          <div className="group bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-6 sm:p-7 text-white shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden relative">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="relative z-10 flex h-full flex-col">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
-                  <TrendingUp className="h-6 w-6 text-white group-hover:rotate-12 transition-transform duration-300" strokeWidth={2.5} />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold">Next Steps</h3>
-              </div>
-              <ul className="space-y-3.5 text-white/95">
-                <li className="flex items-start gap-4 group">
-                  <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
-                  <span className="text-white/90 group-hover:text-white transition-colors">
-                    Add more chat examples to improve conversation quality
-                  </span>
-                </li>
-                <li className="flex items-start gap-4 group">
-                  <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
-                  <span className="text-white/90 group-hover:text-white transition-colors">
-                    Upload documents to expand knowledge base
-                  </span>
-                </li>
-                <li className="flex items-start gap-4 group">
-                  <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
-                  <span className="text-white/90 group-hover:text-white transition-colors">
-                    Define personality traits for better responses
-                  </span>
-                </li>
-              </ul>
-              <button className="mt-6 w-full py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-300 border border-white/30 hover:border-white/50">
-                Get Started
-              </button>
-            </div>
+    <div className="w-full min-h-full bg-slate-50 dark:bg-slate-950">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 lg:pt-10 pb-16 sm:pb-20">
+        <div className="space-y-8">
+          {/* Header */}
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Dashboard
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-1">
+              Overview of your virtual self training progress.
+            </p>
           </div>
 
-          <div className="group bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 sm:p-7 text-white shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden relative">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="relative z-10 flex h-full flex-col">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
-                  <Lightbulb className="h-6 w-6 text-white group-hover:rotate-12 transition-transform duration-300" strokeWidth={2.5} />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {statCards.map(({ key, label, icon: Icon }) => (
+              <div
+                key={key}
+                className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                      {label}
+                    </p>
+                    <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
+                      {stats[key]}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 p-2.5 rounded-xl bg-teal-500/10 dark:bg-teal-500/20">
+                    <Icon className="h-6 w-6 text-teal-500 dark:text-teal-400" strokeWidth={2} />
+                  </div>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold">Training Tips</h3>
               </div>
-              <ul className="space-y-3.5 text-white/95">
-                <li className="flex items-start gap-4 group">
-                  <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
-                  <span className="text-white/90 group-hover:text-white transition-colors">
-                    Provide diverse examples covering different topics
-                  </span>
-                </li>
-                <li className="flex items-start gap-4 group">
-                  <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
-                  <span className="text-white/90 group-hover:text-white transition-colors">
-                    Include your preferred tone and style in responses
-                  </span>
-                </li>
-                <li className="flex items-start gap-4 group">
-                  <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
-                  <span className="text-white/90 group-hover:text-white transition-colors">
-                    Regular updates help maintain accuracy over time
-                  </span>
-                </li>
-              </ul>
-              <button className="mt-6 w-full py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-300 border border-white/30 hover:border-white/50">
-                Learn More
-              </button>
+            ))}
+          </div>
+
+          {/* Virtual Self Status */}
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+              Virtual Self Status
+            </h2>
+            <div
+              className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => onNavigate?.("training")}
+              onKeyDown={(e) => e.key === "Enter" && onNavigate?.("training")}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 p-3 rounded-xl bg-teal-500/10 dark:bg-teal-500/20">
+                  <Brain className="h-8 w-8 text-teal-500 dark:text-teal-400" strokeWidth={2} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">
+                    Getting Started
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    Add more training data for better results.
+                  </p>
+                  <div className="mt-4">
+                    <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-teal-500 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${trainingProgress}%` }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                      />
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      {Math.round(trainingProgress)}% training completion
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

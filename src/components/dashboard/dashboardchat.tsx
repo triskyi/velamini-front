@@ -97,14 +97,14 @@ export default function DashboardChat({ user }: DashboardChatProps) {
   const [feedbackText, setFeedbackText] = useState("");
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0A0A0A] text-white font-sans overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
 
       {messages.length === 0 && !isTyping && (
         <HeroSection text="Chat with Your Virtual Self" />
       )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col items-center px-4 pt-8 pb-16 overflow-hidden relative transition-all duration-700 ${
+      <div className={`flex-1 flex flex-col items-center px-4 pt-6 sm:pt-8 pb-16 overflow-hidden relative ${
         messages.length === 0 ? "justify-center" : "justify-start"
       }`}>
         
@@ -115,9 +115,9 @@ export default function DashboardChat({ user }: DashboardChatProps) {
               messages={messages} 
               isTyping={isTyping} 
               bottomRef={bottomRef}
-              assistantName={user?.name || "Virtual Self"}
+              assistantName={user?.name || "Virtual me"}
               assistantImage={user?.image}
-              assistantFooterText="Powered by your knowledge"
+              assistantFooterText="Velamini"
             />
           )}
 

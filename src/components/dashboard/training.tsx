@@ -391,88 +391,101 @@ const handleTrainModel = async () => {
   const StepIcon = STEPS[currentStep - 1].icon;
 
   return (
-    <div className="h-full overflow-auto bg-slate-50 dark:bg-slate-900">
-      <div className="mx-auto max-w-4xl p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-8">
+      <div className="mx-auto max-w-6xl space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Training Information
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Training Center
           </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Fill in your information step by step to train your virtual self
+          <p className="text-slate-600 dark:text-slate-400 text-lg">
+            Build your intelligent virtual self step by step
           </p>
         </div>
 
+        {/* Success/Error Message */}
         {message && (
           <div
-            className={`rounded-lg p-4 mb-6 ${
+            className={`rounded-2xl p-5 shadow-lg border ${
               message.type === "success"
-                ? "bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800"
-                : "bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800"
+                ? "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                : "bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700 dark:text-red-300 border-red-500/20"
             }`}
           >
-            {message.text}
+            <p className="font-semibold">{message.text}</p>
           </div>
         )}
 
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            {STEPS.map((step, index) => (
-              <div key={step.id} className="flex items-center flex-1">
-                <button
-                  onClick={() => goToStep(step.id)}
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
-                    currentStep === step.id
-                      ? "border-teal-500 bg-teal-500 text-white"
-                      : currentStep > step.id
-                      ? "border-teal-500 bg-teal-500 text-white"
-                      : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-400"
-                  }`}
-                >
-                  {currentStep > step.id ? (
-                    <Check className="h-5 w-5" />
-                  ) : (
-                    <step.icon className="h-5 w-5" />
-                  )}
-                </button>
-                {index < STEPS.length - 1 && (
-                  <div
-                    className={`h-0.5 flex-1 mx-2 ${
-                      currentStep > step.id
-                        ? "bg-teal-500"
-                        : "bg-slate-300 dark:bg-slate-600"
+        {/* Modern Progress Steps */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-xl">
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              {STEPS.map((step, index) => (
+                <div key={step.id} className="flex items-center flex-1">
+                  <button
+                    onClick={() => goToStep(step.id)}
+                    className={`group relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ${
+                      currentStep === step.id
+                        ? "bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/30 scale-110"
+                        : currentStep > step.id
+                        ? "bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                        : "bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600"
                     }`}
-                  />
-                )}
-              </div>
-            ))}
+                  >
+                    {currentStep > step.id ? (
+                      <Check className="h-6 w-6" strokeWidth={2.5} />
+                    ) : (
+                      <step.icon className="h-6 w-6" strokeWidth={2} />
+                    )}
+                  </button>
+                  {index < STEPS.length - 1 && (
+                    <div className="flex-1 mx-3 h-1 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          currentStep > step.id
+                            ? "w-full bg-gradient-to-r from-teal-500 to-cyan-600"
+                            : "w-0 bg-slate-300"
+                        }`}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+          
+          {/* Step Labels */}
+          <div className="flex items-center justify-between">
             {STEPS.map((step) => (
               <div
                 key={step.id}
-                className={`flex-1 text-center ${
-                  currentStep === step.id ? "font-semibold text-teal-600 dark:text-teal-400" : ""
-                }`}
+                className="flex-1 text-center px-2"
               >
-                {step.name}
+                <p className={`text-xs font-semibold transition-colors ${
+                  currentStep === step.id
+                    ? "text-teal-600 dark:text-teal-400"
+                    : currentStep > step.id
+                    ? "text-slate-600 dark:text-slate-400"
+                    : "text-slate-400 dark:text-slate-500"
+                }`}>
+                  {step.name}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Step Content Card */}
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 mb-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-teal-500/10">
-              <StepIcon className="h-6 w-6 text-teal-500" />
+        {/* Step Content Card with Modern Design */}
+        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-10 shadow-2xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
+              <StepIcon className="h-8 w-8 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
                 {STEPS[currentStep - 1].name}
               </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-slate-600 dark:text-slate-400 font-medium">
                 Step {currentStep} of {STEPS.length}
               </p>
             </div>
@@ -481,78 +494,83 @@ const handleTrainModel = async () => {
           {renderStepContent()}
         </div>
 
-        {/* Navigation Buttons */}
+        {/* Navigation Buttons with Modern Design */}
         <div className="flex items-center justify-between gap-4">
           <button
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-8 py-4 rounded-2xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
             Previous
           </button>
 
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-3 bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-lg font-medium hover:bg-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <Save className="h-4 w-4" />
-          {isSaving ? "Saving..." : "Save Progress"}
-        </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 dark:text-purple-400 rounded-2xl font-semibold hover:from-purple-500/20 hover:to-pink-500/20 border-2 border-purple-500/20 hover:border-purple-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+          >
+            <Save className="h-5 w-5" strokeWidth={2.5} />
+            {isSaving ? "Saving..." : "Save Progress"}
+          </button>
 
           {currentStep < STEPS.length ? (
             <button
               onClick={nextStep}
-              className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg font-medium hover:bg-teal-600 transition-colors"
+              className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-2xl font-semibold hover:from-teal-600 hover:to-cyan-700 transition-all shadow-xl hover:shadow-2xl"
             >
-              Next
-              <ChevronRight className="h-4 w-4" />
+              Next Step
+              <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
             </button>
           ) : (
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg font-medium hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-semibold hover:from-emerald-600 hover:to-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl disabled:shadow-none"
             >
-              <Check className="h-4 w-4" />
-              {isSaving ? "Saving..." : "Complete"}
+              <Check className="h-5 w-5" strokeWidth={2.5} />
+              {isSaving ? "Completing..." : "Complete"}
             </button>
           )}
         </div>
 
-        {/* Train Model Section - Shows when all steps are complete */}
+        {/* Train Model Section - Modern Card */}
         {currentStep === STEPS.length && (
-          <div className="mt-8 p-6 rounded-lg border-2 border-teal-500/20 bg-gradient-to-br from-teal-500/5 to-blue-500/5">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-lg bg-teal-500/10">
-                <Sparkles className="h-6 w-6 text-teal-500" />
+          <div className="relative overflow-hidden rounded-3xl border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/10 via-cyan-500/10 to-blue-500/10 p-8 shadow-2xl">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-full blur-3xl -mt-32 -mr-32"></div>
+            
+            <div className="relative flex items-start gap-6">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-2xl shadow-teal-500/30">
+                <Sparkles className="h-10 w-10 text-white" strokeWidth={2.5} />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                  Ready to Train Your Virtual Self?
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                  🎉 Ready to Train Your Virtual Self!
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                  You've completed all the training steps! Now train your AI model with your knowledge to create your personalized virtual assistant.
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  You've completed all training steps! Train your AI model now to create your personalized virtual assistant.
                 </p>
+                
                 {formData.isModelTrained && (
-                  <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                      ✓ Model trained successfully!
-                      {formData.lastTrainedAt && (
-                        <span className="block text-xs mt-1 opacity-75">
-                          Last trained: {new Date(formData.lastTrainedAt).toLocaleString()}
-                        </span>
-                      )}
+                  <div className="mb-6 p-5 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/20">
+                    <p className="text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-2">
+                      <Check className="h-5 w-5" />
+                      Model trained successfully!
                     </p>
+                    {formData.lastTrainedAt && (
+                      <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
+                        Last trained: {new Date(formData.lastTrainedAt).toLocaleString()}
+                      </p>
+                    )}
                   </div>
                 )}
+                
                 <button
                   onClick={handleTrainModel}
                   disabled={isTraining}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-lg font-medium hover:from-teal-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                  className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500 text-white rounded-2xl font-bold hover:from-teal-600 hover:via-cyan-600 hover:to-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xl hover:shadow-3xl disabled:shadow-none text-lg"
                 >
-                  <Sparkles className="h-5 w-5" />
+                  <Sparkles className="h-6 w-6" strokeWidth={2.5} />
                   {isTraining ? "Training Model..." : formData.isModelTrained ? "Retrain Model" : "Train Your Model Now"}
                 </button>
               </div>

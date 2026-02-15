@@ -90,44 +90,51 @@ export default function SettingsView({ user }: SettingsViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Settings</h1>
-        <p className="text-slate-600 dark:text-slate-400 mb-8">
-          Manage your virtual self and sharing settings
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Settings
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-lg">
+            Manage your virtual self and sharing preferences
+          </p>
+        </div>
 
+        {/* Message Alert */}
         {message && (
           <div
-            className={`p-4 rounded-lg ${ message.type === "success"
-                ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
-                : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
+            className={`p-5 rounded-2xl shadow-lg border ${
+              message.type === "success"
+                ? "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                : "bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700 dark:text-red-300 border-red-500/20"
             }`}
           >
-            {message.text}
+            <p className="font-semibold">{message.text}</p>
           </div>
         )}
 
-        {/* Share Your Virtual Self */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-          <div className="flex items-start gap-4 mb-6">
-            <div className="p-3 rounded-lg bg-gradient-to-br from-teal-500/10 to-blue-500/10">
-              <Share2 className="h-6 w-6 text-teal-500" />
+        {/* Share Your Virtual Self - Modern Card */}
+        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-2xl">
+          <div className="flex items-start gap-6 mb-8">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
+              <Share2 className="h-8 w-8 text-white" strokeWidth={2.5} />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 Share Your Virtual Self
               </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Allow others to chat with your AI-powered virtual self using a unique link.
+              <p className="text-slate-600 dark:text-slate-400">
+                Allow others to chat with your AI-powered virtual self using a unique link
               </p>
             </div>
           </div>
 
           {!isSharing ? (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
                   Create your unique share slug
                 </label>
                 <input
@@ -135,55 +142,62 @@ export default function SettingsView({ user }: SettingsViewProps) {
                   value={shareSlug}
                   onChange={(e) => setShareSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                   placeholder="e.g., john-doe, my-virtual-self"
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-5 py-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                 />
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  Your link will be: <strong className="text-teal-500">{typeof window !== "undefined" ? window.location.origin : ""}/chat/{shareSlug || "your-slug"}</strong>
-                </p>
+                <div className="mt-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Your link will be:</p>
+                  <p className="text-sm font-semibold text-teal-600 dark:text-teal-400 break-all">
+                    {typeof window !== "undefined" ? window.location.origin : ""}/chat/{shareSlug || "your-slug"}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={handleEnableSharing}
                 disabled={!shareSlug.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-lg font-medium hover:from-teal-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
               >
                 <Unlock className="h-5 w-5" />
                 Enable Sharing
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-medium">
-                    <Eye className="h-5 w-5" />
-                    Sharing is enabled
+            <div className="space-y-6">
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3 text-emerald-700 dark:text-emerald-300 font-semibold text-lg">
+                    <div className="p-2 rounded-lg bg-emerald-500/20">
+                      <Eye className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    Sharing is Active
                   </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">
-                    {shareViews} views
+                  <div className="px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
+                      {shareViews} views
+                    </span>
                   </div>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                   Anyone with this link can chat with your virtual self:
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <input
                     type="text"
                     value={shareUrl}
                     readOnly
-                    className="flex-1 px-4 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-sm"
+                    className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-sm font-medium"
                   />
                   <button
                     onClick={copyToClipboard}
-                    className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors flex items-center gap-2"
+                    className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl hover:from-teal-600 hover:to-cyan-700 transition-all flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl"
                   >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                     {copied ? "Copied!" : "Copy"}
                   </button>
                 </div>
               </div>
               <button
                 onClick={handleDisableSharing}
-                className="flex items-center gap-2 px-6 py-3 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-lg font-medium hover:bg-red-500/20 transition-colors"
+                className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-red-500/10 text-red-600 dark:text-red-400 border-2 border-red-500/20 rounded-xl font-semibold hover:bg-red-500/20 transition-all"
               >
                 <Lock className="h-5 w-5" />
                 Disable Sharing
@@ -193,30 +207,40 @@ export default function SettingsView({ user }: SettingsViewProps) {
         </div>
 
         {/* Account Settings */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Account</h2>
-          <div className="space-y-4">
+        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-2xl">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Account Settings
+          </h2>
+          <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Name
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+                Full Name
               </label>
               <input
                 type="text"
                 value={user?.name || ""}
                 readOnly
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                className="w-full px-5 py-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900/50 text-slate-900 dark:text-white font-medium cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Email
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+                Email Address
               </label>
               <input
                 type="email"
                 value={user?.email || ""}
                 readOnly
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                className="w-full px-5 py-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900/50 text-slate-900 dark:text-white font-medium cursor-not-allowed"
               />
+            </div>
+            
+            <div className="pt-4">
+              <div className="p-5 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  💡 Account details are managed through your authentication provider. Contact support for changes.
+                </p>
+              </div>
             </div>
           </div>
         </div>

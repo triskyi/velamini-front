@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/dashboard/sidebar";
+import Navbar from "@/components/dashboard/navbar";
 import DashboardView from "@/components/dashboard/dashboard";
 import ProfileView from "@/components/dashboard/profile";
 import SettingsView from "@/components/dashboard/settings";
@@ -46,12 +47,16 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900">
       <Sidebar user={user} activeView={activeView} onViewChange={setActiveView} />
       
-      <main className="flex-1 overflow-auto">
-        {renderView()}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Navbar user={user} />
+        
+        <main className="flex-1 overflow-auto">
+          {renderView()}
+        </main>
+      </div>
     </div>
   );
 }

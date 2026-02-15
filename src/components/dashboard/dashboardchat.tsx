@@ -104,12 +104,10 @@ export default function DashboardChat({ user }: DashboardChatProps) {
       )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col items-center px-4 pt-6 sm:pt-8 pb-16 overflow-hidden relative ${
-        messages.length === 0 ? "justify-center" : "justify-start"
-      }`}>
+      <div className="flex-1 flex flex-col items-center overflow-hidden relative">
         
-        <div className={`w-full flex flex-col h-full transition-all duration-500 ${messages.length > 0 ? "flex-1 pb-8" : "justify-center"}`}>
-          
+        {/* Messages Area */}
+        <div className="flex-1 w-full overflow-y-auto px-4 pt-6 sm:pt-8 pb-32">
           {messages.length > 0 && (
             <MessageList 
               messages={messages} 
@@ -120,16 +118,18 @@ export default function DashboardChat({ user }: DashboardChatProps) {
               assistantFooterText="Velamini"
             />
           )}
-
-          <ChatInput 
-            input={input} 
-            setInput={setInput} 
-            sendMessage={sendMessage} 
-          />
         </div>
 
-        {/* Bottom Spacer - Pushes content up in hero state */}
-        {messages.length === 0 && <div className="h-24" />}
+        {/* Centered Chat Input at Bottom */}
+        <div className=" bottom-0 left-0 right-0 flex justify-center pb-6 px-4 bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/95 dark:via-slate-950/95 to-transparent pt-8">
+          <div className="w-full max-w-3xl">
+            <ChatInput 
+              input={input} 
+              setInput={setInput} 
+              sendMessage={sendMessage} 
+            />
+          </div>
+        </div>
       </div>
 
       <FeedbackModal 

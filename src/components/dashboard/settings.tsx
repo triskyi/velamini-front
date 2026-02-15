@@ -90,8 +90,8 @@ export default function SettingsView({ user }: SettingsViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
+    <div className="h-full w-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-y-auto">
+      <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -116,10 +116,10 @@ export default function SettingsView({ user }: SettingsViewProps) {
         )}
 
         {/* Share Your Virtual Self - Modern Card */}
-        <div className="bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-2xl">
+        <div className="group bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-1">
           <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
-              <Share2 className="h-6 w-6 sm:h-8 sm:w-8 text-white" strokeWidth={2.5} />
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25 group-hover:shadow-teal-500/40 group-hover:scale-110 transition-all duration-500">
+              <Share2 className="h-6 w-6 sm:h-8 sm:w-8 text-white group-hover:rotate-12 transition-transform duration-300" strokeWidth={2.5} />
             </div>
             <div className="flex-1">
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">
@@ -154,9 +154,9 @@ export default function SettingsView({ user }: SettingsViewProps) {
               <button
                 onClick={handleEnableSharing}
                 disabled={!shareSlug.trim()}
-                className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+                className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none hover:scale-105 active:scale-95"
               >
-                <Unlock className="h-5 w-5" />
+                <Unlock className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
                 Enable Sharing
               </button>
             </div>
@@ -188,7 +188,7 @@ export default function SettingsView({ user }: SettingsViewProps) {
                   />
                   <button
                     onClick={copyToClipboard}
-                    className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl hover:from-teal-600 hover:to-cyan-700 transition-all flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl"
+                    className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl hover:from-teal-600 hover:to-cyan-700 transition-all flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-300"
                   >
                     {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                     {copied ? "Copied!" : "Copy"}

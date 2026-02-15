@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/dashboard/sidebar";
 import Navbar from "@/components/dashboard/navbar";
@@ -54,7 +55,7 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex h-screen w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900">
       {/* Desktop Sidebar */}
       <Sidebar user={user} activeView={activeView} onViewChange={handleViewChange} />
       
@@ -136,10 +137,13 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
           <div className="flex items-center gap-3">
             <div className="text-lg font-bold text-slate-900 dark:text-white">Velamini</div>
             {user?.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt={user.name || "User"}
+                width={36}
+                height={36}
                 className="h-9 w-9 rounded-lg shadow-lg object-cover"
+                unoptimized
               />
             ) : (
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 text-sm font-bold text-white shadow-lg">
@@ -151,7 +155,7 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
 
         <Navbar user={user} />
         
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto w-full">
           {renderView()}
         </main>
       </div>

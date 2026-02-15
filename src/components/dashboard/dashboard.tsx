@@ -58,8 +58,8 @@ export default function Dashboard({ stats }: DashboardContentProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+    <div className="h-full w-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-y-auto">
+      <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
         {/* Header Section */}
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -75,18 +75,20 @@ export default function Dashboard({ stats }: DashboardContentProps) {
           {statsCards.map((stat, index) => (
             <div
               key={index}
-              className="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 transition-all duration-300 hover:-translate-y-1"
+              className="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 hover:shadow-2xl hover:shadow-slate-200/60 dark:hover:shadow-slate-900/80 transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden"
             >
               {/* Background Gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300`}></div>
+              <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 rounded-2xl transition-all duration-500`}></div>
+              {/* Animated shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
               
               <div className="relative z-10">
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}>
-                    <stat.icon className="h-6 w-6 text-white" strokeWidth={2} />
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500`}>
+                    <stat.icon className="h-6 w-6 text-white group-hover:rotate-6 transition-transform duration-500" strokeWidth={2} />
                   </div>
-                  <div className="flex items-center gap-1 text-xs font-semibold">
-                    <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" />
+                  <div className="flex items-center gap-1 text-xs font-semibold group-hover:scale-110 transition-transform duration-300">
+                    <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
                     <span className="text-emerald-500">{stat.change}</span>
                   </div>
                 </div>
@@ -145,7 +147,7 @@ export default function Dashboard({ stats }: DashboardContentProps) {
             </div>
 
             {/* Milestones */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                 <div className="p-2 rounded-lg bg-teal-500/10">
                   <Target className="h-5 w-5 text-teal-500" />
@@ -165,30 +167,24 @@ export default function Dashboard({ stats }: DashboardContentProps) {
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">3 Unlocked</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                <div className="p-2 rounded-lg bg-blue-500/10">
-                  <Brain className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">AI Accuracy</p>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">85%</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Action Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Next Steps Card */}
-          <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
-                <TrendingUp className="h-6 w-6 text-white" strokeWidth={2.5} />
+          <div className="group bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-6 sm:p-8 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden relative">
+            {/* Animated background circles */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
+                  <TrendingUp className="h-6 w-6 text-white group-hover:rotate-12 transition-transform duration-300" strokeWidth={2.5} />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold">Next Steps</h3>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold">Next Steps</h3>
-            </div>
             <ul className="space-y-4">
               <li className="flex items-start gap-4 group">
                 <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
@@ -209,19 +205,24 @@ export default function Dashboard({ stats }: DashboardContentProps) {
                 </span>
               </li>
             </ul>
-            <button className="mt-6 w-full py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 border border-white/30">
-              Get Started
-            </button>
+              <button className="mt-6 w-full py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-300 border border-white/30 hover:border-white/50 hover:scale-105 active:scale-95">
+                Get Started
+              </button>
+            </div>
           </div>
 
           {/* Training Tips Card */}
-          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
-                <Lightbulb className="h-6 w-6 text-white" strokeWidth={2.5} />
+          <div className="group bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 sm:p-8 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden relative">
+            {/* Animated background circles */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
+                  <Lightbulb className="h-6 w-6 text-white group-hover:rotate-12 transition-transform duration-300" strokeWidth={2.5} />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold">Training Tips</h3>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold">Training Tips</h3>
-            </div>
             <ul className="space-y-4">
               <li className="flex items-start gap-4 group">
                 <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-white"></div>
@@ -242,9 +243,10 @@ export default function Dashboard({ stats }: DashboardContentProps) {
                 </span>
               </li>
             </ul>
-            <button className="mt-6 w-full py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 border border-white/30">
-              Learn More
-            </button>
+              <button className="mt-6 w-full py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-300 border border-white/30 hover:border-white/50 hover:scale-105 active:scale-95">
+                Learn More
+              </button>
+            </div>
           </div>
         </div>
       </div>

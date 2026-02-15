@@ -10,7 +10,7 @@ interface ChatInputProps {
 
 export default function ChatInput({ input, setInput, sendMessage }: ChatInputProps) {
   return (
-    <div className="relative w-full max-w-3xl mx-auto px-4 sm:px-0">
+    <div className="relative w-full mx-auto px-4 sm:px-0">
       <div className="relative bg-[#111111] border border-zinc-800 rounded-2xl overflow-hidden focus-within:border-zinc-700 transition-colors shadow-2xl">
         <textarea
           value={input}

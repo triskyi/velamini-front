@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, RotateCcw } from "lucide-react";
+import ChatNavbar from "../chat-ui/ChatNavbar";
+import HeroSection from "../chat-ui/HeroSection";
+import MessageList from "../chat-ui/MessageList";
+import ChatInput from "../chat-ui/ChatInput";
+import FeedbackModal from "../chat-ui/FeedbackModal";
 
 type Message = {
   id: number;
@@ -21,7 +25,6 @@ export default function DashboardChat({ user }: DashboardChatProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -41,6 +44,8 @@ export default function DashboardChat({ user }: DashboardChatProps) {
       localStorage.setItem("velamini_dashboard_chat_history", JSON.stringify(messages));
     }
   }, [messages]);
+
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,114 +93,63 @@ export default function DashboardChat({ user }: DashboardChatProps) {
     }
   };
 
-  const handleNewChat = () => {
-    setMessages([]);
-    localStorage.removeItem("velamini_dashboard_chat_history");
-    setInput("");
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-slate-900">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-teal-500 to-blue-500">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
-              Chat with Your Virtual Self
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Powered by your trained knowledge
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={handleNewChat}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-        >
-          <RotateCcw className="h-4 w-4" />
-          New Chat
-        </button>
-      </div>
+    <div className="h-full w-full flex flex-col bg-[#0A0A0A] text-white font-sans overflow-hidden">
+      
+      <ChatNavbar 
+        onShowFeedback={() => setShowFeedbackModal(true)} 
+        onNewChat={() => {
+          setMessages([]);
+          localStorage.removeItem("velamini_dashboard_chat_history");
+          setInput("");
+        }}
+      />
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.length === 0 && !isTyping && (
-          <div className="h-full flex flex-col items-center justify-center text-center px-4">
-            <div className="p-4 rounded-full bg-gradient-to-br from-teal-500/10 to-blue-500/10 mb-4">
-              <Sparkles className="h-12 w-12 text-teal-500" />
-            </div>
-            <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-2">
-              Start a conversation with your Virtual Self
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 max-w-md">
-              Ask questions, get personalized responses based on your trained knowledge, and interact naturally.
-            </p>
-          </div>
-        )}
+      {messages.length === 0 && !isTyping && (
+        <HeroSection text="Chat with Your Virtual Self" />
+      )}
 
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                msg.role === "user"
-                  ? "bg-gradient-to-br from-teal-500 to-blue-500 text-white"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
-              }`}
-            >
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-            </div>
-          </div>
-        ))}
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col items-center px-4 pt-8 pb-16 overflow-hidden relative transition-all duration-700 ${
+        messages.length === 0 ? "justify-center" : "justify-start"
+      }`}>
+        
+        <div className={`w-full flex flex-col h-full transition-all duration-500 ${messages.length > 0 ? "flex-1 pb-8" : "justify-center"}`}>
+          
+          {messages.length > 0 && (
+            <MessageList 
+              messages={messages} 
+              isTyping={isTyping} 
+              bottomRef={bottomRef}
+              assistantName={user?.name || "Virtual Self"}
+              assistantImage={user?.image}
+              assistantFooterText="Powered by your knowledge"
+            />
+          )}
 
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl px-4 py-3">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Input Area */}
-      <div className="p-6 border-t border-slate-200 dark:border-slate-700">
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask your virtual self anything..."
-            className="flex-1 px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          <ChatInput 
+            input={input} 
+            setInput={setInput} 
+            sendMessage={sendMessage} 
           />
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || isTyping}
-            className="px-6 py-3 bg-gradient-to-br from-teal-500 to-blue-500 text-white rounded-lg font-medium hover:from-teal-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-          >
-            <Send className="h-4 w-4" />
-            Send
-          </button>
         </div>
+
+        {/* Bottom Spacer - Pushes content up in hero state */}
+        {messages.length === 0 && <div className="h-24" />}
       </div>
+
+      <FeedbackModal 
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        rating={rating}
+        setRating={setRating}
+        feedbackText={feedbackText}
+        setFeedbackText={setFeedbackText}
+      />
     </div>
   );
 }

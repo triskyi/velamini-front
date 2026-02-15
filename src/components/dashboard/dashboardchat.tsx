@@ -104,10 +104,10 @@ export default function DashboardChat({ user }: DashboardChatProps) {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col items-center overflow-hidden relative">
+      <div className="flex-1 flex flex-col items-center overflow-hidden">
         
         {/* Messages Area */}
-        <div className="flex-1 w-full overflow-y-auto px-4 pt-6 sm:pt-8 pb-44">
+        <div className="flex-1 w-full overflow-y-auto px-4 pt-6 sm:pt-8">
           {messages.length > 0 && (
             <MessageList 
               messages={messages} 
@@ -121,7 +121,7 @@ export default function DashboardChat({ user }: DashboardChatProps) {
         </div>
 
         {/* Centered Chat Input at Bottom */}
-        <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-6 px-4 bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/95 dark:via-slate-950/95 to-transparent pt-8">
+        <div className="w-full flex justify-center pb-6 px-4 bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/95 dark:via-slate-950/95 to-transparent pt-8">
           <div className="w-full max-w-4xl">
             <ChatInput 
               input={input} 

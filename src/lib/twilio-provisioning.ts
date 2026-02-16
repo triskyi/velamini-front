@@ -68,7 +68,21 @@ export async function searchAvailableNumbers(
     }
 
     const data = await response.json();
-    return data.available_phone_numbers || [];
+    
+    console.log(`Found ${data.available_phone_numbers?.length || 0} numbers in ${countryCode}`);
+    
+    // Map Twilio's snake_case to camelCase
+    const numbers = (data.available_phone_numbers || []).map((num: any) => ({
+      phoneNumber: num.phone_number,
+      friendlyName: num.friendly_name,
+      capabilities: {
+        voice: num.capabilities?.voice || false,
+        SMS: num.capabilities?.SMS || false,
+        MMS: num.capabilities?.MMS || false,
+      }
+    }));
+    
+    return numbers;
   } catch (error) {
     console.error("Search available numbers error:", error);
     throw error;

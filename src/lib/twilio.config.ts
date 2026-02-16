@@ -21,13 +21,16 @@ export const TWILIO_CONFIG = {
   webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/whatsapp/webhook`,
   
   // Default Settings
-  defaultCountry: "RW", // Default country for number search (Rwanda)
+  defaultCountry: "US", // Default country for number search (United States)
   numbersPerSearch: 10, // How many numbers to show in search results
   
-  // Pricing (estimated - update based on actual Twilio pricing)
+  // Pricing (based on actual Twilio + Meta WhatsApp pricing)
   pricing: {
-    numberMonthly: 1.00, // Monthly cost per phone number
-    messageCost: 0.005,  // Cost per message sent
+    numberMonthly: 1.00,        // Monthly cost per phone number
+    messageCost: 0.005,         // Twilio fee per message (inbound/outbound)
+    utilityTemplate: 0.0034,    // Meta fee for utility template (outside customer service window)
+    authTemplate: 0.0000,       // Auth templates vary by country (see Meta rate card)
+    marketingTemplate: 0.0000,  // Marketing templates (check Meta rate card)
   },
   
   // Rate Limits

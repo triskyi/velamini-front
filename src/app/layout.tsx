@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "Velamini",
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans antialiased transition-colors duration-300" suppressHydrationWarning>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

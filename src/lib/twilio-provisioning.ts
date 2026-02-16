@@ -104,11 +104,22 @@ export async function purchasePhoneNumber(
     }
 
     const webhookUrl = `${WEBHOOK_BASE_URL}/api/whatsapp/webhook`;
+    const isLocalhost = WEBHOOK_BASE_URL.includes('localhost') || WEBHOOK_BASE_URL.includes('127.0.0.1');
 
     const formData = new URLSearchParams();
     formData.append("PhoneNumber", phoneNumber);
-    formData.append("SmsUrl", webhookUrl);
-    formData.append("SmsMethod", "POST");
+    
+    // Only set webhook if not localhost (Twilio rejects localhost URLs)
+    if (!isLocalhost) {
+      formData.append("SmsUrl", webhookUrl);
+      formData.append("SmsMethod", "POST");
+    } else {
+      console.warn("⚠️ Localhost detected - Webhook NOT configured during purchase.");
+      console.warn("📝 You must manually configure webhook in Twilio Console after purchase:");
+      console.warn(`   Go to: https://console.twilio.com/us1/develop/phone-numbers/manage/incoming`);
+      console.warn(`   Set webhook to your public URL when ready.`);
+    }
+    
     formData.append("FriendlyName", `Velamini - Org ${organizationId}`);
 
     const response = await fetch(`${TWILIO_BASE_URL}/IncomingPhoneNumbers.json`, {

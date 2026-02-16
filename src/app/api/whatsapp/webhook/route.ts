@@ -36,6 +36,7 @@ export async function POST(req: Request) {
     // Twilio sends data as application/x-www-form-urlencoded
     const formData = await req.formData();
     const from = formData.get("From") as string;
+    const to = formData.get("To") as string; // The number receiving the message
     const body = formData.get("Body") as string;
     const numMedia = formData.get("NumMedia") ? parseInt(formData.get("NumMedia") as string) : 0;
 
@@ -56,10 +57,10 @@ export async function POST(req: Request) {
          return NextResponse.json({ error: "Invalid Request" }, { status: 400 });
     }
 
-    console.log(`Twilio Message from ${from}: ${body}`);
+    console.log(`Twilio Message from ${from} to ${to}: ${body}`);
 
     // Process logic (awaiting ensures it finishes before response)
-    await handleIncomingMessage(from, body);
+    await handleIncomingMessage(from, to, body);
 
     // Return empty TwiML to suppress Twilio errors
     return new NextResponse("<Response></Response>", {
@@ -73,24 +74,108 @@ export async function POST(req: Request) {
   }
 }
 
-async function handleIncomingMessage(from: string, userMessage: string) {
+async function handleIncomingMessage(from: string, to: string, userMessage: string) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
       console.error("Missing DEEPSEEK_API_KEY");
       return;
   }
 
-  // 0) Database Persistence: Get/Create Chat & History
-  // We explicitly check for chats where `userId` matches the phone number
+  // 0) Identify the organization by the receiving number
+  let organization = null;
+  let systemPrompt = VIRTUAL_TRESOR_SYSTEM_PROMPT; // Default prompt
+  
+  if (to) {
+    // Extract just the phone number (remove "whatsapp:" prefix if present)
+    const toNumber = to.replace("whatsapp:", "");
+    
+    organization = await prisma.organization.findFirst({
+      where: { 
+        whatsappNumber: toNumber,
+        isActive: true,
+      },
+      include: {
+        knowledgeBase: true,
+      },
+    });
+
+    // Check if organization has exceeded their message limit
+    if (organization) {
+      if (organization.monthlyMessageCount >= organization.monthlyMessageLimit) {
+        console.warn(`Organization ${organization.id} has exceeded message limit`);
+        await sendWhatsAppMessage(
+          from,
+          "This service has reached its monthly message limit. Please contact the organization for assistance."
+        );
+        return;
+      }
+
+      // Check business hours if enabled
+      if (organization.businessHoursEnabled) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTime = currentHour * 60 + currentMinute;
+
+        if (organization.businessHoursStart && organization.businessHoursEnd) {
+          const [startHour, startMin] = organization.businessHoursStart.split(":").map(Number);
+          const [endHour, endMin] = organization.businessHoursEnd.split(":").map(Number);
+          const startTime = startHour * 60 + startMin;
+          const endTime = endHour * 60 + endMin;
+
+          if (currentTime < startTime || currentTime > endTime) {
+            const outOfHoursMsg = `Thank you for contacting ${organization.name}. We are currently outside business hours (${organization.businessHoursStart} - ${organization.businessHoursEnd}). We'll respond as soon as possible.`;
+            await sendWhatsAppMessage(from, outOfHoursMsg);
+            return;
+          }
+        }
+      }
+
+      // Use organization's trained AI prompt if available
+      if (organization.knowledgeBase?.trainedPrompt) {
+        systemPrompt = organization.knowledgeBase.trainedPrompt;
+      }
+
+      // Increment message count for the organization
+      await prisma.organization.update({
+        where: { id: organization.id },
+        data: {
+          monthlyMessageCount: { increment: 1 },
+          totalMessages: { increment: 1 },
+        },
+      });
+    }
+  }
+
+  // 1) Database Persistence: Get/Create Chat & History
   let chat = await prisma.chat.findFirst({
-      where: { userId: from },
+      where: { 
+        userId: from,
+        organizationId: organization?.id || null,
+      },
       orderBy: { createdAt: 'desc' }
   });
 
   if (!chat) {
       chat = await prisma.chat.create({
-          data: { userId: from }
+          data: { 
+            userId: from,
+            organizationId: organization?.id || null,
+          }
       });
+
+      // Increment conversation count if organization exists
+      if (organization) {
+        await prisma.organization.update({
+          where: { id: organization.id },
+          data: { totalConversations: { increment: 1 } },
+        });
+      }
+
+      // Send welcome message if configured
+      if (organization?.welcomeMessage && organization.autoReplyEnabled) {
+        await sendWhatsAppMessage(from, organization.welcomeMessage);
+      }
   }
 
   const historyMessages = await prisma.message.findMany({
@@ -111,11 +196,10 @@ async function handleIncomingMessage(from: string, userMessage: string) {
     const context = retrieveContext(userMessage, 3);
     
     // 2) AI Prompt Construction
-    // Note: We do NOT force a web search here. We let the AI decide via tools if it needs one, 
-    // or rely on the "CORE MEMORY" context (Rag) + System Prompt rules.
+    // Use organization-specific system prompt or default
   
   const messages: ChatMessage[] = [
-    { role: "system", content: VIRTUAL_TRESOR_SYSTEM_PROMPT },
+    { role: "system", content: systemPrompt },
     ...historyMessages.reverse().map(msg => ({ 
       role: msg.role as "system" | "user" | "assistant" | "tool", 
       content: msg.content 

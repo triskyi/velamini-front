@@ -1,19 +1,101 @@
-# Velamini Frontend
+# Velamini - AI-Powered Virtual Assistants Platform
 
-Velamini is a Next.js AI assistant platform that enables users to create their own AI-powered "virtual self" - a digital twin trained with their personal knowledge, personality, and expertise.
+Velamini is a Next.js platform that enables:
+- **Individuals** to create AI-powered "virtual selves" (digital twins) trained with their personal knowledge and personality
+- **Organizations** to deploy AI-powered WhatsApp customer support without any technical setup
 
-## Core Capabilities
+## 🌟 Key Features
 
-- **Virtual Self Training**: 7-step wizard to capture personal information (identity, education, experience, skills, projects, awards, social)
-- **AI-Powered Chat**: Conversational interface with DeepSeek AI integration
-- **Shareable Virtual Selves**: Generate unique links to let others chat with your trained virtual self
-- **Multi-Channel Support**: Web and WhatsApp integration
-- **Knowledge Retrieval**: RAG-style context injection from trained knowledge base
+### For Personal Accounts
+- **Virtual Self Creation**: Train an AI with your personality, knowledge, and experiences
+- **Shareable Virtual Assistants**: Share your virtual self via unique links
+- **AI-Powered Chat**: Natural conversations powered by DeepSeek AI
+- **Knowledge Retrieval**: RAG-style context injection from your knowledge base
 - **Web Search Integration**: Real-time information through Tavily API
-- **Authentication**: Secure Google OAuth via NextAuth v5
-- **Database Persistence**: PostgreSQL with Prisma ORM
+- **Multi-Channel Support**: Web interface and chat sharing
 
-## Tech Stack
+### For Organization Accounts
+- **WhatsApp Number Provisioning**: Get dedicated WhatsApp business numbers (via Twilio - no Twilio account needed!)
+- **AI Customer Support**: 24/7 automated responses trained on your business knowledge
+- **Number Management**: Search, provision, configure, and release numbers through our dashboard
+- **Analytics Dashboard**: Track conversations, message usage, and customer interactions
+- **Business Hours**: Configure automatic responses outside business hours
+- **Usage Monitoring**: Track message limits and usage statistics
+- **No Technical Setup**: We handle all Twilio infrastructure for you
+
+## 📋 Documentation
+
+- **[Complete Documentation](docs/README.md)** - Full platform overview and architecture
+- **[User Guide](docs/USER_GUIDE.md)** - Step-by-step guide for personal and organization accounts
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
+- **[WhatsApp Organizations Feature](WHATSAPP_ORGANIZATIONS.md)** - Organization account implementation details
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+```bash
+Node.js >= 18.0.0
+PostgreSQL database
+Twilio account (for WhatsApp features)
+DeepSeek API key
+Google OAuth credentials (optional)
+```
+
+### Installation
+
+1. **Clone and Install**
+   ```bash
+   git clone https://github.com/yourusername/velamini.git
+   cd velamini/velamini-front
+   npm install
+   ```
+
+2. **Configure Environment**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env`:
+   ```env
+   # Database
+   DATABASE_URL="postgresql://user:password@localhost:5432/velamini"
+
+   # Authentication
+   NEXTAUTH_URL="http://localhost:3000"
+   NEXTAUTH_SECRET="your-secret-key"
+   GOOGLE_CLIENT_ID="your-google-client-id"
+   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+   # Twilio WhatsApp
+   TWILIO_ACCOUNT_SID="your-twilio-account-sid"
+   TWILIO_AUTH_TOKEN="your-twilio-auth-token"
+   TWILIO_PHONE_NUMBER="whatsapp:+14155238886"
+
+   # AI
+   DEEPSEEK_API_KEY="your-deepseek-api-key"
+
+   # App
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   ```
+
+3. **Set Up Database**
+   ```bash
+   npx prisma migrate dev
+   npx prisma generate
+   ```
+
+4. **Run Development Server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open Application**
+   ```
+   http://localhost:3000
+   ```
+
+## 🏗️ Tech Stack
 
 - Framework: Next.js 16 (App Router)
 - Language: TypeScript + React 19

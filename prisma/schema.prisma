@@ -8,16 +8,20 @@ datasource db {
 }
 
 model Chat {
-  id              String    @id @default(cuid())
-  userId          String?   // Optional: Can be "whatsapp:+123..." or null for web
-  virtualSelfId   String?   // ID of the user whose virtual self is being chatted with
-  virtualSelf     User?     @relation("VirtualSelfChats", fields: [virtualSelfId], references: [id], onDelete: Cascade)
-  isSharedChat    Boolean   @default(false) // True if this is a shared virtual self chat
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id              String         @id @default(cuid())
+  userId          String?        // Optional: Can be "whatsapp:+123..." or null for web
+  organizationId  String?        // Which organization this chat belongs to (for WhatsApp business)
+  organization    Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  virtualSelfId   String?        // ID of the user whose virtual self is being chatted with
+  virtualSelf     User?          @relation("VirtualSelfChats", fields: [virtualSelfId], references: [id], onDelete: Cascade)
+  isSharedChat    Boolean        @default(false) // True if this is a shared virtual self chat
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   messages        Message[]
 
   @@index([virtualSelfId])
+  @@index([organizationId])
+  @@index([userId, organizationId])
 }
 
 model Message {
@@ -39,9 +43,11 @@ model Feedback {
 }
 
 model KnowledgeBase {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String         @id @default(cuid())
+  userId             String?        @unique
+  user               User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId     String?        @unique
+  organization       Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   
   // Identity
   fullName           String?
@@ -92,6 +98,63 @@ model KnowledgeBase {
   updatedAt          DateTime @updatedAt
 }
 
+// Organization Model for WhatsApp Business Numbers
+model Organization {
+  id                  String         @id @default(cuid())
+  name                String
+  description         String?        @db.Text
+  
+  // Owner
+  ownerId             String
+  owner               User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  // WhatsApp Configuration
+  whatsappNumber      String?        @unique  // E.g., "+250788111111"
+  whatsappNumberSid   String?        // Twilio Phone Number SID (for management)
+  displayName         String?        // Business display name on WhatsApp
+  
+  // AI Configuration
+  knowledgeBaseId     String?        @unique
+  knowledgeBase       KnowledgeBase?
+  
+  // Status & Plan
+  isActive            Boolean        @default(true)
+  planType            String         @default("trial") // "trial", "starter", "business", "enterprise"
+  
+  // Limits & Usage (based on plan)
+  monthlyMessageLimit Int            @default(100)  // Messages per month
+  monthlyMessageCount Int            @default(0)    // Current month usage
+  lastResetDate       DateTime       @default(now()) // When counter was last reset
+  
+  // Business Info
+  industry            String?
+  website             String?
+  contactEmail        String?
+  
+  // Settings
+  businessHoursEnabled Boolean       @default(false)
+  businessHoursStart   String?       // E.g., "09:00"
+  businessHoursEnd     String?       // E.g., "17:00"
+  timezone             String?       // E.g., "Africa/Kigali"
+  autoReplyEnabled     Boolean       @default(true)
+  welcomeMessage       String?       @db.Text
+  
+  // Analytics
+  totalConversations  Int            @default(0)
+  totalMessages       Int            @default(0)
+  averageResponseTime Float?         // In seconds
+  
+  // Timestamps
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  
+  // Relations
+  chats               Chat[]
+  
+  @@index([ownerId])
+  @@index([whatsappNumber])
+}
+
 // NextAuth Models
 
 model Account {
@@ -127,10 +190,13 @@ model User {
   email            String?        @unique
   emailVerified    DateTime?
   image            String?
+  accountType      String         @default("personal") // "personal" or "organization"
+  onboardingComplete Boolean      @default(false) // Track if user completed onboarding
   accounts         Account[]
   sessions         Session[]
   knowledgeBase    KnowledgeBase?
   virtualSelfChats Chat[]         @relation("VirtualSelfChats")
+  organizations    Organization[] // Organizations owned by this user
 }
 
 model VerificationToken {

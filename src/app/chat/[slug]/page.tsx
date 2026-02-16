@@ -20,12 +20,26 @@ export default async function SharedChatPage({ params }: PageProps) {
           image: true,
         },
       },
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          displayName: true,
+        },
+      },
     },
   });
 
   if (!knowledgeBase || !knowledgeBase.isPubliclyShared || !knowledgeBase.isModelTrained) {
     notFound();
   }
+
+  // Determine if this is a personal or organization virtual self
+  const isOrganization = !!knowledgeBase.organizationId;
+  const entityId = isOrganization ? knowledgeBase.organizationId! : knowledgeBase.userId!;
+  const entityName = isOrganization 
+    ? (knowledgeBase.organization?.displayName || knowledgeBase.organization?.name || "Organization")
+    : (knowledgeBase.user?.name || "User");
 
   // Increment view count
   await prisma.knowledgeBase.update({
@@ -40,9 +54,9 @@ export default async function SharedChatPage({ params }: PageProps) {
   return (
     <SharedChatClient
       virtualSelf={{
-        id: knowledgeBase.userId,
-        name: knowledgeBase.user.name || "User",
-        image: knowledgeBase.user.image,
+        id: entityId,
+        name: entityName,
+        image: knowledgeBase.user?.image,
         slug: slug,
       }}
     />

@@ -11,16 +11,33 @@ export default async function DashboardPage() {
 
   // Get user ID - fallback to email lookup if ID is missing
   let userId: string | undefined = session.user.id;
+  let user = null;
+  
   if (!userId && session.user.email) {
-    const user = await prisma.user.findUnique({
+    user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true },
+      select: { id: true, accountType: true, onboardingComplete: true },
     });
     userId = user?.id;
+  } else if (userId) {
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, accountType: true, onboardingComplete: true },
+    });
   }
 
-  if (!userId) {
+  if (!userId || !user) {
     redirect("/auth/signin");
+  }
+
+  // Check if user needs to complete onboarding
+  if (!user.onboardingComplete) {
+    redirect("/onboarding");
+  }
+
+  // Redirect organization accounts to their dashboard
+  if (user.accountType === "organization") {
+    redirect("/Dashboard/organizations");
   }
 
   // Check if user has knowledge base

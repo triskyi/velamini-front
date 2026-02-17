@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Mail, Calendar, Award, Activity } from "lucide-react";
+import { CheckCircle2, Mail, MapPin, ArrowUpRight } from "lucide-react";
+import { Card, CardContent, Avatar, AvatarImage, AvatarFallback, Button, Chip, Link as HeroLink } from "@heroui/react";
+import Link from "next/link"; // Keep next/link for internal navigation if needed
+
 
 interface ProfileViewProps {
   user?: {
@@ -9,138 +12,146 @@ interface ProfileViewProps {
     email?: string | null;
     image?: string | null;
   };
+  knowledgeBase?: any;
 }
 
-export default function ProfileView({ user }: ProfileViewProps) {
+
+export default function ProfileView({ user, knowledgeBase }: ProfileViewProps) {
+  const fullName = knowledgeBase?.fullName || user?.name || "User Name";
+  const email = user?.email || "email@example.com";
+  const location = knowledgeBase?.currentLocation || "";
+  const cover =
+    knowledgeBase?.coverImage ||
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2070&auto=format&fit=crop";
+
+  // socials (safe parse)
+  const socialLinks = knowledgeBase?.socialLinks
+    ? (() => {
+      try {
+        return JSON.parse(knowledgeBase.socialLinks);
+      } catch {
+        return {};
+      }
+    })()
+    : {};
+
   return (
-    <div className="h-full w-full bg-slate-50 dark:bg-slate-950 overflow-y-auto">
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 sm:pb-20 space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Profile
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-1">
-            Manage your account information and preferences
-          </p>
-        </div>
+    <div className="w-full text-foreground bg-background min-h-full p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-7xl space-y-8">
 
         {/* Profile Card */}
-        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <div className="flex-shrink-0">
-              {user?.image ? (
-                <Image
-                  src={user.image}
-                  alt={user.name || "User"}
-                  width={96}
-                  height={96}
-                  className="h-24 w-24 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-700"
-                  unoptimized
-                />
-              ) : (
-                <div className="h-24 w-24 rounded-2xl flex items-center justify-center bg-teal-500 text-3xl font-bold text-white">
-                  {(user?.name?.[0] || "U").toUpperCase()}
-                </div>
-              )}
-            </div>
-            <div className="flex-1 text-center sm:text-left">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                {user?.name || "User"}
-              </h2>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
-                <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
-                  Virtual Self Owner
-                </span>
-                <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Active
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                  <div className="p-2 rounded-lg bg-teal-500/10">
-                    <Mail className="h-4 w-4 text-teal-500" />
-                  </div>
-                  <div className="text-left min-w-0">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Email</p>
-                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
-                      {user?.email || "Not available"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <Calendar className="h-4 w-4 text-blue-500" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Member Since</p>
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">
-                      {new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <Card className="w-full">
+          <div className="relative h-44 sm:h-60 w-full overflow-hidden">
+            <Image
+              src={cover}
+              alt="Cover"
+              fill
+              className="object-cover opacity-80"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60" />
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-teal-500/10">
-                <Activity className="h-5 w-5 text-teal-500" />
-              </div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Sessions</p>
-            </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">0</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">All time interactions</p>
-          </div>
-          <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <Mail className="h-5 w-5 text-purple-500" />
-              </div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Messages</p>
-            </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">0</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Messages sent</p>
-          </div>
-        </div>
+          <CardContent className="px-5 sm:px-8 pb-8 pt-0 relative overflow-visible">
+            <div className="flex flex-col md:flex-row md:items-end gap-6 -mt-12 sm:-mt-16 relative z-10">
+              <Avatar className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-background text-3xl font-bold flex items-center justify-center overflow-hidden rounded-full">
+                {user?.image ? (
+                  <AvatarImage src={user.image} className="w-full h-full object-cover" />
+                ) : (
+                  <AvatarFallback className="w-full h-full bg-primary flex items-center justify-center text-white">
+                    {(fullName?.[0] || "U").toUpperCase()}
+                  </AvatarFallback>
+                )}
+              </Avatar>
 
-        {/* Account Info */}
-        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-            Account Information
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                Full Name
-              </label>
-              <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white">
-                {user?.name || "Not set"}
+              <div className="flex-1 pb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{fullName}</h1>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Chip color="default" variant="soft" size="sm">Virtual Self</Chip>
+                      <div className="flex items-center gap-1 text-small text-default-500">
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                        <span>Verified</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                Email Address
-              </label>
-              <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white">
-                {user?.email || "Not set"}
+
+            {/* Content Columns */}
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Main Content (Bio/Experience Placeholder) */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="bg-default-50 dark:bg-default-100/50 shadow-none border border-default-100">
+                  <CardContent className="p-6">
+                    <h3 className="text-large font-semibold mb-4">About Me</h3>
+                    <p className="text-default-500">
+                      {knowledgeBase?.bio || "No detailed bio currently available. Complete your training to populate this section."}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Sidebar: Contact & Socials */}
+              <div className="space-y-4">
+                <Card className="bg-default-50 dark:bg-default-100/50 shadow-none border border-default-100">
+                  <CardContent className="p-4 gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-default-200 text-default-600">
+                        <Mail className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <p className="text-tiny uppercase font-bold text-default-500">Email</p>
+                        <p className="text-small font-medium truncate" title={email}>{email}</p>
+                      </div>
+                    </div>
+
+                    {location && (
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-default-200 text-default-600">
+                          <MapPin className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-tiny uppercase font-bold text-default-500">Location</p>
+                          <p className="text-small font-medium">{location}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {socialLinks?.website && (
+                      <HeroLink
+                        href={socialLinks.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full no-underline"
+                      >
+                        <Button
+                          variant="secondary"
+                          className="w-full flex justify-between items-center"
+                        >
+                          Website
+                          <ArrowUpRight className="w-4 h-4" />
+                        </Button>
+                      </HeroLink>
+                    )}
+
+                    <Link href="/Dashboard/settings" className="w-full no-underline mt-2 block">
+                      <Button
+                        variant="primary"
+                        className="w-full"
+                      >
+                        Edit Profile Settings
+                      </Button>
+                    </Link>
+
+                  </CardContent>
+                </Card>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20">
-              <Award className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">Account Verified</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  To update your profile, contact support or update through your authentication provider.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

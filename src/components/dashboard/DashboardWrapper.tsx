@@ -26,9 +26,10 @@ interface DashboardWrapperProps {
     personalityTraits: number;
     knowledgeItems: number;
   };
+  knowledgeBase: any; // Using any for simplicity with complex Prisma type for now
 }
 
-export default function DashboardWrapper({ user, stats }: DashboardWrapperProps) {
+export default function DashboardWrapper({ user, stats, knowledgeBase }: DashboardWrapperProps) {
   const [activeView, setActiveView] = useState<DashboardViewType>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -61,11 +62,11 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
       case "dashboard":
         return <DashboardView stats={stats} onNavigate={handleViewChange} />;
       case "training":
-        return <TrainingView user={user} />;
+        return <TrainingView user={user} knowledgeBase={knowledgeBase} />;
       case "chat":
-        return <DashboardChat user={user} />;
+        return <DashboardChat user={user} knowledgeBase={knowledgeBase} />;
       case "profile":
-        return <ProfileView user={user} />;
+        return <ProfileView user={user} knowledgeBase={knowledgeBase} />;
       case "settings":
         return <SettingsView user={user} />;
       default:
@@ -115,7 +116,7 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <div className="px-4 pt-6 pb-6">
               <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 MAIN
@@ -152,14 +153,12 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
                   role="switch"
                   aria-checked={!isDarkMode}
                   onClick={handleThemeToggle}
-                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-                    !isDarkMode ? "bg-teal-500" : "bg-slate-600"
-                  }`}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${!isDarkMode ? "bg-teal-500" : "bg-slate-600"
+                    }`}
                 >
                   <span
-                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${
-                      !isDarkMode ? "left-6" : "left-1"
-                    }`}
+                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${!isDarkMode ? "left-6" : "left-1"
+                      }`}
                   />
                 </button>
               </div>
@@ -167,7 +166,7 @@ export default function DashboardWrapper({ user, stats }: DashboardWrapperProps)
           </div>
         </div>
       )}
-      
+
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* Mobile Menu Button - z-30 so below overlay, above content */}
         <div className="lg:hidden flex items-center justify-between px-4 py-3.5 border-b border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-30 shrink-0">

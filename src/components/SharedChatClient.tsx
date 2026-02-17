@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import HeroSection from "./chat-ui/HeroSection";
 import MessageList from "./chat-ui/MessageList";
-import ChatInput from "./chat-ui/ChatInput";
+
 
 type Message = {
   id: number;
@@ -139,7 +139,7 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#0A0A0A] text-white font-sans overflow-hidden">
+    <div className="h-screen w-full bg-whitesmokeflex flex-col bg-[#0A0A0A] text-white font-sans overflow-hidden">
       {/* Shared Chat Navbar */}
       <div className="w-full flex flex-col sm:flex-row justify-between items-center px-4 py-4 sm:px-8 sm:py-6 gap-4 sm:gap-0 border-b border-zinc-800/50">
         <Link href="/" className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors">
@@ -203,7 +203,8 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
           <ChatInput 
             input={input} 
             setInput={setInput} 
-            sendMessage={sendMessage} 
+            onSend={sendMessage} 
+            placeholder={`Type your message to ${virtualSelf.name}...`}
           />
         </div>
 
@@ -213,3 +214,34 @@ export default function SharedChatClient({ virtualSelf }: SharedChatClientProps)
     </div>
   );
 }
+
+// Inline ChatInput component (move outside main component)
+function ChatInput({ input, setInput, onSend, placeholder }: { input: string; setInput: React.Dispatch<React.SetStateAction<string>>; onSend: () => void | Promise<void>; placeholder?: string }) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+  return (
+    <div className="flex w-full gap-2 items-center">
+      <input
+        className="flex-1 px-4 py-2 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        type="text"
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder || "Type a message..."}
+        autoFocus
+      />
+      <button
+        className="ml-2 px-4 py-2 rounded-2xl bg-gradient-to-br from-purple-400 to-blue-400 text-white font-semibold shadow-md hover:from-purple-500 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        onClick={onSend}
+        disabled={!input.trim()}
+      >
+        Send
+      </button>
+    </div>
+  );
+}
+      

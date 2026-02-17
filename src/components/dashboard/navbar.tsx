@@ -14,39 +14,65 @@ interface NavbarProps {
   onThemeToggle?: () => void;
 }
 
-export default function Navbar({ user }: NavbarProps) {
+// HeroUI Imports
+import { Tooltip, Link as HeroLink } from "@heroui/react";
+
+export default function Navbar({ user, isDarkMode, onThemeToggle }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-40 w-full shrink-0 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hidden lg:flex">
-      <div className="flex h-14 items-center justify-end gap-4 px-5 sm:px-6 w-full">
-        <div className="flex items-center gap-3">
-          <div
-            className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center bg-teal-500 shrink-0
-              ring-2 ring-slate-200 dark:ring-slate-700"
-          >
-            {user?.image ? (
-              <Image
-                src={user.image}
-                alt={user.name || "User"}
-                width={40}
-                height={40}
-                className="h-10 w-10 object-cover"
-                unoptimized
-              />
-            ) : (
-              <span className="text-white font-bold text-sm">
-                {(user?.name?.[0] || "U").toUpperCase()}
-              </span>
-            )}
-          </div>
-          <Link
-            href="/logout"
-            className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
-            aria-label="Sign out"
-          >
-            <LogOut className="h-5 w-5" strokeWidth={2} />
-          </Link>
-        </div>
+    <div className="hidden lg:flex border-b border-gray-200 px-6 items-center justify-between">
+      {/* Left Section: Logo or Title */}
+      <div className="flex items-center gap-4">
+        <img
+          src="/logo.png"
+          alt="Logo"
+          className="w-10 h-10"
+        />
+        <span className="text-xl font-bold">Dashboard</span>
       </div>
-    </header>
+
+      {/* Right Section: User and Actions */}
+      <div className="flex items-center gap-4">
+        {/* Theme Toggle */}
+        <button
+          onClick={onThemeToggle}
+          className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          aria-label="Toggle Theme"
+        >
+          {isDarkMode ? (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3v1m0 16v1m8.66-8.66h-1M4.34 12h-1m15.07-5.07l-.7.7M6.34 17.66l-.7.7m12.02 0l-.7-.7M6.34 6.34l-.7-.7M12 5a7 7 0 100 14 7 7 0 000-14z"></path>
+            </svg>
+          ) : (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+            </svg>
+          )}
+        </button>
+
+        {/* User Avatar */}
+        <div className="flex items-center gap-2">
+          <img
+            src={user?.image || "/default-avatar.png"}
+            alt="User Avatar"
+            className="w-8 h-8 rounded-full border border-primary"
+          />
+          <span className="text-sm text-gray-600">{user?.name || "User"}</span>
+        </div>
+
+        {/* Logout Button */}
+        <a
+          href="/logout"
+          className="flex items-center gap-2 text-danger hover:text-danger-dark"
+          aria-label="Sign out"
+        >
+          <img
+            src="/logout-icon.png"
+            alt="Logout"
+            className="w-6 h-6"
+          />
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
   );
 }

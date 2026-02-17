@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 @plugin "daisyui";
 
 /* =========================
@@ -7,7 +8,7 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
-  
+
   /* Neon Colors */
   --neon-cyan: #00f3ff;
   --neon-blue: #0066ff;
@@ -55,6 +56,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   @apply bg-gradient-to-b from-teal-400 to-cyan-500 rounded;
+
   &:hover {
     @apply from-teal-500 to-cyan-600;
     box-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
@@ -84,6 +86,7 @@ body {
    Reusable UI Utilities
    ========================= */
 @layer utilities {
+
   /* Glassmorphism panel */
   .glass-panel {
     @apply backdrop-blur-lg bg-gray-900/30 border border-gray-700/50;
@@ -185,22 +188,26 @@ body {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 @keyframes pulse-border {
+
   0%,
   100% {
     border-color: rgba(34, 211, 238, 0.3);
   }
+
   50% {
     border-color: rgba(34, 211, 238, 0.7);
   }
 }
 
 @keyframes pulse-neon {
+
   0%,
   100% {
     opacity: 1;
@@ -209,6 +216,7 @@ body {
       0 0 10px var(--neon-cyan),
       0 0 20px var(--neon-cyan);
   }
+
   50% {
     opacity: 0.8;
     text-shadow:
@@ -219,10 +227,12 @@ body {
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
@@ -232,6 +242,7 @@ body {
   0% {
     background-position: 0 0;
   }
+
   100% {
     background-position: 50px 50px;
   }
@@ -240,13 +251,6 @@ body {
 /* =========================
    Component-specific Styles
    ========================= */
-
-/* Chat input focus states */
-input[type="text"]:focus,
-input[type="search"]:focus,
-textarea:focus {
-  @apply outline-none border-cyan-400 shadow-lg shadow-cyan-500/30;
-}
 
 /* Button hover effects */
 button {
@@ -260,7 +264,7 @@ button:hover {
 /* Links styling */
 a {
   @apply relative transition-colors duration-300;
-  
+
   &:hover {
     color: var(--neon-cyan);
     text-shadow: 0 0 10px var(--neon-cyan);

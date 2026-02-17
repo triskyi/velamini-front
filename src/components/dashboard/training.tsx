@@ -1,7 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Save, User, Briefcase, Award, Code, Link as LinkIcon, ChevronRight, ChevronLeft, Check, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Save,
+  User,
+  Briefcase,
+  Award,
+  Code,
+  Link as LinkIcon,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
+
+import { Input, TextArea, Button, Card, CardContent } from "@heroui/react";
+
+// Wrapper components to handle missing label prop in current version
+const Field = ({ label, ...props }: any) => (
+  <div className="flex flex-col gap-2 w-full">
+    {label && <label className="text-small font-medium text-default-700">{label}</label>}
+    <Input {...props} className="w-full" />
+  </div>
+);
+
+const TextAreaField = ({ label, ...props }: any) => (
+  <div className="flex flex-col gap-2 w-full">
+    {label && <label className="text-small font-medium text-default-700">{label}</label>}
+    <TextArea {...props} className="w-full" />
+  </div>
+);
+
+// Helper for button variants mapping
+const getButtonVariant = (v: string) => {
+  if (v === "solid") return "primary"; // mapping solid to primary
+  if (v === "flat") return "secondary"; // mapping flat to secondary
+  return v as any;
+};
+
 
 interface KnowledgeBaseData {
   fullName?: string;
@@ -30,6 +67,7 @@ interface TrainingViewProps {
     email?: string | null;
     image?: string | null;
   };
+  knowledgeBase?: KnowledgeBaseData;
 }
 
 const STEPS = [
@@ -40,54 +78,33 @@ const STEPS = [
   { id: 5, name: "Projects", icon: Code },
   { id: 6, name: "Awards", icon: Award },
   { id: 7, name: "Social", icon: LinkIcon },
-];
+] as const;
 
-export default function TrainingView({ user }: TrainingViewProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+type Toast = { type: "success" | "error"; text: string } | null;
+
+export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
+  const [currentStep, setCurrentStep] = useState<number>(1);
   const [formData, setFormData] = useState<KnowledgeBaseData>({});
-  const [isSaving, setIsSaving] = useState(false);
-  const [isTraining, setIsTraining] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isTraining, setIsTraining] = useState<boolean>(false);
+  const [message, setMessage] = useState<Toast>(null);
 
-// Load existing data
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const res = await fetch("/api/training");
-      const data = await res.json();
-      if (data.ok && data.knowledgeBase) {
-        setFormData(data.knowledgeBase);
-      }
-    } catch (error) {
-      console.error("Failed to load knowledge base:", error);
-    }
+  useEffect(() => {
+    if (knowledgeBase) setFormData(knowledgeBase);
+  }, [knowledgeBase]);
+
+  const showMessage = (m: Exclude<Toast, null>, ms = 3000) => {
+    setMessage(m);
+    window.setTimeout(() => setMessage(null), ms);
   };
-  loadData();
-}, []);
 
-const handleTrainModel = async () => {
-  setIsTraining(true);
-  setMessage(null);
+  const updateField = (field: keyof KnowledgeBaseData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
-  try {
-    const res = await fetch("/api/training/train", {
-      method: "POST",
-    });
-
-    const data = await res.json();
-    if (data.ok) {
-      setFormData({ ...formData, isModelTrained: true, lastTrainedAt: data.trainedAt });
-      setMessage({ type: "success", text: "Virtual self trained successfully! 🎉" });
-      setTimeout(() => setMessage(null), 5000);
-    } else {
-      setMessage({ type: "error", text: data.error || "Training failed" });
-    }
-  } catch (error) {
-    setMessage({ type: "error", text: "Failed to train model" });
-  } finally {
-    setIsTraining(false);
-  }
-};
+  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, STEPS.length));
+  const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 1));
+  const goToStep = (step: number) => setCurrentStep(step);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -101,288 +118,199 @@ const handleTrainModel = async () => {
       });
 
       const data = await res.json();
-      if (data.ok) {
-        setMessage({ type: "success", text: "Saved successfully!" });
-        setTimeout(() => setMessage(null), 3000);
+      if (data?.ok) {
+        showMessage({ type: "success", text: "Saved successfully!" });
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to save" });
+        showMessage({ type: "error", text: data?.error || "Failed to save" }, 5000);
       }
-    } catch (error) {
-      setMessage({ type: "error", text: "Network error occurred" });
+    } catch {
+      showMessage({ type: "error", text: "Network error occurred" }, 5000);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const updateField = (field: keyof KnowledgeBaseData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleTrainModel = async () => {
+    setIsTraining(true);
+    setMessage(null);
 
-  const nextStep = () => {
-    if (currentStep < STEPS.length) {
-      setCurrentStep(currentStep + 1);
+    try {
+      const res = await fetch("/api/training/train", { method: "POST" });
+      const data = await res.json();
+
+      if (data?.ok) {
+        setFormData((prev) => ({
+          ...prev,
+          isModelTrained: true,
+          lastTrainedAt: data.trainedAt,
+        }));
+        showMessage({ type: "success", text: "Virtual self trained successfully! 🎉" }, 5000);
+      } else {
+        showMessage({ type: "error", text: data?.error || "Training failed" }, 5000);
+      }
+    } catch {
+      showMessage({ type: "error", text: "Failed to train model" }, 5000);
+    } finally {
+      setIsTraining(false);
     }
   };
-
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const goToStep = (step: number) => {
-    setCurrentStep(step);
-  };
-
-  const inputClass =
-    "w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-colors";
 
   const renderStepContent = () => {
+    const inputCommon = {};
+
     switch (currentStep) {
-      case 1: // Identity
+      case 1:
         return (
           <div className="space-y-6 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.fullName || ""}
-                  onChange={(e) => updateField("fullName", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., ISHIMWE TRESOR BERTRAND"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Birth Date
-                </label>
-                <input
-                  type="text"
-                  value={formData.birthDate || ""}
-                  onChange={(e) => updateField("birthDate", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., February 15, 2002"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Birth Place
-                </label>
-                <input
-                  type="text"
-                  value={formData.birthPlace || ""}
-                  onChange={(e) => updateField("birthPlace", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., Huye District, Rwanda"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Current Location
-                </label>
-                <input
-                  type="text"
-                  value={formData.currentLocation || ""}
-                  onChange={(e) => updateField("currentLocation", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., Kigali, Rwanda"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Languages
-                </label>
-                <input
-                  type="text"
-                  value={formData.languages || ""}
-                  onChange={(e) => updateField("languages", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., Kinyarwanda, English, French"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Relationship Status
-                </label>
-                <input
-                  type="text"
-                  value={formData.relationshipStatus || ""}
-                  onChange={(e) => updateField("relationshipStatus", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., Single, Married"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Hobbies
-                </label>
-                <input
-                  type="text"
-                  value={formData.hobbies || ""}
-                  onChange={(e) => updateField("hobbies", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., Dancing, Reading"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Favorite Food
-                </label>
-                <input
-                  type="text"
-                  value={formData.favoriteFood || ""}
-                  onChange={(e) => updateField("favoriteFood", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., Chips"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Bio
-              </label>
-              <textarea
-                value={formData.bio || ""}
-                onChange={(e) => updateField("bio", e.target.value)}
-                rows={4}
-                className={inputClass}
-                placeholder="e.g., Software engineer with 3+ years experience..."
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field
+                {...inputCommon}
+                label="Full Name"
+                placeholder="e.g., ISHIMWE TRESOR BERTRAND"
+                value={formData.fullName || ""}
+                onValueChange={(v: string) => updateField("fullName", v)}
+              />
+              <Field
+                {...inputCommon}
+                label="Birth Date"
+                placeholder="e.g., February 15, 2002"
+                value={formData.birthDate || ""}
+                onValueChange={(v: string) => updateField("birthDate", v)}
+              />
+              <Field
+                {...inputCommon}
+                label="Birth Place"
+                placeholder="e.g., Huye District, Rwanda"
+                value={formData.birthPlace || ""}
+                onValueChange={(v: string) => updateField("birthPlace", v)}
+              />
+              <Field
+                {...inputCommon}
+                label="Current Location"
+                placeholder="e.g., Kigali, Rwanda"
+                value={formData.currentLocation || ""}
+                onValueChange={(v: string) => updateField("currentLocation", v)}
+              />
+              <Field
+                {...inputCommon}
+                label="Languages"
+                placeholder="e.g., Kinyarwanda, English, French"
+                value={formData.languages || ""}
+                onValueChange={(v: string) => updateField("languages", v)}
+              />
+              <Field
+                {...inputCommon}
+                label="Relationship Status"
+                placeholder="e.g., Single, Married"
+                value={formData.relationshipStatus || ""}
+                onValueChange={(v: string) => updateField("relationshipStatus", v)}
+              />
+              <Field
+                {...inputCommon}
+                label="Hobbies"
+                placeholder="e.g., Dancing, Reading"
+                value={formData.hobbies || ""}
+                onValueChange={(v: string) => updateField("hobbies", v)}
+              />
+              <Field
+                {...inputCommon}
+                label="Favorite Food"
+                placeholder="e.g., Chips"
+                value={formData.favoriteFood || ""}
+                onValueChange={(v: string) => updateField("favoriteFood", v)}
               />
             </div>
-          </div>
-        );
 
-      case 2: // Education
-        return (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Education History
-            </label>
-            <textarea
-              value={formData.education || ""}
-              onChange={(e) => updateField("education", e.target.value)}
-              rows={8}
-              className={inputClass}
-              placeholder="e.g., Bugema University — Bachelor in Software Engineering&#10;Gitwe Adventist College — A2 Diploma (MPC)"
+            <TextAreaField
+              {...inputCommon}
+              label="Bio"
+              placeholder="e.g., Software engineer with 3+ years experience..."
+              minRows={4}
+              value={formData.bio || ""}
+              onValueChange={(v: string) => updateField("bio", v)}
             />
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              List your educational background, one per line
-            </p>
           </div>
         );
 
-      case 3: // Experience
+      case 2:
         return (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Work Experience
-            </label>
-            <textarea
-              value={formData.experience || ""}
-              onChange={(e) => updateField("experience", e.target.value)}
-              rows={8}
-              className={inputClass}
-              placeholder="e.g., OpenFN (Present) — Junior Developer&#10;COODIC (Mar 2024 – Jun 2024) — Software Engineer"
+          <TextAreaField
+            {...inputCommon}
+            label="Education History"
+            placeholder={"e.g., Bugema University — BSc Software Engineering\nGitwe Adventist College — A2 (MPC)"}
+            minRows={8}
+            value={formData.education || ""}
+            onValueChange={(v: string) => updateField("education", v)}
+          />
+        );
+
+      case 3:
+        return (
+          <TextAreaField
+            {...inputCommon}
+            label="Work Experience"
+            placeholder={"e.g., OpenFn (Present) — Junior Developer\nCOODIC (Mar 2024 – Jun 2024) — Software Engineer"}
+            minRows={8}
+            value={formData.experience || ""}
+            onValueChange={(v: string) => updateField("experience", v)}
+          />
+        );
+
+      case 4:
+        return (
+          <TextAreaField
+            {...inputCommon}
+            label="Technical Skills"
+            placeholder={"e.g., Languages: HTML, CSS, Python, JavaScript\nFrameworks: React, Next.js, Django\nDB: Postgres, MySQL"}
+            minRows={8}
+            value={formData.skills || ""}
+            onValueChange={(v: string) => updateField("skills", v)}
+          />
+        );
+
+      case 5:
+        return (
+          <TextAreaField
+            {...inputCommon}
+            label="Notable Projects"
+            placeholder={"e.g., OpenFn Adaptors — Built Flutterwave adaptor\nMyGuyAssistantAPI — Python + Flask API"}
+            minRows={8}
+            value={formData.projects || ""}
+            onValueChange={(v: string) => updateField("projects", v)}
+          />
+        );
+
+      case 6:
+        return (
+          <TextAreaField
+            {...inputCommon}
+            label="Achievements & Awards"
+            placeholder={"e.g., Winner — AfricasTalking Hackathon (3 times)"}
+            minRows={6}
+            value={formData.awards || ""}
+            onValueChange={(v: string) => updateField("awards", v)}
+          />
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
+            <TextAreaField
+              {...inputCommon}
+              label="Social Media Links"
+              placeholder={"e.g., GitHub: https://github.com/username\nLinkedIn: https://linkedin.com/in/username"}
+              minRows={6}
+              value={formData.socialLinks || ""}
+              onValueChange={(v: string) => updateField("socialLinks", v)}
             />
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              List your work experience, one per line
-            </p>
-          </div>
-        );
-
-      case 4: // Skills
-        return (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Technical Skills
-            </label>
-            <textarea
-              value={formData.skills || ""}
-              onChange={(e) => updateField("skills", e.target.value)}
-              rows={8}
-              className={inputClass}
-              placeholder="e.g., Languages: HTML, CSS, Python, JavaScript&#10;Frameworks: ReactJS, Django, Flask&#10;Databases: MySQL, PostgreSQL"
+            <TextAreaField
+              {...inputCommon}
+              label="Social Updates"
+              placeholder={"e.g., Instagram Status: Working on a new project..."}
+              minRows={4}
+              value={formData.socialUpdates || ""}
+              onValueChange={(v: string) => updateField("socialUpdates", v)}
             />
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              List your technical skills by category
-            </p>
-          </div>
-        );
-
-      case 5: // Projects
-        return (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Notable Projects
-            </label>
-            <textarea
-              value={formData.projects || ""}
-              onChange={(e) => updateField("projects", e.target.value)}
-              rows={8}
-              className={inputClass}
-              placeholder="e.g., OpenFn Adaptors — Built Flutterwave adaptor&#10;MyGuyAssistantAPI — Python + Flask API"
-            />
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              List your notable projects, one per line
-            </p>
-          </div>
-        );
-
-      case 6: // Awards
-        return (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Achievements & Awards
-            </label>
-            <textarea
-              value={formData.awards || ""}
-              onChange={(e) => updateField("awards", e.target.value)}
-              rows={6}
-              className={inputClass}
-              placeholder="e.g., Winner — AfricasTalking Hackathon 3 times"
-            />
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              List your achievements and awards
-            </p>
-          </div>
-        );
-
-      case 7: // Social
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Social Media Links
-              </label>
-              <textarea
-                value={formData.socialLinks || ""}
-                onChange={(e) => updateField("socialLinks", e.target.value)}
-                rows={6}
-                className={inputClass}
-                placeholder="e.g., GitHub: https://github.com/username&#10;LinkedIn: https://linkedin.com/in/username&#10;Instagram: https://instagram.com/username"
-              />
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                Add your social media profiles
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Social Updates
-              </label>
-              <textarea
-                value={formData.socialUpdates || ""}
-                onChange={(e) => updateField("socialUpdates", e.target.value)}
-                rows={4}
-                className={inputClass}
-                placeholder="e.g., Instagram Status: I haven't posted anything new recently..."
-              />
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                Any recent updates about your social presence
-              </p>
-            </div>
           </div>
         );
 
@@ -391,195 +319,151 @@ const handleTrainModel = async () => {
     }
   };
 
-  const StepIcon = STEPS[currentStep - 1].icon;
+  const StepIcon = useMemo(() => STEPS[currentStep - 1].icon, [currentStep]);
 
   return (
-    <div className="h-full w-full bg-slate-50 dark:bg-slate-950 overflow-y-auto">
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 sm:pb-20 space-y-6">
+    <div className="w-full text-foreground bg-background min-h-full p-4 sm:p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Training
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-1">
-            Build your intelligent virtual self step by step
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Training</h1>
+          <p className="text-default-500 mt-2">Build your intelligent virtual self step by step</p>
         </div>
 
-        {/* Success/Error Message */}
+        {/* Message */}
         {message && (
-          <div
-            className={`rounded-2xl p-4 border ${
-              message.type === "success"
-                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
-            }`}
-          >
-            <p className="font-medium text-sm">{message.text}</p>
-          </div>
+          <Card className={`p-4 border-l-4 ${message.type === "success" ? "border-green-500" : "border-red-500"}`}>
+            <p className={message.type === "success" ? "text-green-600" : "text-red-600"}>{message.text}</p>
+          </Card>
         )}
 
-        {/* Progress Steps */}
-        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-4 sm:p-6 shadow-sm">
-          <div className="mb-4 sm:mb-6">
-            <div className="flex items-center justify-between">
-              {STEPS.map((step, index) => (
-                <div key={step.id} className="flex items-center flex-1">
-                  <button
-                    onClick={() => goToStep(step.id)}
-                    className={`group relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl transition-all duration-300 ${
-                      currentStep === step.id
-                        ? "bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/30 scale-110"
-                        : currentStep > step.id
-                        ? "bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
-                        : "bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600"
-                    }`}
-                  >
-                    {currentStep > step.id ? (
-                      <Check className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
-                    ) : (
-                      <step.icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2} />
-                    )}
-                  </button>
-                  {index < STEPS.length - 1 && (
-                    <div className="flex-1 mx-3 h-1 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ${
-                          currentStep > step.id
-                            ? "w-full bg-gradient-to-r from-teal-500 to-cyan-600"
-                            : "w-0 bg-slate-300"
-                        }`}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Step Labels */}
-          <div className="flex items-center justify-between">
-            {STEPS.map((step) => (
-              <div
-                key={step.id}
-                className="flex-1 text-center px-2"
+        {/* Steps */}
+        <div className="relative hidden sm:flex w-full justify-between items-center mb-8 px-4">
+          {STEPS.map((step) => (
+            <div key={step.id} className="flex flex-col items-center gap-2 relative z-10 w-24">
+              <Button
+                variant={currentStep >= step.id ? "primary" : "outline"}
+                onPress={() => goToStep(step.id)}
+                className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${currentStep === step.id ? "scale-110 ring-4 ring-black/5 dark:ring-white/10" : ""
+                  }`}
               >
-                <p className={`text-xs font-semibold transition-colors ${
-                  currentStep === step.id
-                    ? "text-teal-600 dark:text-teal-400"
-                    : currentStep > step.id
-                    ? "text-slate-600 dark:text-slate-400"
-                    : "text-slate-400 dark:text-slate-500"
-                }`}>
-                  {step.name}
-                </p>
-              </div>
-            ))}
-          </div>
+                <step.icon size={20} />
+              </Button>
+
+              <span className={`text-xs font-medium ${currentStep >= step.id ? "text-primary" : "text-default-400"}`}>
+                {step.name}
+              </span>
+            </div>
+          ))}
+
+          <div className="absolute left-0 right-0 top-6 h-0.5 bg-default-200 -z-0 mx-auto w-[80%] max-w-4xl" />
         </div>
 
-        {/* Step Content Card */}
-        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-4 sm:p-6 lg:p-8 shadow-sm">
-          <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
-              <StepIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" strokeWidth={2.5} />
+        {/* Mobile */}
+        <div className="sm:hidden flex items-center justify-between mb-6">
+          <span className="text-sm font-medium text-default-500">
+            Step {currentStep} of {STEPS.length}
+          </span>
+          <span className="text-lg font-bold text-primary">{STEPS[currentStep - 1].name}</span>
+        </div>
+
+        {/* Main Card */}
+        <Card className="p-6 sm:p-8">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="p-3 rounded-xl bg-primary/10 text-primary">
+              <StepIcon size={32} />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
-                {STEPS[currentStep - 1].name}
-              </h2>
-              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-                Step {currentStep} of {STEPS.length}
-              </p>
+              <h2 className="text-2xl font-bold">{STEPS[currentStep - 1].name}</h2>
+              <p className="text-default-500">Please fill in the details below</p>
             </div>
           </div>
-          
+
           {renderStepContent()}
-        </div>
+        </Card>
 
-        {/* Navigation Buttons with Modern Design */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 1}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        {/* Actions */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            onPress={prevStep}
+            isDisabled={currentStep === 1}
+            className="flex items-center gap-2"
           >
-            <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+            <ChevronLeft size={18} />
             Previous
-          </button>
+          </Button>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-medium border border-purple-500/20 hover:bg-purple-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            <Save className="h-5 w-5" strokeWidth={2.5} />
-            {isSaving ? "Saving..." : "Save Progress"}
-          </button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onPress={handleSave}
+              isDisabled={isSaving}
+              className="flex items-center gap-2"
+            >
+              {!isSaving && <Save size={18} />}
+              {isSaving ? "Saving..." : "Save Progress"}
+            </Button>
 
-          {currentStep < STEPS.length ? (
-            <button
-              onClick={nextStep}
-              className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 transition-colors"
-            >
-              Next Step
-              <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
-            </button>
-          ) : (
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <Check className="h-5 w-5" strokeWidth={2.5} />
-              {isSaving ? "Completing..." : "Complete"}
-            </button>
-          )}
+            {currentStep < STEPS.length ? (
+              <Button
+                variant="primary"
+                onPress={nextStep}
+                className="flex items-center gap-2"
+              >
+                Next Step
+                <ChevronRight size={18} />
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                className="text-white flex items-center gap-2"
+                onPress={handleSave} // Or complete action
+              >
+                <Check size={18} />
+                Complete
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Train Model Section */}
+        {/* Train Model */}
         {currentStep === STEPS.length && (
-          <div className="rounded-2xl border border-teal-500/30 bg-teal-500/5 dark:bg-teal-500/10 p-6 sm:p-8 shadow-sm">
-            <div className="flex items-start gap-5 sm:gap-6">
-              <div className="p-4 rounded-xl bg-teal-500 shadow-md">
-                <Sparkles className="h-10 w-10 text-white" strokeWidth={2.5} />
+          <Card className="p-8 border border-black/5 dark:border-white/10 bg-gradient-to-br from-primary/5 to-transparent">
+            <div className="flex flex-col sm:flex-row items-start gap-6">
+              <div className="p-4 rounded-full bg-primary text-white shadow-lg">
+                <Sparkles size={32} />
               </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-                  🎉 Ready to Train Your Virtual Self!
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
-                  You've completed all training steps! Train your AI model now to create your personalized virtual assistant.
-                </p>
-                
+
+              <div className="flex-1 space-y-4">
+                <div>
+                  <h3 className="text-2xl font-bold">Ready to Train?</h3>
+                  <p className="text-default-600 mt-1">
+                    You've completed all sections. Train your AI model now to update your virtual self.
+                  </p>
+                </div>
+
                 {formData.isModelTrained && (
-                  <div className="mb-6 p-5 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/20">
-                    <p className="text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-2">
-                      <Check className="h-5 w-5" />
-                      Model trained successfully!
-                    </p>
-                    {formData.lastTrainedAt && (
-                      <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
-                        Last trained: {new Date(formData.lastTrainedAt).toLocaleString()}
-                      </p>
-                    )}
+                  <div className="flex items-center gap-3 text-green-600 font-medium bg-green-500/10 p-3 rounded-lg w-fit">
+                    <CheckCircle2 size={20} />
+                    <span>Model Trained Successfully</span>
                   </div>
                 )}
-                
-                <button
-                  onClick={handleTrainModel}
-                  disabled={isTraining}
-                  className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+
+                <Button
+                  variant="primary"
+                  isDisabled={isTraining}
+                  onPress={handleTrainModel}
+                  className="flex items-center gap-2"
                 >
-                  <Sparkles className="h-6 w-6" strokeWidth={2.5} />
-                  {isTraining ? "Training Model..." : formData.isModelTrained ? "Retrain Model" : "Train Your Model Now"}
-                </button>
+                  {!isTraining && <Sparkles size={18} />}
+                  {isTraining ? "Training..." : (formData.isModelTrained ? "Retrain Model" : "Train Model Now")}
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         )}
       </div>
     </div>
   );
 }
-         

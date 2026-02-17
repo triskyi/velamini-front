@@ -12,17 +12,17 @@ export default async function DashboardPage() {
   // Get user ID - fallback to email lookup if ID is missing
   let userId: string | undefined = session.user.id;
   let user = null;
-  
+
   if (!userId && session.user.email) {
     user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true, accountType: true, onboardingComplete: true },
+      select: { id: true, accountType: true },
     });
     userId = user?.id;
   } else if (userId) {
     user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, accountType: true, onboardingComplete: true },
+      select: { id: true, accountType: true },
     });
   }
 
@@ -30,12 +30,7 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
-  // Check if user needs to complete onboarding
-  if (!user.onboardingComplete) {
-    redirect("/onboarding");
-  }
-
-  // Redirect organization accounts to their dashboard
+  // Redirect organization accounts to their dashboard (for future use)
   if (user.accountType === "organization") {
     redirect("/Dashboard/organizations");
   }
@@ -51,7 +46,7 @@ export default async function DashboardPage() {
   const hasExperience = !!knowledgeBase?.experience;
   const hasSkills = !!knowledgeBase?.skills;
   const hasProjects = !!knowledgeBase?.projects;
-  
+
   const completedSections = [hasIdentity, hasEducation, hasExperience, hasSkills, hasProjects].filter(Boolean).length;
 
   const stats = {
@@ -61,5 +56,13 @@ export default async function DashboardPage() {
     knowledgeItems: completedSections,
   };
 
-  return <DashboardWrapper user={session.user} stats={stats} />;
+  // Serialize dates for client component
+  const serializedKnowledgeBase = knowledgeBase ? {
+    ...knowledgeBase,
+    createdAt: knowledgeBase.createdAt.toISOString(),
+    updatedAt: knowledgeBase.updatedAt.toISOString(),
+    lastTrainedAt: knowledgeBase.lastTrainedAt?.toISOString() || null,
+  } : null;
+
+  return <DashboardWrapper user={session.user} stats={stats} knowledgeBase={serializedKnowledgeBase} />;
 }

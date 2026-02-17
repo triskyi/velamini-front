@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Share2, Copy, Check, Eye, Lock, Unlock } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Copy, Check, Eye } from "lucide-react";
+
+// ✅ HeroUI Imports (safe set)
+import { Switch, Button, Input, Card, CardContent } from "@heroui/react";
+
+// Wrapper for Input to handle label
+const Field = ({ label, ...props }: any) => (
+  <div className="flex flex-col gap-2 w-full">
+    {label && <label className="text-small font-medium text-default-700">{label}</label>}
+    <Input {...props} className="w-full" />
+  </div>
+);
 
 interface SettingsViewProps {
   user?: {
@@ -11,228 +22,217 @@ interface SettingsViewProps {
   };
 }
 
+type Toast = { type: "success" | "error"; text: string } | null;
+
 export default function SettingsView({ user }: SettingsViewProps) {
-  const [shareSlug, setShareSlug] = useState("");
-  const [isSharing, setIsSharing] = useState(false);
-  const [shareUrl, setShareUrl] = useState("");
-  const [shareViews, setShareViews] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [shareSlug, setShareSlug] = useState<string>("");
+  const [isSharing, setIsSharing] = useState<boolean>(false);
+  const [shareUrl, setShareUrl] = useState<string>("");
+  const [shareViews, setShareViews] = useState<number>(0);
+  const [copied, setCopied] = useState<boolean>(false);
+  const [toast, setToast] = useState<Toast>(null);
+
+  const fallbackSlug = useMemo(() => {
+    const base = (user?.name || "user")
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+    const rand = Math.floor(Math.random() * 1000);
+    return `${base}-${rand}`;
+  }, [user?.name]);
+
+  const showToast = (t: Exclude<Toast, null>) => {
+    setToast(t);
+    window.setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
+    let cancelled = false;
+
     fetch("/api/training")
       .then((res) => res.json())
       .then((data) => {
-        if (data.ok && data.knowledgeBase) {
-          if (data.knowledgeBase.isPubliclyShared && data.knowledgeBase.shareSlug) {
+        if (cancelled) return;
+
+        if (data?.ok && data?.knowledgeBase) {
+          const kb = data.knowledgeBase;
+          if (kb.isPubliclyShared && kb.shareSlug) {
             setIsSharing(true);
-            setShareSlug(data.knowledgeBase.shareSlug);
-            setShareViews(data.knowledgeBase.shareViews || 0);
-            setShareUrl(`${window.location.origin}/chat/${data.knowledgeBase.shareSlug}`);
+            setShareSlug(kb.shareSlug);
+            setShareViews(kb.shareViews || 0);
+            setShareUrl(`${window.location.origin}/chat/${kb.shareSlug}`);
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const handleEnableSharing = async () => {
-    if (!shareSlug.trim()) {
-      setMessage({ type: "error", text: "Please enter a share slug" });
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+      showToast({ type: "success", text: "Copied!" });
+    } catch {
+      showToast({ type: "error", text: "Could not copy link" });
+    }
+  };
+
+  const handleToggleSharing = async (value: boolean) => {
+    // optimistic UI
+    setIsSharing(value);
+
+    if (!value) {
+      // Disable
+      try {
+        const res = await fetch("/api/share/disable", { method: "POST" });
+        const data = await res.json();
+
+        if (data?.ok) {
+          setIsSharing(false);
+          setShareUrl("");
+          showToast({ type: "success", text: "Sharing disabled" });
+        } else {
+          setIsSharing(true);
+          showToast({ type: "error", text: data?.error || "Failed to disable sharing" });
+        }
+      } catch {
+        setIsSharing(true);
+        showToast({ type: "error", text: "Network error occurred" });
+      }
       return;
     }
+
+    // Enable
+    const slugToUse = shareSlug || fallbackSlug;
+
     try {
       const res = await fetch("/api/share/enable", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shareSlug: shareSlug.toLowerCase().replace(/\s+/g, "-") }),
+        body: JSON.stringify({ shareSlug: slugToUse }),
       });
+
       const data = await res.json();
-      if (data.ok) {
+
+      if (data?.ok) {
         setIsSharing(true);
-        setShareUrl(data.shareUrl);
-        setMessage({ type: "success", text: "Sharing enabled successfully!" });
-        setTimeout(() => setMessage(null), 3000);
+        setShareSlug(slugToUse);
+        setShareUrl(data.shareUrl || `${window.location.origin}/chat/${slugToUse}`);
+        showToast({ type: "success", text: "Sharing enabled" });
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to enable sharing" });
-      }
-    } catch {
-      setMessage({ type: "error", text: "Network error occurred" });
-    }
-  };
-
-  const handleDisableSharing = async () => {
-    try {
-      const res = await fetch("/api/share/disable", { method: "POST" });
-      const data = await res.json();
-      if (data.ok) {
         setIsSharing(false);
-        setShareUrl("");
-        setMessage({ type: "success", text: "Sharing disabled" });
-        setTimeout(() => setMessage(null), 3000);
-      } else {
-        setMessage({ type: "error", text: data.error || "Failed to disable sharing" });
+        showToast({ type: "error", text: data?.error || "Failed to enable sharing" });
       }
     } catch {
-      setMessage({ type: "error", text: "Network error occurred" });
+      setIsSharing(false);
+      showToast({ type: "error", text: "Network error occurred" });
     }
   };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const inputClass =
-    "w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-colors";
 
   return (
-    <div className="h-full w-full bg-slate-50 dark:bg-slate-950 overflow-y-auto">
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 sm:pb-20 space-y-6">
+    <div className="w-full text-foreground bg-background min-h-full p-4 sm:p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Settings
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-1">
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <p className="text-default-500 mt-2">
             Manage your virtual self and sharing preferences
           </p>
         </div>
 
-        {message && (
-          <div
-            className={`rounded-2xl p-4 border ${
-              message.type === "success"
-                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
-            }`}
-          >
-            <p className="font-medium text-sm">{message.text}</p>
-          </div>
+        {/* Toast */}
+        {toast && (
+          <Card className={`p-4 border-l-4 ${toast.type === "success" ? "border-green-500" : "border-red-500"}`}>
+            <p className={toast.type === "success" ? "text-green-600" : "text-red-600"}>
+              {toast.text}
+            </p>
+          </Card>
         )}
 
-        {/* Share Card */}
-        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-sm">
-          <div className="flex items-start gap-4 mb-6">
-            <div className="p-3 rounded-xl bg-teal-500/10">
-              <Share2 className="h-6 w-6 text-teal-500" strokeWidth={2} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Share Your Virtual Self
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Allow others to chat with your AI-powered virtual self using a unique link
-              </p>
-            </div>
-          </div>
-
-          {!isSharing ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Create your unique share slug
-                </label>
-                <input
-                  type="text"
-                  value={shareSlug}
-                  onChange={(e) => setShareSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                  placeholder="e.g., john-doe, my-virtual-self"
-                  className={inputClass}
-                />
-                <div className="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Your link will be:</p>
-                  <p className="text-sm font-medium text-teal-600 dark:text-teal-400 break-all">
-                    {typeof window !== "undefined" ? window.location.origin : ""}/chat/{shareSlug || "your-slug"}
+        {/* Share Section */}
+        <section>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold">Share Your Virtual Self</h2>
+                  <p className="text-sm text-default-500">
+                    Allow others to chat with your AI-powered virtual self
                   </p>
                 </div>
-              </div>
-              <button
-                onClick={handleEnableSharing}
-                disabled={!shareSlug.trim()}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Unlock className="h-5 w-5" strokeWidth={2} />
-                Enable Sharing
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-medium">
-                    <Eye className="h-5 w-5" />
-                    Sharing is Active
-                  </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                    {shareViews} views
-                  </span>
-                </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                  Anyone with this link can chat with your virtual self:
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={shareUrl}
-                    readOnly
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-sm text-slate-900 dark:text-white"
-                  />
-                  <button
-                    onClick={copyToClipboard}
-                    className="px-4 py-2.5 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 transition-colors flex items-center gap-2"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copied ? "Copied!" : "Copy"}
-                  </button>
-                </div>
-              </div>
-              <button
-                onClick={handleDisableSharing}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium border border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
-              >
-                <Lock className="h-5 w-5" />
-                Disable Sharing
-              </button>
-            </div>
-          )}
-        </div>
 
-        {/* Account Settings */}
-        <div className="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-            Account Settings
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={user?.name || ""}
-                readOnly
-                className={`${inputClass} bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={user?.email || ""}
-                readOnly
-                className={`${inputClass} bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed`}
-              />
-            </div>
-            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Account details are managed through your authentication provider. Contact support for changes.
-              </p>
-            </div>
-          </div>
-        </div>
+                <div className="flex items-center gap-3">
+                  <span className={isSharing ? "text-green-600 font-medium" : "text-default-400"}>
+                    {isSharing ? "Active" : "Inactive"}
+                  </span>
+                  <Switch
+                    {...({
+                      isSelected: isSharing,
+                      onValueChange: handleToggleSharing
+                    } as any)}
+                    aria-label="Toggle sharing"
+                  />
+                </div>
+              </div>
+
+              {isSharing && (
+                <div className="mt-6 pt-6 border-t border-divider space-y-4">
+                  {/* Views */}
+                  <div className="flex items-center gap-2 text-default-500">
+                    <Eye className="w-4 h-4" />
+                    <span className="text-sm font-medium">{shareViews} views</span>
+                  </div>
+
+                  {/* Link row */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1 rounded-xl border border-divider bg-default-50 px-4 py-3 text-sm font-mono truncate">
+                      {shareUrl}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onPress={copyToClipboard}
+                      className="flex items-center gap-2"
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copied ? "Copied" : "Copy"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Account */}
+        <section>
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold">Account Info</h3>
+
+              <div className="mt-4 space-y-4">
+                <Field
+                  readOnly
+                  label="Full Name"
+                  value={user?.name || ""}
+                />
+                <Field
+                  readOnly
+                  label="Email"
+                  value={user?.email || ""}
+                />
+                <p className="text-xs text-default-400">Managed by your auth provider.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </div>
   );

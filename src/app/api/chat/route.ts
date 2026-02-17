@@ -4,6 +4,7 @@ import { searchWeb } from "@/lib/search";
 import { prisma } from "@/lib/prisma";
 import { VIRTUAL_SELF_SYSTEM_PROMPT } from "@/lib/ai-config";
 import { auth } from "@/auth";
+import { VELAMINI_KB } from "@/lib/Knowledge/velamini-kb";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing message" }, { status: 400 });
     }
 
-    const { message, history = [] } = body;
+    const { message, history = [], useLocalKnowledge = false } = body;
     const apiKey = process.env.DEEPSEEK_API_KEY;
 
     if (!apiKey) {
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
     // Get user's trained knowledge if authenticated
     let userKnowledge = "";
     let userName = "Tresor"; // Default name
+    let useLocal = useLocalKnowledge;
     try {
       const session = await auth();
       if (session?.user?.email) {
@@ -61,19 +63,22 @@ export async function POST(req: Request) {
         } else if (session.user.name) {
           userName = session.user.name;
         }
-
-        if (userId) {
+        if (userId && !useLocal) {
           const knowledgeBase = await prisma.knowledgeBase.findUnique({
             where: { userId },
             select: { trainedPrompt: true, isModelTrained: true },
           });
-
           if (knowledgeBase?.isModelTrained && knowledgeBase.trainedPrompt) {
             userKnowledge = `\n\nUSER'S PERSONAL KNOWLEDGE BASE (This is YOUR information about yourself, [Person's name]):\n${knowledgeBase.trainedPrompt}`;
           }
+        } else {
+          useLocal = true;
         }
+      } else {
+        useLocal = true;
       }
     } catch (authError) {
+      useLocal = true;
       console.log("Could not fetch user knowledge (user may not be logged in):", authError);
     }
 
@@ -81,8 +86,13 @@ export async function POST(req: Request) {
     const velaminiContext = `\n\nABOUT VELAMINI:\nVelamini is the platform that created you - it allows people to build their virtual selves/digital twins. The website is ${process.env.NEXT_PUBLIC_APP_URL || 'https://velamini.com'}. When visitors ask about you or how they can create their own digital assistant, explain Velamini and encourage them to sign up!`;
 
     // 1) Local RAG retrieval
-    const context = retrieveContext(message, 3);
-    
+    let context = "";
+    if (useLocal) {
+      context = VELAMINI_KB;
+    } else {
+      context = retrieveContext(message, 3);
+    }
+
     // Proactive Searching: If it's a "What/How/More" question, trigger search immediately to fill context
     let searchContent = "";
     if (message.toLowerCase().match(/what|how|more|tech|bring|status|latest/)) {

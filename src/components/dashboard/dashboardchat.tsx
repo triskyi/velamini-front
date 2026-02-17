@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import HeroSection from "../chat-ui/HeroSection";
 import MessageList from "../chat-ui/MessageList";
-import ChatInput from "../chat-ui/ChatInput";
-import FeedbackModal from "../chat-ui/FeedbackModal";
 
 type Message = {
   id: number;
@@ -18,6 +16,52 @@ interface DashboardChatProps {
     email?: string | null;
     image?: string | null;
   };
+  knowledgeBase?: any; // ← still unused — consider removing or implementing
+}
+
+function ChatInput({
+  input,
+  setInput,
+  onSend,
+  placeholder,
+}: {
+  input: string;
+  setInput: React.Dispatch<React.SetStateAction<string>>;
+  onSend: () => void | Promise<void>;
+  placeholder?: string;
+}) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+
+  return (
+    <div className="flex w-full gap-2 items-center">
+      <input
+        className="flex-1 px-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-700 
+                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
+                   placeholder-gray-500 focus:outline-none focus:ring-2 
+                   focus:ring-purple-400 focus:border-purple-400 transition"
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder || "Type a message..."}
+        autoFocus
+      />
+      <button
+        className="px-5 py-3 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 
+                   hover:from-purple-600 hover:to-blue-600 text-white font-medium 
+                   shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        onClick={onSend}
+        disabled={!input.trim()}
+      >
+        Send
+      </button>
+    </div>
+  );
 }
 
 export default function DashboardChat({ user }: DashboardChatProps) {
@@ -25,27 +69,30 @@ export default function DashboardChat({ user }: DashboardChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  // Load messages from localStorage on mount
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Load from localStorage
   useEffect(() => {
-    const savedMessages = localStorage.getItem("velamini_dashboard_chat_history");
-    if (savedMessages) {
+    const saved = localStorage.getItem("velamini_dashboard_chat_history");
+    if (saved) {
       try {
-        setMessages(JSON.parse(savedMessages));
-      } catch (e) {
-        console.error("Failed to parse chat history", e);
+        setMessages(JSON.parse(saved));
+      } catch (err) {
+        console.error("Failed to parse dashboard chat history:", err);
       }
     }
   }, []);
 
-  // Save messages to localStorage whenever they change
+  // Save to localStorage
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem("velamini_dashboard_chat_history", JSON.stringify(messages));
+    } else {
+      localStorage.removeItem("velamini_dashboard_chat_history");
     }
   }, [messages]);
 
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -56,7 +103,7 @@ export default function DashboardChat({ user }: DashboardChatProps) {
     const userMessage: Message = {
       id: Date.now(),
       role: "user",
-      content: input,
+      content: input.trim(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -64,82 +111,168 @@ export default function DashboardChat({ user }: DashboardChatProps) {
     setIsTyping(true);
 
     try {
-      // Send last 6 messages context + new message
-      const contextMessages = messages.slice(-6).map(m => ({ role: m.role, content: m.content }));
-      
+      const recentHistory = messages.slice(-6).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: userMessage.content,
-          history: contextMessages 
+          history: recentHistory,
+          // userId: user?.email,     // ← optional: send user context if backend supports it
+          // knowledgeBaseId: ...     // ← if you plan to use knowledgeBase prop
         }),
       });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       const data = await res.json();
 
+      const assistantMessage: Message = {
+        id: Date.now() + 1,
+        role: "assistant",
+        content: data.reply ?? data.text ?? data.message ?? "Sorry, I couldn't generate a response.",
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (err) {
+      console.error("Chat request failed:", err);
       setMessages((prev) => [
         ...prev,
-        { id: Date.now() + 1, role: "assistant", content: data.text || data.error || "Error: Something went wrong." },
-      ]);
-    } catch (error) {
-      console.error("Chat error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now() + 1, role: "assistant", content: "I'm having trouble connecting right now." },
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          content: "Sorry, there was a connection issue. Please try again.",
+        },
       ]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [feedbackText, setFeedbackText] = useState("");
+  const avatarSrc = user?.image || "/logo.png"; // fallback same for user & assistant
 
   return (
-    <div className="h-full w-full flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
-
-      {messages.length === 0 && !isTyping && (
-        <HeroSection text="Chat with Your Virtual Self" />
-      )}
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col items-center overflow-hidden">
-        
-        {/* Messages Area */}
-        <div className="flex-1 w-full overflow-y-auto px-4 pt-6 sm:pt-8">
-          {messages.length > 0 && (
-            <MessageList 
-              messages={messages} 
-              isTyping={isTyping} 
-              bottomRef={bottomRef}
-              assistantName={user?.name || "Virtual me"}
-              assistantImage={user?.image}
-              assistantFooterText="Velamini"
-            />
-          )}
+    <div className="flex flex-col h-screen w-full items-center justify-center bg-whitesmoke from-blue-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <div className="w-full max-w-2xl h-[90vh] flex flex-col rounded-3xl shadow-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-800/50 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 flex items-center gap-3">
+          <img
+            src={avatarSrc}
+            alt="Avatar"
+            className="w-10 h-10 rounded-full border-2 border-purple-400 shadow-sm object-cover"
+          />
+          <div>
+            <div className="font-semibold text-lg text-gray-800 dark:text-gray-100">
+              {user?.name || "Velamini Dashboard"}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              AI Assistant
+            </div>
+          </div>
         </div>
 
-        {/* Centered Chat Input at Bottom */}
-        <div className="w-full flex justify-center pb-6 px-4 bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/95 dark:via-slate-950/95 to-transparent pt-8">
-          <div className="w-full max-w-4xl">
-            <ChatInput 
-              input={input} 
-              setInput={setInput} 
-              sendMessage={sendMessage} 
-            />
-          </div>
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full opacity-70 select-none">
+              <img
+                src="/assets/assistant-avatar.png"
+                alt="Assistant"
+                className="w-20 h-20 mb-5 rounded-full shadow-lg"
+              />
+              <div className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-2">
+                Start a conversation
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                How can I help you today?
+              </div>
+            </div>
+          )}
+
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} mb-5 items-end gap-2`}
+            >
+              {msg.role === "assistant" && (
+                <img
+                  src="/assets/assistant-avatar.png"
+                  alt="Assistant"
+                  className="w-8 h-8 rounded-full flex-shrink-0 shadow-sm border border-purple-200 dark:border-purple-800"
+                />
+              )}
+
+              <div
+                className={`max-w-[75%] px-4 py-3 rounded-2xl shadow-sm text-[15px] leading-relaxed ${
+                  msg.role === "user"
+                    ? "bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-br-none"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-bl-none"
+                }`}
+              >
+                {msg.content}
+                <div className="text-[10px] text-right opacity-70 mt-1 select-none">
+                  {new Date(msg.id).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              </div>
+
+              {msg.role === "user" && (
+                <img
+                  src={avatarSrc}
+                  alt="User"
+                  className="w-8 h-8 rounded-full flex-shrink-0 shadow-sm border border-blue-200 dark:border-blue-800"
+                />
+              )}
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="flex justify-start items-end mb-5">
+              <img
+                src="/assets/assistant-avatar.png"
+                alt="Assistant"
+                className="w-8 h-8 rounded-full mr-2 shadow-sm border border-purple-200 dark:border-purple-800"
+              />
+              <div className="px-4 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-bl-none">
+                <div className="flex gap-1.5 items-center h-6">
+                  <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]"></div>
+                  <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:180ms]"></div>
+                  <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:360ms]"></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input area */}
+        <div className="px-6 py-4 bg-white/95 dark:bg-gray-900/95 border-t border-gray-200 dark:border-gray-800">
+          <ChatInput
+            input={input}
+            setInput={setInput}
+            onSend={sendMessage}
+            placeholder="Ask anything..."
+          />
         </div>
       </div>
 
-      <FeedbackModal 
-        isOpen={showFeedbackModal}
-        onClose={() => setShowFeedbackModal(false)}
-        rating={rating}
-        setRating={setRating}
-        feedbackText={feedbackText}
-        setFeedbackText={setFeedbackText}
-      />
+      {/* Optional global styles – better to move to globals.css or component CSS module */}
+      <style jsx global>{`
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(1); }
+          40% { transform: scale(1.35); }
+        }
+        .animate-bounce {
+          animation: bounce 1.3s infinite;
+        }
+      `}</style>
     </div>
   );
 }

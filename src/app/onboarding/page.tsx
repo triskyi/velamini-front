@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default function OnboardingPage() {
   const router = useRouter();
   const sessionResult = useSession();
-  const [selectedType, setSelectedType] = useState<"personal" | "organization" | null>(null);
+  const [selectedType, setSelectedType] = useState<"personal" | "organization" | null>("personal"); // Auto-select personal
   const [loading, setLoading] = useState(false);
   const [organizationName, setOrganizationName] = useState("");
   const [industry, setIndustry] = useState("");
@@ -30,11 +30,16 @@ export default function OnboardingPage() {
   const { data: session, update, status } = sessionResult;
 
   useEffect(() => {
-    // Check if user already completed onboarding
-    if (session?.user && (session.user as any).onboardingComplete) {
-      redirectToDashboard((session.user as any).accountType);
+    // Since we've removed the onboarding flow, redirect all users to Dashboard
+    if (session?.user) {
+      const accountType = (session.user as any).accountType;
+      if (accountType === "organization") {
+        router.push("/Dashboard/organizations");
+      } else {
+        router.push("/Dashboard");
+      }
     }
-  }, [session]);
+  }, [session, router]);
 
   // Show loading while session is being fetched
   if (status === "loading") {
@@ -91,7 +96,7 @@ export default function OnboardingPage() {
       if (data.ok) {
         // Update session
         await update();
-        
+
         // Redirect based on account type
         redirectToDashboard(selectedType);
       } else {
@@ -118,23 +123,22 @@ export default function OnboardingPage() {
         <div className="p-8">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              How will you use Velamini?
+              Create Your Personal Account
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Choose the option that best describes your needs
+              Get started with your virtual self and digital twin
             </p>
           </div>
 
           {/* Account Type Selection */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="max-w-md mx-auto mb-8">
             {/* Personal Account */}
             <div
               onClick={() => setSelectedType("personal")}
-              className={`cursor-pointer border-2 rounded-xl p-6 transition-all hover:shadow-lg ${
-                selectedType === "personal"
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg"
-                  : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-              }`}
+              className={`cursor-pointer border-2 rounded-xl p-6 transition-all hover:shadow-lg ${selectedType === "personal"
+                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg"
+                : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                }`}
             >
               <div className="text-center mb-4">
                 <div className="text-6xl mb-3">👤</div>
@@ -169,47 +173,49 @@ export default function OnboardingPage() {
               )}
             </div>
 
-            {/* Organization Account */}
-            <div
-              onClick={() => setSelectedType("organization")}
-              className={`cursor-pointer border-2 rounded-xl p-6 transition-all hover:shadow-lg ${
-                selectedType === "organization"
+            {/* Organization Account - TEMPORARILY HIDDEN */}
+            {/* Change 'false' to 'true' below when ready to enable organization accounts */}
+            {false && (
+              <div
+                onClick={() => setSelectedType("organization")}
+                className={`cursor-pointer border-2 rounded-xl p-6 transition-all hover:shadow-lg ${selectedType === "organization"
                   ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg"
                   : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-              }`}
-            >
-              <div className="text-center mb-4">
-                <div className="text-6xl mb-3">🏢</div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Organization Account
-                </h3>
-              </div>
-              <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Get dedicated WhatsApp business numbers</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>AI-powered customer support 24/7</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Train AI with your business knowledge</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Analytics & conversation insights</span>
-                </li>
-              </ul>
-              {selectedType === "organization" && (
-                <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
-                  <span className="text-blue-600 dark:text-blue-400 font-medium flex items-center justify-center gap-2">
-                    <span>✓</span> Selected
-                  </span>
+                  }`}
+              >
+                <div className="text-center mb-4">
+                  <div className="text-6xl mb-3">🏢</div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    Organization Account
+                  </h3>
                 </div>
-              )}
-            </div>
+                <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>Get dedicated WhatsApp business numbers</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>AI-powered customer support 24/7</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>Train AI with your business knowledge</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>Analytics & conversation insights</span>
+                  </li>
+                </ul>
+                {selectedType === "organization" && (
+                  <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
+                    <span className="text-blue-600 dark:text-blue-400 font-medium flex items-center justify-center gap-2">
+                      <span>✓</span> Selected
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Organization Details (shown when organization is selected) */}
@@ -218,7 +224,7 @@ export default function OnboardingPage() {
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
                 Tell us about your organization
               </h3>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Organization Name *

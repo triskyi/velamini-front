@@ -118,6 +118,7 @@ export default function ChatPanel() {
         body: JSON.stringify({
           message: userMessage.content,
           history: recentHistory,
+          useLocalKnowledge: true,
         }),
       });
 

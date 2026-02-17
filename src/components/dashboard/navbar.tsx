@@ -22,12 +22,7 @@ export default function Navbar({ user, isDarkMode, onThemeToggle }: NavbarProps)
     <div className="hidden lg:flex border-b border-gray-200 px-6 items-center justify-between">
       {/* Left Section: Logo or Title */}
       <div className="flex items-center gap-4">
-        <img
-          src="/logo.png"
-          alt="Logo"
-          className="w-10 h-10"
-        />
-        <span className="text-xl font-bold">Dashboard</span>
+         
       </div>
 
       {/* Right Section: User and Actions */}
@@ -52,7 +47,7 @@ export default function Navbar({ user, isDarkMode, onThemeToggle }: NavbarProps)
         {/* User Avatar */}
         <div className="flex items-center gap-2">
           <img
-            src={user?.image || "/default-avatar.png"}
+            src={user?.image || "/logo.png"}
             alt="User Avatar"
             className="w-8 h-8 rounded-full border border-primary"
           />
@@ -65,11 +60,7 @@ export default function Navbar({ user, isDarkMode, onThemeToggle }: NavbarProps)
           className="flex items-center gap-2 text-danger hover:text-danger-dark"
           aria-label="Sign out"
         >
-          <img
-            src="/logout-icon.png"
-            alt="Logout"
-            className="w-6 h-6"
-          />
+          <LogOut className="w-5 h-5" />
           <span>Logout</span>
         </a>
       </div>

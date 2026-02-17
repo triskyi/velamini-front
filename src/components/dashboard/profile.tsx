@@ -137,14 +137,7 @@ export default function ProfileView({ user, knowledgeBase }: ProfileViewProps) {
                       </HeroLink>
                     )}
 
-                    <Link href="/Dashboard/settings" className="w-full no-underline mt-2 block">
-                      <Button
-                        variant="primary"
-                        className="w-full"
-                      >
-                        Edit Profile Settings
-                      </Button>
-                    </Link>
+                  
 
                   </CardContent>
                 </Card>

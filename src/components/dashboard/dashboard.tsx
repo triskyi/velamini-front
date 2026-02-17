@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  Brain,
   MessageSquare,
-  Sparkles,
   TrendingUp,
   Zap,
   Target,
@@ -31,7 +29,7 @@ const statCards = [
   {
     key: "trainingEntries",
     label: "Training Entries",
-    icon: Brain,
+    icon: Clock,
     color: "text-blue-500",
     bgColor: "bg-blue-50 dark:bg-blue-900/20",
     borderColor: "border-blue-100 dark:border-blue-800",
@@ -47,7 +45,7 @@ const statCards = [
   {
     key: "personalityTraits",
     label: "Personality Traits",
-    icon: Sparkles,
+    icon: CheckCircle2,
     color: "text-amber-500",
     bgColor: "bg-amber-50 dark:bg-amber-900/20",
     borderColor: "border-amber-100 dark:border-amber-800",
@@ -55,7 +53,7 @@ const statCards = [
   {
     key: "knowledgeItems",
     label: "Knowledge Items",
-    icon: TrendingUp,
+    icon: Activity,
     color: "text-emerald-500",
     bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
     borderColor: "border-emerald-100 dark:border-emerald-800",
@@ -66,11 +64,11 @@ type ColorKey = "violet" | "cyan" | "amber";
 
 const quickActions: Array<{
   label: string;
-  icon: typeof Brain;
+  icon: any;
   view: "training" | "chat" | "profile";
   color: ColorKey;
 }> = [
-    { label: "Start Training", icon: Brain, view: "training", color: "violet" },
+    { label: "Start Training", icon: Zap, view: "training", color: "violet" },
     { label: "Chat Now", icon: MessageSquare, view: "chat", color: "cyan" },
     { label: "View Profile", icon: Target, view: "profile", color: "amber" },
   ];

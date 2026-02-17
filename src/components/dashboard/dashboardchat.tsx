@@ -40,10 +40,8 @@ function ChatInput({
   return (
     <div className="flex w-full gap-2 items-center">
       <input
-        className="flex-1 px-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-700 
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                   placeholder-gray-500 focus:outline-none focus:ring-2 
-                   focus:ring-purple-400 focus:border-purple-400 transition"
+        className="flex-1 px-6 py-4 border border-transparent bg-[#18192A] text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/70 focus:border-purple-500 transition shadow-md"
+        style={{ fontSize: 18, fontWeight: 500 }}
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -52,9 +50,8 @@ function ChatInput({
         autoFocus
       />
       <button
-        className="px-5 py-3 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 
-                   hover:from-purple-600 hover:to-blue-600 text-white font-medium 
-                   shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        className="px-7 py-4 ml-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        style={{ fontSize: 18 }}
         onClick={onSend}
         disabled={!input.trim()}
       >
@@ -157,7 +154,7 @@ export default function DashboardChat({ user }: DashboardChatProps) {
 
   return (
     <div className="flex flex-col h-screen w-full items-center justify-center bg-whitesmoke from-blue-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div className="w-full max-w-2xl h-[90vh] flex flex-col rounded-3xl shadow-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-800/50 overflow-hidden">
+      <div className="w-full max-w-2xl h-[90vh] flex flex-col  shadow-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-800/50 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 flex items-center gap-3">
           <img
@@ -180,7 +177,7 @@ export default function DashboardChat({ user }: DashboardChatProps) {
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full opacity-70 select-none">
               <img
-                src="/assets/assistant-avatar.png"
+                src="/logo.png"
                 alt="Assistant"
                 className="w-20 h-20 mb-5 rounded-full shadow-lg"
               />
@@ -200,7 +197,7 @@ export default function DashboardChat({ user }: DashboardChatProps) {
             >
               {msg.role === "assistant" && (
                 <img
-                  src="/assets/assistant-avatar.png"
+                  src="/logo.png"
                   alt="Assistant"
                   className="w-8 h-8 rounded-full flex-shrink-0 shadow-sm border border-purple-200 dark:border-purple-800"
                 />
@@ -235,7 +232,7 @@ export default function DashboardChat({ user }: DashboardChatProps) {
           {isTyping && (
             <div className="flex justify-start items-end mb-5">
               <img
-                src="/assets/assistant-avatar.png"
+                src="/logo.png"
                 alt="Assistant"
                 className="w-8 h-8 rounded-full mr-2 shadow-sm border border-purple-200 dark:border-purple-800"
               />

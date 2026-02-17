@@ -123,6 +123,7 @@ export default function MessageList({
         })}
       </AnimatePresence>
 
+
       {isTyping && (
         <div className="flex w-full justify-start gap-3">
           <div className="flex-shrink-0 mt-1 hidden sm:block">
@@ -136,9 +137,37 @@ export default function MessageList({
           </div>
           <Card className="bg-content2 dark:bg-content1 border-none shadow-sm mr-auto">
             <div className="p-4 py-3">
-              <Spinner size="sm" color="current" />
+              <span className="inline-block">
+                <span className="dot-typing">
+                  <span className="dot" style={{ animationDelay: '0s' }}>.</span>
+                  <span className="dot" style={{ animationDelay: '0.2s' }}>.</span>
+                  <span className="dot" style={{ animationDelay: '0.4s' }}>.</span>
+                </span>
+              </span>
             </div>
           </Card>
+          <style jsx>{`
+            .dot-typing {
+              display: inline-block;
+            }
+            .dot {
+              display: inline-block;
+              font-size: 2rem;
+              line-height: 1;
+              opacity: 0.5;
+              animation: blink 1s infinite both;
+            }
+            .dot:nth-child(2) {
+              animation-delay: 0.2s;
+            }
+            .dot:nth-child(3) {
+              animation-delay: 0.4s;
+            }
+            @keyframes blink {
+              0%, 80%, 100% { opacity: 0.2; }
+              40% { opacity: 1; }
+            }
+          `}</style>
         </div>
       )}
 

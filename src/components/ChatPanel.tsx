@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { PaperPlaneIcon } from "@radix-ui/react-icons";
 import { VELAMINI_KB } from "../lib/Knowledge/velamini-kb";
 import { VIRTUAL_TRESOR_SYSTEM_PROMPT } from "../lib/ai-config";
 import ChatNavbar from "./chat-ui/ChatNavbar";
-import HeroSection from "./chat-ui/HeroSection";
 import MessageList from "./chat-ui/MessageList";
 import FeedbackModal from "./chat-ui/FeedbackModal";
 
@@ -30,12 +30,9 @@ function ChatInput({ input, setInput, onSend, placeholder }: ChatInputProps) {
   };
 
   return (
-    <div className="flex w-full gap-2 items-center">
+    <div className="flex w-full gap-3 items-center p-4 sm:p-6 bg-zinc-900 rounded-lg shadow-lg border border-zinc-800">
       <input
-        className="flex-1 px-6 py-4 border border-gray-700 bg-gray-800 text-gray-100 
-                   placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 
-                   focus:ring-purple-500/30 transition"
-        style={{ borderRadius: 25 }}
+        className="flex-1 px-4 py-4 sm:px-8 sm:py-6 bg-transparent text-zinc-100 placeholder-zinc-400 border-none focus:outline-none focus:ring-2 focus:ring-cyan-500/60 rounded-md text-lg sm:text-2xl transition"
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -44,14 +41,12 @@ function ChatInput({ input, setInput, onSend, placeholder }: ChatInputProps) {
         autoFocus
       />
       <button
-        className="px-10 py-10 bg-gradient-to-r from-purple-600 to-indigo-600 
-                   hover:from-purple-500 hover:to-indigo-500 text-white font-medium 
-                   shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        style={{ borderRadius: 25 }}
+        className="flex items-center justify-center p-4 sm:p-5 text-cyan-500 rounded-md bg-transparent hover:bg-transparent focus:bg-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-cyan-400"
         onClick={onSend}
         disabled={!input.trim()}
+        aria-label="Send message"
       >
-        Send
+        <PaperPlaneIcon className="w-7 h-7 sm:w-8 sm:h-8" />
       </button>
     </div>
   );
@@ -174,11 +169,11 @@ export default function ChatPanel() {
       {/* {messages.length === 0 && !isTyping && <HeroSection text="Reka ture ibyaribyo" />} */}
 
       <div
-        className={`flex-1 flex flex-col items-center px-4 pt-6 pb-20 overflow-y-auto ${
+        className={`flex-1 flex flex-col items-center px-1 sm:px-4 pt-3 sm:pt-6 pb-24 sm:pb-20 overflow-y-auto ${
           messages.length === 0 ? "justify-center" : "justify-start"
         }`}
       >
-        <div className="w-full max-w-3xl mx-auto flex flex-col min-h-full">
+        <div className="w-full max-w-full sm:max-w-3xl mx-auto flex flex-col min-h-full">
           {messages.length > 0 && (
             <MessageList
               messages={messages}

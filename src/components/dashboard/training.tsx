@@ -18,17 +18,25 @@ import {
 import { Input, TextArea, Button, Card, CardContent } from "@heroui/react";
 
 // Wrapper components to handle missing label prop in current version
-const Field = ({ label, ...props }: any) => (
+const Field = ({ label, onValueChange, ...props }: any) => (
   <div className="flex flex-col gap-2 w-full">
     {label && <label className="text-small font-medium text-default-700">{label}</label>}
-    <Input {...props} className="w-full" />
+    <Input
+      {...props}
+      className="w-full"
+      onChange={e => onValueChange ? onValueChange(e.target.value) : undefined}
+    />
   </div>
 );
 
-const TextAreaField = ({ label, ...props }: any) => (
+const TextAreaField = ({ label, onValueChange, ...props }: any) => (
   <div className="flex flex-col gap-2 w-full">
     {label && <label className="text-small font-medium text-default-700">{label}</label>}
-    <TextArea {...props} className="w-full" />
+    <TextArea
+      {...props}
+      className="w-full"
+      onChange={e => onValueChange ? onValueChange(e.target.value) : undefined}
+    />
   </div>
 );
 
@@ -98,8 +106,62 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
     window.setTimeout(() => setMessage(null), ms);
   };
 
+  // Debounce save and retrain
+  const debounce = (fn: (...args: any[]) => void, delay: number) => {
+    let timer: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  };
+
+  // Save and retrain after field change
+  const saveAndRetrain = async (newData: KnowledgeBaseData) => {
+    setIsSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/training", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newData),
+      });
+      const data = await res.json();
+      if (data?.ok) {
+        showMessage({ type: "success", text: "Saved successfully!" });
+        // Retrain model after save
+        setIsTraining(true);
+        const trainRes = await fetch("/api/training/train", { method: "POST" });
+        const trainData = await trainRes.json();
+        if (trainData?.ok) {
+          setFormData((prev) => ({
+            ...prev,
+            isModelTrained: true,
+            lastTrainedAt: trainData.trainedAt,
+          }));
+          showMessage({ type: "success", text: "Virtual self retrained! 🎉" }, 4000);
+        } else {
+          showMessage({ type: "error", text: trainData?.error || "Training failed" }, 5000);
+        }
+      } else {
+        showMessage({ type: "error", text: data?.error || "Failed to save" }, 5000);
+      }
+    } catch {
+      showMessage({ type: "error", text: "Network error occurred" }, 5000);
+    } finally {
+      setIsSaving(false);
+      setIsTraining(false);
+    }
+  };
+
+  // Debounced version to avoid excessive requests
+  const debouncedSaveAndRetrain = useMemo(() => debounce(saveAndRetrain, 1200), []);
+
   const updateField = (field: keyof KnowledgeBaseData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const newData = { ...prev, [field]: value };
+      debouncedSaveAndRetrain(newData);
+      return newData;
+    });
   };
 
   const nextStep = () => setCurrentStep((s) => Math.min(s + 1, STEPS.length));

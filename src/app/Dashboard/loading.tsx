@@ -2,7 +2,7 @@ import { Skeleton } from "@heroui/react";
 
 export default function Loading() {
     return (
-        <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-950 overflow-hidden">
+        <div className="flex flex-col lg:flex-row h-screen w-full bg-slate-50 dark:bg-slate-950 overflow-hidden">
             {/* Sidebar Skeleton */}
             <div className="hidden lg:flex w-72 flex-col gap-4 border-r border-slate-200 dark:border-slate-800 bg-slate-900 p-4">
                 <div className="flex items-center gap-3 px-2 py-3">
@@ -22,9 +22,9 @@ export default function Loading() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* Navbar Skeleton */}
-                <div className="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-slate-900/50">
+                <div className="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 bg-white dark:bg-slate-900/50">
                     <Skeleton className="h-8 w-32 rounded-lg" />
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <Skeleton className="h-8 w-8 rounded-full" />
                         <Skeleton className="h-8 w-8 rounded-full" />
                         <Skeleton className="h-10 w-10 rounded-full" />
@@ -32,23 +32,23 @@ export default function Loading() {
                 </div>
 
                 {/* Page Content Skeleton */}
-                <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8">
                     <div className="flex flex-col gap-2 mb-8">
-                        <Skeleton className="h-10 w-48 rounded-lg" />
-                        <Skeleton className="h-5 w-64 rounded-lg" />
+                        <Skeleton className="h-10 w-40 sm:w-48 rounded-lg" />
+                        <Skeleton className="h-5 w-56 sm:w-64 rounded-lg" />
                     </div>
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {Array(4).fill(0).map((_, i) => (
-                            <Skeleton key={i} className="h-32 rounded-xl" />
+                            <Skeleton key={i} className="h-24 sm:h-32 rounded-xl" />
                         ))}
                     </div>
 
                     {/* Check/Charts Area */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <Skeleton className="lg:col-span-2 h-[400px] rounded-xl" />
-                        <Skeleton className="h-[400px] rounded-xl" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+                        <Skeleton className="lg:col-span-2 h-40 sm:h-[400px] rounded-xl" />
+                        <Skeleton className="h-40 sm:h-[400px] rounded-xl" />
                     </div>
                 </div>
             </div>

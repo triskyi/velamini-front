@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { PaperPlaneIcon } from "@radix-ui/react-icons";
 import HeroSection from "../chat-ui/HeroSection";
 import MessageList from "../chat-ui/MessageList";
 
@@ -10,13 +11,15 @@ type Message = {
   content: string;
 };
 
+import { getAISystemPrompt } from "@/lib/ai-config";
+
 interface DashboardChatProps {
   user?: {
     name?: string | null;
     email?: string | null;
     image?: string | null;
   };
-  knowledgeBase?: any; // ← still unused — consider removing or implementing
+  knowledgeBase?: any; // Now used for persona
 }
 
 function ChatInput({
@@ -38,30 +41,32 @@ function ChatInput({
   };
 
   return (
-    <div className="flex w-full gap-2 items-center">
-      <input
-        className="flex-1 px-6 py-4 border border-transparent bg-[#18192A] text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/70 focus:border-purple-500 transition shadow-md"
-        style={{ fontSize: 18, fontWeight: 500 }}
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder || "Type a message..."}
-        autoFocus
-      />
-      <button
-        className="px-7 py-4 ml-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        style={{ fontSize: 18 }}
-        onClick={onSend}
-        disabled={!input.trim()}
-      >
-        Send
-      </button>
+    <div className="flex w-full gap-2 items-center bg-transparent">
+      <div className="flex-1 flex items-center bg-zinc-800/80 rounded-2xl px-4 py-3 shadow-md border border-transparent focus-within:ring-2 focus-within:ring-purple-500/70">
+        <input
+          className="flex-1 bg-transparent text-gray-100 placeholder-gray-400 focus:outline-none text-lg font-medium"
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder || "Type a message..."}
+          autoFocus
+        />
+        <button
+          className="ml-2 p-2 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all border-none outline-none"
+          onClick={onSend}
+          disabled={!input.trim()}
+          aria-label="Send"
+          type="button"
+        >
+          <PaperPlaneIcon className="w-6 h-6" />
+        </button>
+      </div>
     </div>
   );
 }
 
-export default function DashboardChat({ user }: DashboardChatProps) {
+export default function DashboardChat({ user, knowledgeBase }: DashboardChatProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -113,14 +118,21 @@ export default function DashboardChat({ user }: DashboardChatProps) {
         content: m.content,
       }));
 
+      // Prepare system prompt for this user
+      const systemPrompt = getAISystemPrompt({
+        type: "personal",
+        name: user?.name || undefined,
+      });
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userMessage.content,
           history: recentHistory,
-          // userId: user?.email,     // ← optional: send user context if backend supports it
-          // knowledgeBaseId: ...     // ← if you plan to use knowledgeBase prop
+          knowledgeBase: knowledgeBase || null,
+          systemPrompt,
+          // userId: user?.email, // Optionally send user context
         }),
       });
 
@@ -153,10 +165,10 @@ export default function DashboardChat({ user }: DashboardChatProps) {
   const avatarSrc = user?.image || "/logo.png"; // fallback same for user & assistant
 
   return (
-    <div className="flex flex-col h-screen w-full items-center justify-center bg-whitesmoke from-blue-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div className="w-full max-w-2xl h-[90vh] flex flex-col  shadow-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-800/50 overflow-hidden">
+    <div className="flex flex-col h-screen w-full items-center justify-center bg-transparent">
+      <div className="w-full max-w-2xl h-[90vh] flex flex-col bg-transparent overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 flex items-center gap-3">
+        <div className="px-6 py-4 flex items-center gap-3">
           <img
             src={avatarSrc}
             alt="Avatar"
@@ -204,10 +216,10 @@ export default function DashboardChat({ user }: DashboardChatProps) {
               )}
 
               <div
-                className={`max-w-[75%] px-4 py-3 rounded-2xl shadow-sm text-[15px] leading-relaxed ${
+                className={`max-w-[75%] px-4 py-3 rounded-xl text-[15px] leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-br-none"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-bl-none"
+                    ? "bg-cyan-600/90 text-white rounded-br-md"
+                    : "bg-zinc-800/90 text-zinc-100 rounded-bl-md"
                 }`}
               >
                 {msg.content}
@@ -250,7 +262,7 @@ export default function DashboardChat({ user }: DashboardChatProps) {
         </div>
 
         {/* Input area */}
-        <div className="px-6 py-4 bg-white/95 dark:bg-gray-900/95 border-t border-gray-200 dark:border-gray-800">
+        <div className="px-6 py-4 mt-3">
           <ChatInput
             input={input}
             setInput={setInput}

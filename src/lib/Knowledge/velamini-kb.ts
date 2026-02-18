@@ -1,7 +1,13 @@
+import { calculateAge } from "../utils";
+
+const birthDate = "2002-02-15";
+const age = calculateAge(birthDate);
+
 export const VELAMINI_KB = `
 # Identity
 Name: ISHIMWE TRESOR BERTRAND
 Birth: February 15, 2002 (Born in Huye District, Rwanda)
+Age: ${age}
 Location: Kigali, Rwanda (Currently staying in Kacyiru)
 Languages: Kinyarwanda, English, Luganda, French, Kiswahili
 Bio: Software engineer with 3+ years, full-stack, focusing on AI assistants.

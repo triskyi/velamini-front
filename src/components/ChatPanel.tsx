@@ -75,15 +75,6 @@ export default function ChatPanel() {
       const saved = localStorage.getItem("velamini_chat_history");
       if (saved) {
         setMessages(JSON.parse(saved));
-      } else {
-        // Show default assistant message from built-in knowledge
-        setMessages([
-          {
-            id: Date.now(),
-            role: "assistant",
-            content: `Hello! I am  Tresor.\n\n${VELAMINI_KB}\n\n${VIRTUAL_TRESOR_SYSTEM_PROMPT}`,
-          },
-        ]);
       }
     } catch (err) {
       console.error("Failed to load chat history", err);
@@ -118,10 +109,16 @@ export default function ChatPanel() {
     setIsTyping(true);
 
     try {
-      const recentHistory = messages.slice(-6).map((m) => ({
+      let recentHistory = messages.slice(-6).map((m) => ({
         role: m.role,
         content: m.content,
       }));
+
+      // If there is no chat history, preload knowledge and system prompt for backend use
+      let useDefaultKnowledge = false;
+      if (messages.length === 0) {
+        useDefaultKnowledge = true;
+      }
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -130,6 +127,8 @@ export default function ChatPanel() {
           message: userMessage.content,
           history: recentHistory,
           useLocalKnowledge: true,
+          defaultKnowledge: useDefaultKnowledge ? VELAMINI_KB : undefined,
+          systemPrompt: useDefaultKnowledge ? VIRTUAL_TRESOR_SYSTEM_PROMPT : undefined,
         }),
       });
 
@@ -159,13 +158,7 @@ export default function ChatPanel() {
   };
 
   const handleNewChat = () => {
-    setMessages([
-      {
-        id: Date.now(),
-        role: "assistant",
-        content: `Hello! I am Virtual Tresor.\n\n${VELAMINI_KB}\n\n${VIRTUAL_TRESOR_SYSTEM_PROMPT}`,
-      },
-    ]);
+    setMessages([]);
     localStorage.removeItem("velamini_chat_history");
     setInput("");
   };

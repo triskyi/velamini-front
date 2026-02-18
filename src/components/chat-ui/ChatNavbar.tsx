@@ -38,7 +38,7 @@ export default function ChatNavbar({
       <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center sm:justify-end">
          <button 
           onClick={handleTrainClick}
-          className="btn btn-sm gap-2 transition-all btn-ghost text-zinc-500 hover:text-cyan-400 hover:bg-cyan-500/10"
+          className="btn btn-sm gap-2 transition-all btn-ghost text-zinc-500 hover:text-white hover:bg-cyan-500/80 focus:text-white focus:bg-cyan-500/80"
         >
           <GraduationCap className="w-4 h-4" />
           Train yours
@@ -48,14 +48,14 @@ export default function ChatNavbar({
 
         <button 
           onClick={onShowFeedback}
-          className="btn btn-ghost btn-sm text-zinc-500 hover:text-cyan-400 gap-2"
+          className="btn btn-ghost btn-sm text-zinc-500 hover:text-white hover:bg-cyan-500/80 focus:text-white focus:bg-cyan-500/80 gap-2"
         >
           <MessageSquare className="w-4 h-4" />
           Feedback
         </button>
         <button 
           onClick={onNewChat}
-          className="btn btn-ghost btn-sm text-zinc-500 hover:text-zinc-200 gap-2"
+          className="btn btn-ghost btn-sm text-zinc-500 hover:text-white hover:bg-cyan-500/80 focus:text-white focus:bg-cyan-500/80 gap-2"
         >
           <Plus className="w-4 h-4" />
           New Chat

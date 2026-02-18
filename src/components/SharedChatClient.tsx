@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
+import { PaperPlaneIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import HeroSection from "./chat-ui/HeroSection";
 import MessageList from "./chat-ui/MessageList";
@@ -224,23 +225,27 @@ function ChatInput({ input, setInput, onSend, placeholder }: { input: string; se
     }
   };
   return (
-    <div className="flex w-full gap-2 items-center">
-      <input
-        className="flex-1 px-4 py-2  border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-400"
-        type="text"
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder || "Type a message..."}
-        autoFocus
-      />
-      <button
-        className="ml-2 px-4 py-2  bg-gradient-to-br from-purple-400 to-blue-400 text-white font-semibold shadow-md hover:from-purple-500 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-purple-400"
-        onClick={onSend}
-        disabled={!input.trim()}
-      >
-        Send
-      </button>
+    <div className="flex w-full gap-2 items-center mt-4">
+      <div className="flex-1 flex items-center bg-zinc-800/80 rounded-xl px-4 py-3 shadow-md border border-transparent focus-within:ring-2 focus-within:ring-purple-500/70">
+        <input
+          className="flex-1 bg-transparent text-gray-100 placeholder-gray-400 focus:outline-none text-lg font-medium"
+          type="text"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder || "Type a message..."}
+          autoFocus
+        />
+        <button
+          className="ml-2 p-2 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all border-none outline-none"
+          onClick={onSend}
+          disabled={!input.trim()}
+          aria-label="Send"
+          type="button"
+        >
+          <PaperPlaneIcon className="w-6 h-6" />
+        </button>
+      </div>
     </div>
   );
 }

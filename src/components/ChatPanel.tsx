@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { VELAMINI_KB } from "../lib/Knowledge/velamini-kb";
 import ChatNavbar from "./chat-ui/ChatNavbar";
 import HeroSection from "./chat-ui/HeroSection";
 import MessageList from "./chat-ui/MessageList";
@@ -73,6 +74,15 @@ export default function ChatPanel() {
       const saved = localStorage.getItem("velamini_chat_history");
       if (saved) {
         setMessages(JSON.parse(saved));
+      } else {
+        // Show default assistant message from built-in knowledge
+        setMessages([
+          {
+            id: Date.now(),
+            role: "assistant",
+            content: `Welcome! Here is some information to get you started.\n\n${VELAMINI_KB}`,
+          },
+        ]);
       }
     } catch (err) {
       console.error("Failed to load chat history", err);
@@ -148,7 +158,13 @@ export default function ChatPanel() {
   };
 
   const handleNewChat = () => {
-    setMessages([]);
+    setMessages([
+      {
+        id: Date.now(),
+        role: "assistant",
+        content: `Welcome! Here is some information to get you started.\n\n${VELAMINI_KB}`,
+      },
+    ]);
     localStorage.removeItem("velamini_chat_history");
     setInput("");
   };
@@ -160,7 +176,8 @@ export default function ChatPanel() {
         onNewChat={handleNewChat}
       />
 
-      {messages.length === 0 && !isTyping && <HeroSection text="Reka ture ibyaribyo" />}
+      {/* No longer show HeroSection if messages are empty, since we now show a default assistant message */}
+      {/* {messages.length === 0 && !isTyping && <HeroSection text="Reka ture ibyaribyo" />} */}
 
       <div
         className={`flex-1 flex flex-col items-center px-4 pt-6 pb-20 overflow-y-auto ${

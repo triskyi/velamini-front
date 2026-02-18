@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { VELAMINI_KB } from "../lib/Knowledge/velamini-kb";
+import { VIRTUAL_TRESOR_SYSTEM_PROMPT } from "../lib/ai-config";
 import ChatNavbar from "./chat-ui/ChatNavbar";
 import HeroSection from "./chat-ui/HeroSection";
 import MessageList from "./chat-ui/MessageList";
@@ -80,7 +81,7 @@ export default function ChatPanel() {
           {
             id: Date.now(),
             role: "assistant",
-            content: `Welcome! Here is some information to get you started.\n\n${VELAMINI_KB}`,
+            content: `Hello! I am  Tresor.\n\n${VELAMINI_KB}\n\n${VIRTUAL_TRESOR_SYSTEM_PROMPT}`,
           },
         ]);
       }
@@ -162,7 +163,7 @@ export default function ChatPanel() {
       {
         id: Date.now(),
         role: "assistant",
-        content: `Welcome! Here is some information to get you started.\n\n${VELAMINI_KB}`,
+        content: `Hello! I am Virtual Tresor.\n\n${VELAMINI_KB}\n\n${VIRTUAL_TRESOR_SYSTEM_PROMPT}`,
       },
     ]);
     localStorage.removeItem("velamini_chat_history");

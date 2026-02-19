@@ -1,4 +1,3 @@
-import { VELAMINI_KB } from "../Knowledge/velamini-kb";
 
 function normalize(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
@@ -18,7 +17,7 @@ function chunkText(text: string, chunkSize = 700, overlap = 120) {
   return chunks;
 }
 
-const CHUNKS = chunkText(VELAMINI_KB);
+const CHUNKS: string[] = [];
 
 export function retrieveContext(query: string, k = 4) {
   const q = normalize(query);

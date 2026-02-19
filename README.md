@@ -543,7 +543,6 @@ Flow:
     rag/
       retriever.ts                      # Knowledge retrieval
     Knowledge/
-      velamini-kb.ts                    # Knowledge base data
   types/
     next-auth.d.ts                      # NextAuth type extensions
   auth.ts                               # NextAuth configuration
@@ -730,7 +729,6 @@ src/
     search.ts
     whatsapp.ts
     rag/retriever.ts
-    Knowledge/velamini-kb.ts
 prisma/
   schema.prisma
 ```

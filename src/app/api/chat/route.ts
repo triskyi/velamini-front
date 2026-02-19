@@ -4,7 +4,6 @@ import { searchWeb } from "@/lib/search";
 import { prisma } from "@/lib/prisma";
 import { VIRTUAL_SELF_SYSTEM_PROMPT } from "@/lib/ai-config";
 import { auth } from "@/auth";
-import { VELAMINI_KB } from "@/lib/Knowledge/velamini-kb";
 
 export const dynamic = "force-dynamic";
 
@@ -88,7 +87,7 @@ export async function POST(req: Request) {
     // 1) Local RAG retrieval
     let context = "";
     if (useLocal) {
-      context = VELAMINI_KB;
+      context = ""; // No local KB, leave empty or set a default string
     } else {
       context = retrieveContext(message, 3);
     }

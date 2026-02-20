@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { LogOut } from "lucide-react";
 
 interface NavbarProps {
@@ -13,9 +11,6 @@ interface NavbarProps {
   isDarkMode?: boolean;
   onThemeToggle?: () => void;
 }
-
-// HeroUI Imports
-import { Tooltip, Link as HeroLink } from "@heroui/react";
 
 export default function Navbar({ user, isDarkMode, onThemeToggle }: NavbarProps) {
   return (

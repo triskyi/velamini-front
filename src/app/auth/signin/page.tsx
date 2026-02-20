@@ -163,7 +163,7 @@ function SignInContent() {
                     onClick={handleGoogleSignIn}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group relative w-full h-14 bg-white hover:bg-slate-50 text-slate-900 rounded-xl font-semibold text-base shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
+                    className=" relative w-full h-14  btn bg-white text-black border-[#e5e5e5]  overflow-hidden"
                   >
                     {/* Animated gradient border */}
                     <div className="absolute inset-0 bg-gradient-to-r from-violet-500 via-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />

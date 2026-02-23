@@ -4,25 +4,48 @@ import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { Sparkles, Shield } from "lucide-react";
 import Navbar from "@/components/Navbar"
 
 // Background animation kept for larger screens only (saves mobile CPU + avoids clutter)
 const AnimatedBackground = () => {
+  // lightweight animated bubbles + soft orbs; visible at all sizes
+  const bubbleCount = 12;
+
   return (
-    <div className="hidden md:block absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div className="absolute inset-0 bg-gradient-to-br from-base-200 via-base-100 to-base-200" />
+
       <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.45, 0.25], x: [0, 40, 0], y: [0, 20, 0] }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.22, 0.38, 0.22], x: [0, 30, 0], y: [0, 16, 0] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -left-20 -top-10 w-[420px] h-[420px] bg-gradient-to-br from-violet-500/30 to-purple-500/30 rounded-full blur-[120px]"
+        className="absolute -left-20 -top-10 w-[420px] h-[420px] bg-gradient-to-br from-violet-500/28 to-purple-500/28 rounded-full blur-[100px]"
       />
+
       <motion.div
-        animate={{ scale: [1, 1.25, 1], opacity: [0.18, 0.36, 0.18], x: [0, -20, 0], y: [0, 40, 0] }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.16, 0.34, 0.16], x: [0, -18, 0], y: [0, 36, 0] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute -right-24 bottom-0 w-[520px] h-[520px] bg-gradient-to-br from-cyan-500/18 to-blue-500/18 rounded-full blur-[120px]"
+        className="absolute -right-20 bottom-0 w-[480px] h-[480px] bg-gradient-to-br from-cyan-500/16 to-blue-500/16 rounded-full blur-[100px]"
       />
+
+      {/* floating bubble particles */}
+      {Array.from({ length: bubbleCount }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: [0, 0.8, 0],
+            y: [0, -80 - Math.random() * 80],
+            x: [0, Math.random() * 40 - 20],
+            scale: [0.8, 1.05, 0.8],
+          }}
+          transition={{ duration: 3 + Math.random() * 3, repeat: Infinity, delay: Math.random() * 5, ease: "easeOut" }}
+          className="absolute bottom-0 w-2 h-2 rounded-full bg-primary/70 dark:bg-primary/90 shadow-lg"
+          style={{ left: `${Math.random() * 100}%` }}
+        />
+      ))}
     </div>
   );
 };
@@ -89,23 +112,18 @@ function SignInContent() {
             className="w-full lg:w-1/2 flex items-center justify-center"
           >
             <div className="w-full max-w-md">
-              <div className="card bg-base-100/60 backdrop-blur-md border border-base-300/20 rounded-2xl p-6 shadow-lg">
+              <div className="bg-base-100/70 border border-base-300/20 rounded-2xl p-8 md:p-10 shadow-xl m-4 md:m-0">
                 <div className="text-center mb-4">
-                  <div className="mx-auto w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 p-0.5 shadow-md">
-                    <div className="w-full h-full bg-base-100 rounded-xl flex items-center justify-center">
-                      <Image src="/logo.png" alt="VELAMINI" width={36} height={36} className="object-contain" />
-                    </div>
-                  </div>
-                  <h3 className="mt-3 text-2xl font-bold">Welcome back</h3>
-                  <p className="text-sm text-base-content/70">Sign in to continue to Velamini</p>
+                  <h3 className="mt-3 text-2xl font-extrabold">Welcome to VELAMINI</h3>
+     
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <motion.button
                     onClick={handleGoogleSignIn}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="btn btn-dash btn-primary w-full h-12 flex items-center justify-center gap-3"
+                    className="btn btn-dash btn-primary w-full flex items-center justify-center gap-3"
                   >
                     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -116,26 +134,19 @@ function SignInContent() {
                     <span>Continue with Google</span>
                   </motion.button>
 
-                  <div className="flex items-center gap-2 text-xs text-base-content/60">
-                    <div className="h-px flex-1 bg-base-300/30" />
-                    <div>Secure authentication</div>
-                    <div className="h-px flex-1 bg-base-300/30" />
-                  </div>
+              
 
-                  <div className="flex items-center justify-center gap-4 text-xs text-base-content/60">
-                    <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-center gap-6 text-xs text-base-content/70">
+                    <div className="flex items-center gap-2">
                       <Shield className="w-4 h-4" />
                       <span>Encrypted</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Sparkles className="w-4 h-4" />
-                      <span>GDPR</span>
-                    </div>
+                    
                   </div>
                 </div>
 
                 <p className="text-xs text-center text-base-content/60 mt-4">
-                  By continuing you agree to our <a className="underline text-primary">Terms</a> and <a className="underline text-primary">Privacy</a>.
+                  By continuing you agree to our <Link href="/terms" className="underline text-primary">Terms</Link> and <Link href="/privacy" className="underline text-primary">Privacy</Link>.
                 </p>
               </div>
             </div>
@@ -148,13 +159,9 @@ function SignInContent() {
             transition={{ duration: 0.6 }}
             className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center"
           >
-            <div className="space-y-4 lg:pr-8 max-w-md text-left">
+            <div className="space-y-4 lg:pr-8 max-w-md text-left p-4 md:p-0 m-4 md:m-0">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 p-0.5">
-                  <div className="w-full h-full bg-base-100 dark:bg-base-200 rounded-xl flex items-center justify-center">
-                    <Image src="/logo.png" alt="VELAMINI" width={36} height={36} />
-                  </div>
-                </div>
+               
                 <div>
                   <h2 className="text-2xl font-bold">VELAMINI</h2>
                   <p className="text-xs text-base-content/70">Your Virtual Self Platform</p>
@@ -171,7 +178,7 @@ function SignInContent() {
       </div>
 
       <div className="absolute bottom-4 left-0 right-0 text-center">
-        <p className="text-xs text-base-content/50">VELAMINI • {new Date().getFullYear()}</p>
+        <p className="text-xs text-base-content/50">VELAMINI • {new Date().getFullYear()} • <Link href="/terms" className="underline">Terms</Link> • <Link href="/privacy" className="underline">Privacy</Link></p>
       </div>
     </div>
   );

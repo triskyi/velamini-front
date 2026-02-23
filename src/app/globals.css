@@ -323,7 +323,7 @@ aside::-webkit-scrollbar-thumb {
 
 /* DaisyUI: custom dash button variant */
 .btn-dash {
-  @apply px-6 py-3 text-lg font-semibold rounded-lg;
+  @apply px-4 py-4 text-lg font-semibold rounded-lg;
 }
 
 .btn-dash:disabled {

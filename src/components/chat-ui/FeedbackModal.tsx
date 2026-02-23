@@ -157,7 +157,7 @@ export default function FeedbackModal({
               <button
                 disabled={rating === 0 || isSubmitting}
                 onClick={handleSubmit}
-                className="btn btn-primary w-full rounded-xl text-base font-semibold 
+                className="btn btn-dash btn-primary w-full rounded-xl text-base font-semibold 
                            shadow-lg shadow-primary/30 
                            disabled:opacity-40 disabled:shadow-none"
               >

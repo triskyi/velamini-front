@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@heroui/styles";
 @plugin "daisyui";
 
 /* =========================
@@ -320,6 +319,15 @@ aside::-webkit-scrollbar-thumb {
   background-color: rgba(0, 243, 255, 0.1);
   color: #00ffff;
   transform: translateX(2px);
+}
+
+/* DaisyUI: custom dash button variant */
+.btn-dash {
+  @apply px-6 py-3 text-lg font-semibold rounded-lg;
+}
+
+.btn-dash:disabled {
+  @apply opacity-40 cursor-not-allowed;
 }
 
 /* Section Titles */

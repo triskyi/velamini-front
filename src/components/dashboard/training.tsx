@@ -325,7 +325,7 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
             {...inputCommon}
             label="Technical Skills"
             placeholder={"e.g., Languages: HTML, CSS, Python, JavaScript\nFrameworks: React, Next.js, Django\nDB: Postgres, MySQL"}
-            minRows={8}
+            rows={8}
             value={formData.skills || ""}
             onValueChange={(v: string) => updateField("skills", v)}
           />
@@ -337,7 +337,7 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
             {...inputCommon}
             label="Notable Projects"
             placeholder={"e.g., OpenFn Adaptors — Built Flutterwave adaptor\nMyGuyAssistantAPI — Python + Flask API"}
-            minRows={8}
+            rows={8}
             value={formData.projects || ""}
             onValueChange={(v: string) => updateField("projects", v)}
           />
@@ -349,7 +349,7 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
             {...inputCommon}
             label="Achievements & Awards"
             placeholder={"e.g., Winner — AfricasTalking Hackathon (3 times)"}
-            minRows={6}
+            rows={6}
             value={formData.awards || ""}
             onValueChange={(v: string) => updateField("awards", v)}
           />

@@ -28,7 +28,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.0",
-    "hono": "^4.11.10",
+    "hono": "^4.12.4",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",

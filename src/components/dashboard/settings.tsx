@@ -1,18 +1,18 @@
-
 import React, { useState, useEffect } from "react";
-import { Settings } from "lucide-react";
+import { Settings, Share2, Plus, Copy, Check, Package } from "lucide-react";
 
 const SettingsPage: React.FC = () => {
   const [isSharing, setIsSharing] = useState(false);
   const [swagName, setSwagName] = useState("");
   const [swagSuccess, setSwagSuccess] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
   const [swagList, setSwagList] = useState<{ id: string; content: string }[]>([]);
   const [copiedSwagId, setCopiedSwagId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateSwag = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!swagName.trim()) return;
+    setIsCreating(true);
     try {
       const res = await fetch("/api/swag", {
         method: "POST",
@@ -23,10 +23,12 @@ const SettingsPage: React.FC = () => {
         setSwagSuccess(true);
         setSwagName("");
         await fetchSwagList();
-        setTimeout(() => setSwagSuccess(false), 2000);
+        setTimeout(() => setSwagSuccess(false), 2500);
       }
     } catch {
-      // Optionally handle error
+      // handle silently
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -38,18 +40,14 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchSwagList();
-  }, []);
+  useEffect(() => { fetchSwagList(); }, []);
 
-  const getSwagUrl = (content: string) => {
-    return `${typeof window !== "undefined" ? window.location.origin : "https://velamini.com"}/chat/${encodeURIComponent(content.replace(/\s+/g, "-").toLowerCase())}`;
-  };
+  const getSwagUrl = (content: string) =>
+    `${typeof window !== "undefined" ? window.location.origin : "https://velamini.com"}/chat/${encodeURIComponent(content.replace(/\s+/g, "-").toLowerCase())}`;
 
   const handleCopySwagUrl = async (swagId: string, content: string) => {
-    const swagUrl = getSwagUrl(content);
     try {
-      await navigator.clipboard.writeText(swagUrl);
+      await navigator.clipboard.writeText(getSwagUrl(content));
       setCopiedSwagId(swagId);
       setTimeout(() => setCopiedSwagId(null), 1500);
     } catch {
@@ -57,142 +55,354 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  return ( 
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col items-center justify-center py-12 px-4">
-      {/* Header */}
-      <div className="w-full max-w-6xl mb-12">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="p-4 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl shadow-xl shadow-violet-200 dark:shadow-violet-900/30">
-            <Settings className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-5xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Settings</h1>
-            <p className="text-slate-600 dark:text-slate-400 text-xl mt-2">Manage your virtual self and preferences</p>
-          </div>
-        </div>
-      </div>
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-      <div className="flex flex-col lg:flex-row gap-10 items-start justify-center w-full max-w-6xl">
-        {/* Share & Swag column */}
-        <div className="flex flex-col gap-10 flex-1 min-w-[400px] max-w-2xl">
-          {/* Share Your Virtual Self */}
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-slate-700/50 shadow-2xl shadow-slate-200/20 dark:shadow-slate-900/20 overflow-hidden">
-            <div className="p-8 bg-gradient-to-r from-emerald-50/50 to-transparent dark:from-emerald-950/20">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Share Your Virtual Self</h2>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1">Allow others to chat with your AI-powered virtual self</p>
-                </div>
+        .sp-wrap {
+          width: 100%; min-height: 100%;
+          padding: 32px 20px 52px;
+          background: var(--c-bg, #EFF7FF);
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          color: var(--c-text, #0B1E2E);
+        }
+        .sp-inner {
+          max-width: 780px;
+          margin: 0 auto;
+          display: flex; flex-direction: column; gap: 24px;
+        }
+
+        /* Header */
+        .sp-header {
+          display: flex; align-items: center; gap: 14px;
+        }
+        .sp-header-icon {
+          width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
+          background: var(--c-accent, #29A9D4);
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 8px 22px color-mix(in srgb, var(--c-accent, #29A9D4) 30%, transparent);
+        }
+        .sp-header-icon svg { color: #fff; }
+        .sp-header-title {
+          font-family: 'Lora', Georgia, serif;
+          font-size: clamp(1.4rem, 3vw, 1.9rem);
+          font-weight: 600; letter-spacing: -0.02em; line-height: 1.2;
+          color: var(--c-text, #0B1E2E);
+        }
+        .sp-header-sub { font-size: 0.83rem; color: var(--c-muted, #7399BA); margin-top: 2px; }
+
+        /* Card */
+        .sp-card {
+          background: var(--c-surface, #fff);
+          border: 1px solid var(--c-border, #C5DCF2);
+          border-radius: 18px; overflow: hidden;
+        }
+        .sp-card-head {
+          display: flex; align-items: center; gap: 12px;
+          padding: 18px 22px;
+          border-bottom: 1px solid var(--c-border, #C5DCF2);
+          background: color-mix(in srgb, var(--c-accent, #29A9D4) 5%, var(--c-surface, #fff));
+        }
+        .sp-card-head-icon {
+          width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+          background: var(--c-accent, #29A9D4);
+          display: flex; align-items: center; justify-content: center;
+        }
+        .sp-card-head-icon svg { color: #fff; }
+        .sp-card-head-title {
+          font-family: 'Lora', serif; font-size: 1.05rem; font-weight: 600;
+          color: var(--c-text, #0B1E2E);
+        }
+        .sp-card-head-sub { font-size: 0.76rem; color: var(--c-muted, #7399BA); margin-top: 1px; }
+        .sp-card-body { padding: 22px; }
+
+        /* Share toggle row */
+        .sp-share-row {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 14px 18px;
+          background: var(--c-surface-2, #E2F0FC);
+          border: 1.5px solid var(--c-border, #C5DCF2);
+          border-radius: 12px;
+          gap: 12px;
+        }
+        .sp-share-label { font-size: 0.88rem; font-weight: 600; color: var(--c-text, #0B1E2E); }
+        .sp-share-sub { font-size: 0.76rem; color: var(--c-muted, #7399BA); margin-top: 2px; }
+        .sp-toggle-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .sp-badge {
+          font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+          text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+          transition: all 0.2s;
+        }
+        .sp-badge--on {
+          background: color-mix(in srgb, #22c55e 15%, transparent);
+          color: #166534; border: 1px solid color-mix(in srgb, #22c55e 30%, transparent);
+        }
+        [data-mode="dark"] .sp-badge--on { color: #86efac; }
+        .sp-badge--off {
+          background: var(--c-surface-2, #E2F0FC);
+          color: var(--c-muted, #7399BA);
+          border: 1px solid var(--c-border, #C5DCF2);
+        }
+
+        /* Custom toggle switch */
+        .sp-switch { position: relative; width: 44px; height: 24px; }
+        .sp-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .sp-switch-track {
+          position: absolute; inset: 0; border-radius: 99px; cursor: pointer;
+          background: var(--c-border, #C5DCF2);
+          transition: background 0.25s;
+        }
+        .sp-switch input:checked + .sp-switch-track {
+          background: var(--c-accent, #29A9D4);
+        }
+        .sp-switch-track::after {
+          content: ''; position: absolute;
+          top: 3px; left: 3px;
+          width: 18px; height: 18px; border-radius: 50%;
+          background: #fff;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+          transition: transform 0.25s;
+        }
+        .sp-switch input:checked + .sp-switch-track::after {
+          transform: translateX(20px);
+        }
+
+        /* Swag form */
+        .sp-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .sp-label { font-size: 0.78rem; font-weight: 600; color: var(--c-text, #0B1E2E); }
+        .sp-input {
+          width: 100%; padding: 10px 13px;
+          background: var(--c-surface-2, #E2F0FC);
+          border: 1.5px solid var(--c-border, #C5DCF2);
+          border-radius: 10px; outline: none;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-size: 0.855rem; color: var(--c-text, #0B1E2E);
+          transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .sp-input::placeholder { color: var(--c-muted, #7399BA); }
+        .sp-input:focus {
+          border-color: var(--c-accent, #29A9D4);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-accent, #29A9D4) 18%, transparent);
+        }
+
+        .sp-btn-submit {
+          width: 100%; height: 42px; border-radius: 10px; border: none;
+          background: var(--c-accent, #29A9D4); color: #fff;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-size: 0.85rem; font-weight: 700;
+          cursor: pointer; transition: background 0.18s, transform 0.18s, opacity 0.18s;
+          display: flex; align-items: center; justify-content: center; gap: 7px;
+          box-shadow: 0 4px 14px color-mix(in srgb, var(--c-accent, #29A9D4) 30%, transparent);
+        }
+        .sp-btn-submit:hover:not(:disabled) { background: var(--c-accent-dim, #1D8BB2); transform: scale(1.02); }
+        .sp-btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .sp-spin {
+          width: 14px; height: 14px; border-radius: 50%;
+          border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+          animation: spSpin 0.7s linear infinite;
+        }
+        @keyframes spSpin { to { transform: rotate(360deg); } }
+
+        /* Toast */
+        .sp-toast {
+          display: flex; align-items: center; gap: 8px;
+          padding: 10px 14px; border-radius: 10px; margin-top: 12px;
+          font-size: 0.82rem; font-weight: 600;
+          background: color-mix(in srgb, #22c55e 12%, var(--c-surface-2, #E2F0FC));
+          border: 1px solid color-mix(in srgb, #22c55e 30%, transparent);
+          color: #166534; animation: spFadeIn 0.2s ease;
+        }
+        [data-mode="dark"] .sp-toast { color: #86efac; }
+        @keyframes spFadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Swag list */
+        .sp-list-head {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 0.82rem; font-weight: 700;
+          color: var(--c-text, #0B1E2E);
+          padding: 14px 22px 10px;
+          border-top: 1px solid var(--c-border, #C5DCF2);
+          margin-top: 8px;
+        }
+        .sp-list-head svg { color: var(--c-accent, #29A9D4); }
+        .sp-list { display: flex; flex-direction: column; gap: 0; padding: 0 22px 18px; }
+        .sp-list-item {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 12px 14px; border-radius: 11px; gap: 12px;
+          border: 1px solid var(--c-border, #C5DCF2);
+          background: var(--c-surface-2, #E2F0FC);
+          margin-bottom: 8px;
+          transition: border-color 0.18s;
+        }
+        .sp-list-item:last-child { margin-bottom: 0; }
+        .sp-list-item:hover { border-color: var(--c-accent, #29A9D4); }
+        .sp-list-name {
+          font-size: 0.85rem; font-weight: 600;
+          color: var(--c-text, #0B1E2E);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          min-width: 0; flex: 1;
+        }
+        .sp-copy-btn {
+          display: flex; align-items: center; gap: 5px;
+          height: 32px; padding: 0 12px; border-radius: 8px; border: none;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-size: 0.76rem; font-weight: 700; cursor: pointer;
+          transition: all 0.18s; flex-shrink: 0;
+          white-space: nowrap;
+        }
+        .sp-copy-btn--idle {
+          background: var(--c-surface, #fff);
+          color: var(--c-accent, #29A9D4);
+          border: 1.5px solid var(--c-accent, #29A9D4);
+        }
+        .sp-copy-btn--idle:hover {
+          background: color-mix(in srgb, var(--c-accent, #29A9D4) 10%, transparent);
+        }
+        .sp-copy-btn--copied {
+          background: color-mix(in srgb, #22c55e 15%, transparent);
+          color: #166534;
+          border: 1.5px solid color-mix(in srgb, #22c55e 30%, transparent);
+        }
+        [data-mode="dark"] .sp-copy-btn--copied { color: #86efac; }
+
+        /* NEW badge */
+        .sp-new-badge {
+          font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em;
+          text-transform: uppercase; padding: 2px 8px; border-radius: 99px;
+          background: var(--c-accent, #29A9D4);
+          color: #fff; margin-left: 6px;
+        }
+      `}</style>
+
+      <div className="sp-wrap">
+        <div className="sp-inner">
+
+          {/* Header */}
+          <div className="sp-header">
+            <div className="sp-header-icon">
+              <Settings size={24} />
+            </div>
+            <div>
+              <div className="sp-header-title">Settings</div>
+              <div className="sp-header-sub">Manage your virtual self and preferences</div>
+            </div>
+          </div>
+
+          {/* Share card */}
+          <div className="sp-card">
+            <div className="sp-card-head">
+              <div className="sp-card-head-icon">
+                <Share2 size={18} />
               </div>
-              <div className="flex items-center justify-between p-6 rounded-2xl bg-white/60 dark:bg-slate-700/40 border border-slate-200/60 dark:border-slate-600/40">
-                <div className="flex items-center gap-4">
-                  <input
-                    type="checkbox"
-                    className="toggle toggle-lg toggle-primary"
-                    aria-label="Toggle sharing"
-                    checked={isSharing}
-                    onChange={() => setIsSharing((v) => !v)}
-                  />
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold shadow-sm ${isSharing ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-200 dark:shadow-green-900/30" : "bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-300"}`}>
+              <div>
+                <div className="sp-card-head-title">Share Your Virtual Self</div>
+                <div className="sp-card-head-sub">Allow others to chat with your AI-powered virtual self</div>
+              </div>
+            </div>
+            <div className="sp-card-body">
+              <div className="sp-share-row">
+                <div>
+                  <div className="sp-share-label">Public access</div>
+                  <div className="sp-share-sub">Anyone with your link can start a conversation</div>
+                </div>
+                <div className="sp-toggle-wrap">
+                  <span className={`sp-badge ${isSharing ? "sp-badge--on" : "sp-badge--off"}`}>
                     {isSharing ? "Active" : "Inactive"}
                   </span>
+                  <label className="sp-switch">
+                    <input
+                      type="checkbox"
+                      checked={isSharing}
+                      onChange={() => setIsSharing((v) => !v)}
+                    />
+                    <span className="sp-switch-track" />
+                  </label>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Create Swag */}
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-slate-700/50 shadow-2xl shadow-slate-200/20 dark:shadow-slate-900/20 overflow-hidden">
-            <div className="p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Create Swag</h2>
-                    <span className="px-3 py-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full animate-pulse shadow-lg">NEW</span>
+          {/* Swag card */}
+          <div className="sp-card">
+            <div className="sp-card-head">
+              <div className="sp-card-head-icon">
+                <Package size={18} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <div>
+                  <div className="sp-card-head-title" style={{ display: "flex", alignItems: "center" }}>
+                    Create Swag
+                    <span className="sp-new-badge">New</span>
                   </div>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1">Create personalized merchandise links</p>
+                  <div className="sp-card-head-sub">Create personalized shareable links</div>
                 </div>
               </div>
-              
-              <form className="space-y-6" onSubmit={handleCreateSwag}>
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    Swag Name
-                  </label>
+            </div>
+
+            <div className="sp-card-body">
+              <form onSubmit={handleCreateSwag}>
+                <div className="sp-field">
+                  <label className="sp-label">Swag name</label>
                   <input
+                    className="sp-input"
                     type="text"
-                    placeholder="e.g. Velamini T-shirt, Custom Mug..."
-                    className="w-full px-4 py-4 bg-slate-50/70 dark:bg-slate-700/70 border border-slate-200/80 dark:border-slate-600/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-violet-500/30 focus:border-violet-500 transition-all duration-300 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
+                    placeholder="e.g. Velamini T-shirt, Custom Mug…"
                     value={swagName}
-                    onChange={e => setSwagName(e.target.value)}
+                    onChange={(e) => setSwagName(e.target.value)}
                   />
                 </div>
                 <button
+                  className="sp-btn-submit"
                   type="submit"
-                  className="w-full py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-2xl hover:from-violet-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-violet-500/30 transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-violet-200 dark:shadow-violet-900/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  disabled={!swagName.trim()}
+                  disabled={!swagName.trim() || isCreating}
                 >
-                  Create Swag
+                  {isCreating ? (
+                    <><span className="sp-spin" /> Creating…</>
+                  ) : (
+                    <><Plus size={15} /> Create Swag</>
+                  )}
                 </button>
                 {swagSuccess && (
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 rounded-2xl flex items-center gap-3 animate-in fade-in duration-300">
-                    <div className="p-2 bg-green-500 rounded-full">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-green-800 dark:text-green-200 font-medium">Swag created successfully!</span>
+                  <div className="sp-toast">
+                    <Check size={14} />
+                    Swag created successfully!
                   </div>
                 )}
               </form>
-              {/* Swag List */}
-              {swagList.length > 0 && (
-                <div className="mt-8 p-6 bg-slate-50/70 dark:bg-slate-700/30 rounded-2xl border border-slate-200/60 dark:border-slate-600/40">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    Your Swag Collection
-                  </h3>
-                  <div className="space-y-3">
-                    {swagList.map(swag => (
-                      <div key={swag.id} className="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-600/30 hover:shadow-lg transition-all duration-300">
-                        <span className="text-slate-900 dark:text-slate-100 font-medium truncate max-w-xs">{swag.content}</span>
-                        <button
-                          className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${
-                            copiedSwagId === swag.id 
-                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-200 dark:shadow-green-900/30" 
-                              : "bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-600 dark:to-slate-700 text-slate-700 dark:text-slate-200 hover:from-violet-100 hover:to-purple-100 dark:hover:from-violet-900/50 dark:hover:to-purple-900/50 hover:text-violet-700 dark:hover:text-violet-300"
-                          }`}
-                          onClick={() => handleCopySwagUrl(swag.id, swag.content)}
-                          type="button"
-                        >
-                          {copiedSwagId === swag.id ? "Copied!" : "Copy URL"}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
-        </div>
 
-        {/* Copy Swag URL column removed: now handled per swag item */}
+            {swagList.length > 0 && (
+              <>
+                <div className="sp-list-head">
+                  <Package size={14} />
+                  Your Swag Collection ({swagList.length})
+                </div>
+                <div className="sp-list">
+                  {swagList.map((swag) => (
+                    <div className="sp-list-item" key={swag.id}>
+                      <span className="sp-list-name">{swag.content}</span>
+                      <button
+                        type="button"
+                        className={`sp-copy-btn ${copiedSwagId === swag.id ? "sp-copy-btn--copied" : "sp-copy-btn--idle"}`}
+                        onClick={() => handleCopySwagUrl(swag.id, swag.content)}
+                      >
+                        {copiedSwagId === swag.id
+                          ? <><Check size={12} /> Copied</>
+                          : <><Copy size={12} /> Copy URL</>
+                        }
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+        </div>
       </div>
-    </div>
-	);
+    </>
+  );
 };
 
 export default SettingsPage;
-

@@ -14,40 +14,8 @@ import {
   Sparkles,
   CheckCircle2,
   Brain,
+  X,
 } from "lucide-react";
-
-import { Input, TextArea, Button, Card, CardContent } from "@heroui/react";
-
-// Wrapper components to handle missing label prop in current version
-const Field = ({ label, onValueChange, ...props }: any) => (
-  <div className="flex flex-col gap-2 w-full">
-    {label && <label className="text-small font-medium text-default-700">{label}</label>}
-    <Input
-      {...props}
-      className="w-full"
-      onChange={e => onValueChange ? onValueChange(e.target.value) : undefined}
-    />
-  </div>
-);
-
-const TextAreaField = ({ label, onValueChange, ...props }: any) => (
-  <div className="flex flex-col gap-2 w-full">
-    {label && <label className="text-small font-medium text-default-700">{label}</label>}
-    <TextArea
-      {...props}
-      className="w-full"
-      onChange={e => onValueChange ? onValueChange(e.target.value) : undefined}
-    />
-  </div>
-);
-
-// Helper for button variants mapping
-const getButtonVariant = (v: string) => {
-  if (v === "solid") return "primary"; // mapping solid to primary
-  if (v === "flat") return "secondary"; // mapping flat to secondary
-  return v as any;
-};
-
 
 interface KnowledgeBaseData {
   fullName?: string;
@@ -107,7 +75,6 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
     window.setTimeout(() => setMessage(null), ms);
   };
 
-  // Debounce save and retrain
   const debounce = (fn: (...args: any[]) => void, delay: number) => {
     let timer: NodeJS.Timeout;
     return (...args: any[]) => {
@@ -116,7 +83,6 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
     };
   };
 
-  // Save and retrain after field change
   const saveAndRetrain = async (newData: KnowledgeBaseData) => {
     setIsSaving(true);
     setMessage(null);
@@ -129,7 +95,6 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
       const data = await res.json();
       if (data?.ok) {
         showMessage({ type: "success", text: "Saved successfully!" });
-        // Retrain model after save
         setIsTraining(true);
         const trainRes = await fetch("/api/training/train", { method: "POST" });
         const trainData = await trainRes.json();
@@ -139,7 +104,7 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
             isModelTrained: true,
             lastTrainedAt: trainData.trainedAt,
           }));
-          showMessage({ type: "success", text: "Virtual self retrained! 🎉" }, 4000);
+          showMessage({ type: "success", text: "Virtual self retrained!" }, 4000);
         } else {
           showMessage({ type: "error", text: trainData?.error || "Training failed" }, 5000);
         }
@@ -154,7 +119,6 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
     }
   };
 
-  // Debounced version to avoid excessive requests
   const debouncedSaveAndRetrain = useMemo(() => debounce(saveAndRetrain, 1200), []);
 
   const updateField = (field: keyof KnowledgeBaseData, value: string) => {
@@ -172,14 +136,12 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
   const handleSave = async () => {
     setIsSaving(true);
     setMessage(null);
-
     try {
       const res = await fetch("/api/training", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
       const data = await res.json();
       if (data?.ok) {
         showMessage({ type: "success", text: "Saved successfully!" });
@@ -196,18 +158,16 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
   const handleTrainModel = async () => {
     setIsTraining(true);
     setMessage(null);
-
     try {
       const res = await fetch("/api/training/train", { method: "POST" });
       const data = await res.json();
-
       if (data?.ok) {
         setFormData((prev) => ({
           ...prev,
           isModelTrained: true,
           lastTrainedAt: data.trainedAt,
         }));
-        showMessage({ type: "success", text: "Virtual self trained successfully! 🎉" }, 5000);
+        showMessage({ type: "success", text: "Virtual self trained successfully!" }, 5000);
       } else {
         showMessage({ type: "error", text: data?.error || "Training failed" }, 5000);
       }
@@ -218,407 +178,584 @@ export default function TrainingView({ knowledgeBase }: TrainingViewProps) {
     }
   };
 
-  const renderStepContent = () => {
-    const inputCommon = {};
+  const StepIcon = STEPS[currentStep - 1].icon;
+  const progress = Math.round((currentStep / STEPS.length) * 100);
 
+  const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field
-                {...inputCommon}
-                label="Full Name"
-                placeholder="e.g., ISHIMWE TRESOR BERTRAND"
-                value={formData.fullName || ""}
-                onValueChange={(v: string) => updateField("fullName", v)}
-              />
-              <Field
-                {...inputCommon}
-                label="Birth Date"
-                placeholder="e.g., February 15, 2002"
-                value={formData.birthDate || ""}
-                onValueChange={(v: string) => updateField("birthDate", v)}
-              />
-              <Field
-                {...inputCommon}
-                label="Birth Place"
-                placeholder="e.g., Huye District, Rwanda"
-                value={formData.birthPlace || ""}
-                onValueChange={(v: string) => updateField("birthPlace", v)}
-              />
-              <Field
-                {...inputCommon}
-                label="Current Location"
-                placeholder="e.g., Kigali, Rwanda"
-                value={formData.currentLocation || ""}
-                onValueChange={(v: string) => updateField("currentLocation", v)}
-              />
-              <Field
-                {...inputCommon}
-                label="Languages"
-                placeholder="e.g., Kinyarwanda, English, French"
-                value={formData.languages || ""}
-                onValueChange={(v: string) => updateField("languages", v)}
-              />
-              <Field
-                {...inputCommon}
-                label="Relationship Status"
-                placeholder="e.g., Single, Married"
-                value={formData.relationshipStatus || ""}
-                onValueChange={(v: string) => updateField("relationshipStatus", v)}
-              />
-              <Field
-                {...inputCommon}
-                label="Hobbies"
-                placeholder="e.g., Dancing, Reading"
-                value={formData.hobbies || ""}
-                onValueChange={(v: string) => updateField("hobbies", v)}
-              />
-              <Field
-                {...inputCommon}
-                label="Favorite Food"
-                placeholder="e.g., Chips"
-                value={formData.favoriteFood || ""}
-                onValueChange={(v: string) => updateField("favoriteFood", v)}
-              />
+          <div className="tv-fields">
+            <div className="tv-grid-2">
+              <Field label="Full Name" placeholder="e.g., ISHIMWE TRESOR BERTRAND" value={formData.fullName || ""} onChange={(v) => updateField("fullName", v)} />
+              <Field label="Birth Date" placeholder="e.g., February 15, 2002" value={formData.birthDate || ""} onChange={(v) => updateField("birthDate", v)} />
+              <Field label="Birth Place" placeholder="e.g., Huye District, Rwanda" value={formData.birthPlace || ""} onChange={(v) => updateField("birthPlace", v)} />
+              <Field label="Current Location" placeholder="e.g., Kigali, Rwanda" value={formData.currentLocation || ""} onChange={(v) => updateField("currentLocation", v)} />
+              <Field label="Languages" placeholder="e.g., Kinyarwanda, English, French" value={formData.languages || ""} onChange={(v) => updateField("languages", v)} />
+              <Field label="Relationship Status" placeholder="e.g., Single, Married" value={formData.relationshipStatus || ""} onChange={(v) => updateField("relationshipStatus", v)} />
+              <Field label="Hobbies" placeholder="e.g., Dancing, Reading" value={formData.hobbies || ""} onChange={(v) => updateField("hobbies", v)} />
+              <Field label="Favorite Food" placeholder="e.g., Chips" value={formData.favoriteFood || ""} onChange={(v) => updateField("favoriteFood", v)} />
             </div>
-
-            <TextAreaField
-              {...inputCommon}
-              label="Bio"
-              placeholder="e.g., Software engineer with 3+ years experience..."
-              rows={4}
-              value={formData.bio || ""}
-              onValueChange={(v: string) => updateField("bio", v)}
-            />
+            <TextAreaField label="Bio" placeholder="e.g., Software engineer with 3+ years experience..." rows={4} value={formData.bio || ""} onChange={(v) => updateField("bio", v)} />
           </div>
         );
-
       case 2:
-        return (
-          <TextAreaField
-            {...inputCommon}
-            label="Education History"
-            placeholder={"e.g., Bugema University — BSc Software Engineering\nGitwe Adventist College — A2 (MPC)"}
-            rows={8}
-            value={formData.education || ""}
-            onValueChange={(v: string) => updateField("education", v)}
-          />
-        );
-
+        return <TextAreaField label="Education History" placeholder={"e.g., Bugema University — BSc Software Engineering\nGitwe Adventist College — A2 (MPC)"} rows={8} value={formData.education || ""} onChange={(v) => updateField("education", v)} />;
       case 3:
-        return (
-          <TextAreaField
-            {...inputCommon}
-            label="Work Experience"
-            placeholder={"e.g., OpenFn (Present) — Junior Developer\nCOODIC (Mar 2024 – Jun 2024) — Software Engineer"}
-            rows={8}
-            value={formData.experience || ""}
-            onValueChange={(v: string) => updateField("experience", v)}
-          />
-        );
-
+        return <TextAreaField label="Work Experience" placeholder={"e.g., OpenFn (Present) — Junior Developer\nCOODIC (Mar 2024 – Jun 2024) — Software Engineer"} rows={8} value={formData.experience || ""} onChange={(v) => updateField("experience", v)} />;
       case 4:
-        return (
-          <TextAreaField
-            {...inputCommon}
-            label="Technical Skills"
-            placeholder={"e.g., Languages: HTML, CSS, Python, JavaScript\nFrameworks: React, Next.js, Django\nDB: Postgres, MySQL"}
-            rows={8}
-            value={formData.skills || ""}
-            onValueChange={(v: string) => updateField("skills", v)}
-          />
-        );
-
+        return <TextAreaField label="Technical Skills" placeholder={"e.g., Languages: HTML, CSS, Python, JavaScript\nFrameworks: React, Next.js, Django\nDB: Postgres, MySQL"} rows={8} value={formData.skills || ""} onChange={(v) => updateField("skills", v)} />;
       case 5:
-        return (
-          <TextAreaField
-            {...inputCommon}
-            label="Notable Projects"
-            placeholder={"e.g., OpenFn Adaptors — Built Flutterwave adaptor\nMyGuyAssistantAPI — Python + Flask API"}
-            rows={8}
-            value={formData.projects || ""}
-            onValueChange={(v: string) => updateField("projects", v)}
-          />
-        );
-
+        return <TextAreaField label="Notable Projects" placeholder={"e.g., OpenFn Adaptors — Built Flutterwave adaptor\nMyGuyAssistantAPI — Python + Flask API"} rows={8} value={formData.projects || ""} onChange={(v) => updateField("projects", v)} />;
       case 6:
-        return (
-          <TextAreaField
-            {...inputCommon}
-            label="Achievements & Awards"
-            placeholder={"e.g., Winner — AfricasTalking Hackathon (3 times)"}
-            rows={6}
-            value={formData.awards || ""}
-            onValueChange={(v: string) => updateField("awards", v)}
-          />
-        );
-
+        return <TextAreaField label="Achievements & Awards" placeholder={"e.g., Winner — AfricasTalking Hackathon (3 times)"} rows={6} value={formData.awards || ""} onChange={(v) => updateField("awards", v)} />;
       case 7:
         return (
-          <div className="space-y-6">
-            <TextAreaField
-              {...inputCommon}
-              label="Social Media Links"
-              placeholder={"e.g., GitHub: https://github.com/username\nLinkedIn: https://linkedin.com/in/username"}
-              rows={6}
-              value={formData.socialLinks || ""}
-              onValueChange={(v: string) => updateField("socialLinks", v)}
-            />
-            <TextAreaField
-              {...inputCommon}
-              label="Social Updates"
-              placeholder={"e.g., Instagram Status: Working on a new project..."}
-              rows={4}
-              value={formData.socialUpdates || ""}
-              onValueChange={(v: string) => updateField("socialUpdates", v)}
-            />
+          <div className="tv-fields">
+            <TextAreaField label="Social Media Links" placeholder={"e.g., GitHub: https://github.com/username\nLinkedIn: https://linkedin.com/in/username"} rows={6} value={formData.socialLinks || ""} onChange={(v) => updateField("socialLinks", v)} />
+            <TextAreaField label="Social Updates" placeholder={"e.g., Instagram Status: Working on a new project..."} rows={4} value={formData.socialUpdates || ""} onChange={(v) => updateField("socialUpdates", v)} />
           </div>
         );
-
       default:
         return null;
     }
   };
 
-  const StepIcon = useMemo(() => STEPS[currentStep - 1].icon, [currentStep]);
-
   return (
-    <div className="w-full text-foreground bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 min-h-full p-6 sm:p-8 lg:p-12">
-      <div className="max-w-6xl mx-auto space-y-10">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="p-4 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl shadow-xl shadow-violet-200 dark:shadow-violet-900/30">
-              <Brain className="w-8 h-8 text-white" />
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+        .tv-wrap {
+          width: 100%;
+          min-height: 100%;
+          padding: 32px 20px 48px;
+          background: var(--c-bg, #EFF7FF);
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          color: var(--c-text, #0B1E2E);
+        }
+
+        .tv-inner {
+          max-width: 860px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+        }
+
+        /* ── Header ── */
+        .tv-header {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .tv-header-icon {
+          width: 52px; height: 52px; border-radius: 14px;
+          background: var(--c-accent, #29A9D4);
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 8px 24px color-mix(in srgb, var(--c-accent, #29A9D4) 30%, transparent);
+        }
+        .tv-header-icon svg { color: #fff; }
+        .tv-header-title {
+          font-family: 'Lora', Georgia, serif;
+          font-size: clamp(1.4rem, 3vw, 1.9rem);
+          font-weight: 600;
+          color: var(--c-text, #0B1E2E);
+          letter-spacing: -0.02em;
+          line-height: 1.2;
+        }
+        .tv-header-sub {
+          font-size: 0.85rem;
+          color: var(--c-muted, #7399BA);
+          margin-top: 2px;
+        }
+
+        /* ── Toast ── */
+        .tv-toast {
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 16px;
+          border-radius: 12px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          animation: tvFadeIn 0.2s ease;
+        }
+        .tv-toast--success {
+          background: color-mix(in srgb, #22c55e 12%, var(--c-surface, #fff));
+          border: 1px solid color-mix(in srgb, #22c55e 30%, transparent);
+          color: #166534;
+        }
+        .tv-toast--error {
+          background: color-mix(in srgb, #ef4444 12%, var(--c-surface, #fff));
+          border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+          color: #991b1b;
+        }
+        [data-mode="dark"] .tv-toast--success { color: #86efac; }
+        [data-mode="dark"] .tv-toast--error { color: #fca5a5; }
+        .tv-toast-dot {
+          width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .tv-toast--success .tv-toast-dot { background: #22c55e; }
+        .tv-toast--error .tv-toast-dot { background: #ef4444; }
+        @keyframes tvFadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ── Step rail (desktop) ── */
+        .tv-rail {
+          display: none;
+        }
+        @media (min-width: 600px) {
+          .tv-rail {
+            display: flex;
+            align-items: center;
+            background: var(--c-surface, #fff);
+            border: 1px solid var(--c-border, #C5DCF2);
+            border-radius: 16px;
+            padding: 14px 20px;
+            gap: 0;
+            overflow-x: auto;
+          }
+        }
+        .tv-rail-step {
+          display: flex; flex-direction: column; align-items: center; gap: 5px;
+          flex: 1; min-width: 64px; cursor: pointer; position: relative;
+        }
+        .tv-rail-btn {
+          width: 36px; height: 36px; border-radius: 10px; border: none;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: all 0.2s;
+          font-size: 0;
+        }
+        .tv-rail-btn--done {
+          background: color-mix(in srgb, var(--c-accent, #29A9D4) 15%, transparent);
+          color: var(--c-accent, #29A9D4);
+        }
+        .tv-rail-btn--active {
+          background: var(--c-accent, #29A9D4);
+          color: #fff;
+          box-shadow: 0 4px 12px color-mix(in srgb, var(--c-accent, #29A9D4) 35%, transparent);
+          transform: scale(1.1);
+        }
+        .tv-rail-btn--idle {
+          background: var(--c-surface-2, #E2F0FC);
+          color: var(--c-muted, #7399BA);
+          border: 1.5px solid var(--c-border, #C5DCF2);
+        }
+        .tv-rail-label {
+          font-size: 0.62rem; font-weight: 600; text-transform: uppercase;
+          letter-spacing: 0.06em; color: var(--c-muted, #7399BA);
+          transition: color 0.2s;
+        }
+        .tv-rail-step--active .tv-rail-label { color: var(--c-accent, #29A9D4); }
+        .tv-rail-connector {
+          flex: 1; height: 2px; background: var(--c-border, #C5DCF2);
+          margin-bottom: 18px; transition: background 0.3s; min-width: 12px;
+        }
+        .tv-rail-connector--done { background: var(--c-accent, #29A9D4); }
+
+        /* ── Mobile step bar ── */
+        .tv-mobile-bar {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 14px 16px;
+          background: var(--c-surface, #fff);
+          border: 1px solid var(--c-border, #C5DCF2);
+          border-radius: 14px;
+        }
+        @media (min-width: 600px) { .tv-mobile-bar { display: none; } }
+        .tv-mobile-info { display: flex; align-items: center; gap: 10px; }
+        .tv-mobile-icon {
+          width: 36px; height: 36px; border-radius: 9px;
+          background: var(--c-accent, #29A9D4);
+          display: flex; align-items: center; justify-content: center;
+        }
+        .tv-mobile-icon svg { color: #fff; }
+        .tv-mobile-step { font-size: 0.72rem; color: var(--c-muted, #7399BA); font-weight: 500; }
+        .tv-mobile-name { font-size: 0.95rem; font-weight: 700; color: var(--c-text, #0B1E2E); }
+        .tv-mobile-prog { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .tv-mobile-pct { font-size: 0.72rem; font-weight: 700; color: var(--c-accent, #29A9D4); }
+        .tv-mobile-track {
+          width: 64px; height: 5px; border-radius: 99px;
+          background: var(--c-border, #C5DCF2); overflow: hidden;
+        }
+        .tv-mobile-fill {
+          height: 100%; border-radius: 99px;
+          background: var(--c-accent, #29A9D4);
+          transition: width 0.4s ease;
+        }
+
+        /* ── Card ── */
+        .tv-card {
+          background: var(--c-surface, #fff);
+          border: 1px solid var(--c-border, #C5DCF2);
+          border-radius: 18px;
+          overflow: hidden;
+        }
+        .tv-card-head {
+          display: flex; align-items: center; gap: 14px;
+          padding: 20px 24px;
+          border-bottom: 1px solid var(--c-border, #C5DCF2);
+          background: color-mix(in srgb, var(--c-accent, #29A9D4) 5%, var(--c-surface, #fff));
+        }
+        .tv-card-head-icon {
+          width: 42px; height: 42px; border-radius: 11px;
+          background: var(--c-accent, #29A9D4);
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .tv-card-head-icon svg { color: #fff; }
+        .tv-card-head-title {
+          font-family: 'Lora', serif;
+          font-size: 1.15rem; font-weight: 600;
+          color: var(--c-text, #0B1E2E);
+        }
+        .tv-card-head-sub {
+          font-size: 0.78rem; color: var(--c-muted, #7399BA); margin-top: 1px;
+        }
+        .tv-card-body { padding: 24px; }
+
+        /* ── Fields ── */
+        .tv-fields { display: flex; flex-direction: column; gap: 20px; }
+        .tv-grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        @media (max-width: 560px) { .tv-grid-2 { grid-template-columns: 1fr; } }
+
+        .tv-field { display: flex; flex-direction: column; gap: 6px; }
+        .tv-label {
+          font-size: 0.78rem; font-weight: 600;
+          color: var(--c-text, #0B1E2E);
+          letter-spacing: 0.01em;
+        }
+        .tv-input, .tv-textarea {
+          width: 100%; padding: 10px 13px;
+          background: var(--c-surface-2, #E2F0FC);
+          border: 1.5px solid var(--c-border, #C5DCF2);
+          border-radius: 10px; outline: none;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-size: 0.855rem; color: var(--c-text, #0B1E2E);
+          transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .tv-input::placeholder, .tv-textarea::placeholder { color: var(--c-muted, #7399BA); }
+        .tv-input:focus, .tv-textarea:focus {
+          border-color: var(--c-accent, #29A9D4);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-accent, #29A9D4) 18%, transparent);
+        }
+        .tv-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+        /* ── Actions bar ── */
+        .tv-actions {
+          display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 12px;
+          padding: 16px 20px;
+          background: var(--c-surface, #fff);
+          border: 1px solid var(--c-border, #C5DCF2);
+          border-radius: 14px;
+        }
+        .tv-actions-right { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .tv-btn {
+          display: flex; align-items: center; gap: 7px;
+          height: 40px; padding: 0 18px; border-radius: 10px;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-size: 0.83rem; font-weight: 600; border: none;
+          cursor: pointer; transition: all 0.18s; white-space: nowrap;
+        }
+        .tv-btn svg { flex-shrink: 0; }
+        .tv-btn--ghost {
+          background: var(--c-surface-2, #E2F0FC);
+          color: var(--c-muted, #7399BA);
+          border: 1.5px solid var(--c-border, #C5DCF2);
+        }
+        .tv-btn--ghost:hover:not(:disabled) {
+          color: var(--c-text, #0B1E2E);
+          border-color: var(--c-text, #0B1E2E);
+        }
+        .tv-btn--ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+        .tv-btn--save {
+          background: var(--c-surface-2, #E2F0FC);
+          color: var(--c-accent, #29A9D4);
+          border: 1.5px solid var(--c-accent, #29A9D4);
+        }
+        .tv-btn--save:hover:not(:disabled) {
+          background: color-mix(in srgb, var(--c-accent, #29A9D4) 12%, transparent);
+        }
+        .tv-btn--save:disabled { opacity: 0.4; cursor: not-allowed; }
+        .tv-btn--primary {
+          background: var(--c-accent, #29A9D4);
+          color: #fff;
+          box-shadow: 0 4px 14px color-mix(in srgb, var(--c-accent, #29A9D4) 30%, transparent);
+        }
+        .tv-btn--primary:hover:not(:disabled) {
+          background: var(--c-accent-dim, #1D8BB2);
+          transform: scale(1.02);
+        }
+        .tv-btn--success {
+          background: #16a34a; color: #fff;
+          box-shadow: 0 4px 14px color-mix(in srgb, #16a34a 25%, transparent);
+        }
+        .tv-btn--success:hover { background: #15803d; transform: scale(1.02); }
+
+        .tv-spin {
+          width: 14px; height: 14px; border-radius: 50%;
+          border: 2px solid currentColor; border-top-color: transparent;
+          animation: tvSpin 0.7s linear infinite;
+        }
+        @keyframes tvSpin { to { transform: rotate(360deg); } }
+
+        /* ── Deploy card ── */
+        .tv-deploy {
+          background: var(--c-surface, #fff);
+          border: 1.5px solid var(--c-accent, #29A9D4);
+          border-radius: 18px; overflow: hidden;
+        }
+        .tv-deploy-strip {
+          height: 4px;
+          background: linear-gradient(90deg, var(--c-accent, #29A9D4), #7DD3FC);
+        }
+        .tv-deploy-body {
+          display: flex; flex-direction: column; gap: 20px;
+          padding: 24px;
+        }
+        @media (min-width: 640px) {
+          .tv-deploy-body { flex-direction: row; align-items: flex-start; }
+        }
+        .tv-deploy-icon {
+          width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+          background: var(--c-accent, #29A9D4);
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 8px 24px color-mix(in srgb, var(--c-accent, #29A9D4) 30%, transparent);
+        }
+        .tv-deploy-icon svg { color: #fff; }
+        .tv-deploy-content { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+        .tv-deploy-title {
+          font-family: 'Lora', serif;
+          font-size: 1.2rem; font-weight: 600;
+          color: var(--c-text, #0B1E2E);
+          letter-spacing: -0.01em;
+        }
+        .tv-deploy-sub { font-size: 0.83rem; color: var(--c-muted, #7399BA); line-height: 1.6; }
+        .tv-trained-badge {
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 14px; border-radius: 11px;
+          background: color-mix(in srgb, #22c55e 10%, var(--c-surface-2, #E2F0FC));
+          border: 1px solid color-mix(in srgb, #22c55e 30%, transparent);
+        }
+        .tv-trained-badge svg { color: #16a34a; flex-shrink: 0; }
+        .tv-trained-badge-text { font-size: 0.83rem; font-weight: 600; color: #166534; }
+        [data-mode="dark"] .tv-trained-badge-text { color: #86efac; }
+        .tv-deploy-btn {
+          display: inline-flex; align-items: center; gap: 9px;
+          height: 44px; padding: 0 22px; border-radius: 11px; border: none;
+          background: var(--c-accent, #29A9D4); color: #fff;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-size: 0.88rem; font-weight: 700;
+          cursor: pointer; transition: all 0.2s;
+          box-shadow: 0 4px 16px color-mix(in srgb, var(--c-accent, #29A9D4) 35%, transparent);
+          align-self: flex-start;
+        }
+        .tv-deploy-btn:hover:not(:disabled) {
+          background: var(--c-accent-dim, #1D8BB2); transform: scale(1.02);
+        }
+        .tv-deploy-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+      `}</style>
+
+      <div className="tv-wrap">
+        <div className="tv-inner">
+
+          {/* Header */}
+          <div className="tv-header">
+            <div className="tv-header-icon">
+              <Brain size={24} />
             </div>
             <div>
-              <h1 className="text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100">AI Training</h1>
-              <p className="text-xl text-slate-600 dark:text-slate-400 mt-2">Build your intelligent virtual self step by step</p>
+              <div className="tv-header-title">AI Training</div>
+              <div className="tv-header-sub">Build your intelligent virtual self step by step</div>
             </div>
           </div>
-        </div>
 
-        {/* Message */}
-        {message && (
-          <div className={`p-6 rounded-2xl border-l-4 shadow-lg backdrop-blur-sm ${
-            message.type === "success" 
-              ? "border-green-500 bg-green-50/80 dark:bg-green-950/30" 
-              : "border-red-500 bg-red-50/80 dark:bg-red-950/30"
-          }`}>
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-full ${
-                message.type === "success" ? "bg-green-500" : "bg-red-500"
-              }`}>
-                {message.type === "success" ? (
-                  <CheckCircle2 className="w-5 h-5 text-white" />
-                ) : (
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+          {/* Toast */}
+          {message && (
+            <div className={`tv-toast tv-toast--${message.type}`}>
+              <span className="tv-toast-dot" />
+              {message.text}
+            </div>
+          )}
+
+          {/* Desktop step rail */}
+          <div className="tv-rail">
+            {STEPS.map((step, index) => (
+              <>
+                <div
+                  key={step.id}
+                  className={`tv-rail-step ${currentStep === step.id ? "tv-rail-step--active" : ""}`}
+                  onClick={() => goToStep(step.id)}
+                >
+                  <button
+                    className={`tv-rail-btn ${
+                      currentStep === step.id
+                        ? "tv-rail-btn--active"
+                        : currentStep > step.id
+                        ? "tv-rail-btn--done"
+                        : "tv-rail-btn--idle"
+                    }`}
+                  >
+                    {currentStep > step.id ? <Check size={16} /> : <step.icon size={16} />}
+                  </button>
+                  <span className="tv-rail-label">{step.name}</span>
+                </div>
+                {index < STEPS.length - 1 && (
+                  <div
+                    key={`connector-${step.id}`}
+                    className={`tv-rail-connector ${currentStep > step.id ? "tv-rail-connector--done" : ""}`}
+                  />
                 )}
-              </div>
-              <p className={`font-semibold text-lg ${
-                message.type === "success" ? "text-green-800 dark:text-green-200" : "text-red-800 dark:text-red-200"
-              }`}>
-                {message.text}
-              </p>
-            </div>
+              </>
+            ))}
           </div>
-        )}
 
-        {/* Steps */}
-        <div className="relative hidden sm:flex w-full justify-between items-center mb-12 px-6">
-          {STEPS.map((step, index) => (
-            <div key={step.id} className="flex flex-col items-center gap-3 relative z-10 w-28">
-              <Button
-                variant={currentStep >= step.id ? "primary" : "outline"}
-                onPress={() => goToStep(step.id)}
-                className={`w-16 h-16 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-xl ${
-                  currentStep === step.id 
-                    ? "scale-110 ring-4 ring-violet-500/30 bg-gradient-to-br from-violet-600 to-purple-600 shadow-violet-200 dark:shadow-violet-900/50" 
-                    : currentStep > step.id
-                    ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-green-200 dark:shadow-green-900/30"
-                    : "bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm border-2 border-slate-200 dark:border-slate-600"
-                }`}
-              >
-                <step.icon size={24} />
-              </Button>
-
-              <span className={`text-sm font-semibold text-center leading-tight ${
-                currentStep >= step.id 
-                  ? "text-violet-700 dark:text-violet-300" 
-                  : "text-slate-500 dark:text-slate-400"
-              }`}>
-                {step.name}
-              </span>
-              
-              {/* Step connector line */}
-              {index < STEPS.length - 1 && (
-                <div className={`absolute left-full top-8 w-full h-1 ${
-                  currentStep > step.id 
-                    ? "bg-gradient-to-r from-green-500 to-emerald-500" 
-                    : "bg-slate-200 dark:bg-slate-700"
-                }`} />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile */}
-        <div className="sm:hidden flex items-center justify-between mb-8 p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 dark:border-slate-600/40 shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg">
-              <StepIcon size={20} className="text-white" />
-            </div>
-            <div>
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                Step {currentStep} of {STEPS.length}
-              </span>
-              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{STEPS[currentStep - 1].name}</div>
-            </div>
-          </div>
-          <div className="w-16 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-            <div 
-              className="h-2 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full transition-all duration-500"
-              style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Main Card */}
-        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-2xl shadow-slate-200/20 dark:shadow-slate-900/20 border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
-          <div className="p-8 sm:p-10 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-slate-50/50 to-transparent dark:from-slate-800/50">
-            <div className="flex items-center gap-6">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 text-white shadow-xl shadow-violet-200 dark:shadow-violet-900/30">
-                <StepIcon size={36} />
+          {/* Mobile bar */}
+          <div className="tv-mobile-bar">
+            <div className="tv-mobile-info">
+              <div className="tv-mobile-icon">
+                <StepIcon size={18} />
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{STEPS[currentStep - 1].name}</h2>
-                <p className="text-slate-600 dark:text-slate-400 text-lg">Please fill in the details below to enhance your virtual self</p>
+                <div className="tv-mobile-step">Step {currentStep} of {STEPS.length}</div>
+                <div className="tv-mobile-name">{STEPS[currentStep - 1].name}</div>
+              </div>
+            </div>
+            <div className="tv-mobile-prog">
+              <span className="tv-mobile-pct">{progress}%</span>
+              <div className="tv-mobile-track">
+                <div className="tv-mobile-fill" style={{ width: `${progress}%` }} />
               </div>
             </div>
           </div>
 
-          <div className="p-8 sm:p-10">
-            {renderStepContent()}
+          {/* Main card */}
+          <div className="tv-card">
+            <div className="tv-card-head">
+              <div className="tv-card-head-icon">
+                <StepIcon size={20} />
+              </div>
+              <div>
+                <div className="tv-card-head-title">{STEPS[currentStep - 1].name}</div>
+                <div className="tv-card-head-sub">Fill in the details below to enhance your virtual self</div>
+              </div>
+            </div>
+            <div className="tv-card-body">
+              {renderStepContent()}
+            </div>
           </div>
-        </Card>
 
-        {/* Actions */}
-        <div className="flex items-center justify-between p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-          <button
-            className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-              currentStep === 1 
-                ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500' 
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
-            }`}
-            onClick={prevStep}
-            disabled={currentStep === 1}
-          >
-            <ChevronLeft size={20} />
-            Previous Step
-          </button>
-
-          <div className="flex gap-4">
+          {/* Actions */}
+          <div className="tv-actions">
             <button
-              className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                isSaving 
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500' 
-                  : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
-              }`}
-              onClick={handleSave}
-              disabled={isSaving}
+              className="tv-btn tv-btn--ghost"
+              onClick={prevStep}
+              disabled={currentStep === 1}
             >
-              {!isSaving && <Save size={20} />}
-              {isSaving ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Progress'
-              )}
+              <ChevronLeft size={16} />
+              Previous
             </button>
 
-            {currentStep < STEPS.length ? (
+            <div className="tv-actions-right">
               <button
-                className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-xl hover:from-violet-700 hover:to-purple-700 shadow-xl shadow-violet-200 dark:shadow-violet-900/30 transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                onClick={nextStep}
-              >
-                Next Step
-                <ChevronRight size={20} />
-              </button>
-            ) : (
-              <button
-                className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 shadow-xl shadow-green-200 dark:shadow-green-900/30 transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                className="tv-btn tv-btn--save"
                 onClick={handleSave}
+                disabled={isSaving}
               >
-                <Check size={20} />
-                Complete Training
+                {isSaving ? <span className="tv-spin" /> : <Save size={15} />}
+                {isSaving ? "Saving…" : "Save"}
               </button>
-            )}
+
+              {currentStep < STEPS.length ? (
+                <button className="tv-btn tv-btn--primary" onClick={nextStep}>
+                  Next
+                  <ChevronRight size={16} />
+                </button>
+              ) : (
+                <button className="tv-btn tv-btn--success" onClick={handleSave}>
+                  <Check size={15} />
+                  Complete
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Train Model */}
-        {currentStep === STEPS.length && (
-          <div className="bg-gradient-to-br from-violet-50/80 via-white/80 to-purple-50/80 dark:from-violet-950/30 dark:via-slate-800/80 dark:to-purple-950/30 backdrop-blur-xl rounded-3xl border-2 border-violet-200/50 dark:border-violet-800/50 shadow-2xl shadow-violet-200/20 dark:shadow-violet-900/20 overflow-hidden">
-            <div className="p-10">
-              <div className="flex flex-col lg:flex-row items-start gap-8">
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 text-white shadow-2xl shadow-violet-300 dark:shadow-violet-900/50 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-                  <Sparkles size={40} className="relative z-10" />
+          {/* Deploy card — only on last step */}
+          {currentStep === STEPS.length && (
+            <div className="tv-deploy">
+              <div className="tv-deploy-strip" />
+              <div className="tv-deploy-body">
+                <div className="tv-deploy-icon">
+                  <Sparkles size={24} />
                 </div>
-
-                <div className="flex-1 space-y-6">
-                  <div>
-                    <h3 className="text-3xl font-black text-slate-900 dark:text-slate-100 mb-3">Ready to Deploy Your AI?</h3>
-                    <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
-                      You've completed all training sections. Deploy your AI model now to activate your intelligent virtual self and make it available for interactions.
-                    </p>
+                <div className="tv-deploy-content">
+                  <div className="tv-deploy-title">Ready to deploy your AI?</div>
+                  <div className="tv-deploy-sub">
+                    You've completed all training sections. Deploy now to activate your intelligent virtual self and make it available for interactions.
                   </div>
 
                   {formData.isModelTrained && (
-                    <div className="flex items-center gap-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 p-6 rounded-2xl">
-                      <div className="p-3 bg-green-500 rounded-full shadow-lg">
-                        <CheckCircle2 size={24} className="text-white" />
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-green-800 dark:text-green-200">Model Successfully Trained!</h4>
-                        <p className="text-green-700 dark:text-green-300 mt-1">Your virtual self is ready and operational</p>
-                      </div>
+                    <div className="tv-trained-badge">
+                      <CheckCircle2 size={18} />
+                      <span className="tv-trained-badge-text">Model trained — your virtual self is live</span>
                     </div>
                   )}
 
                   <button
-                    className={`flex items-center gap-4 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform ${
-                      isTraining 
-                        ? 'bg-slate-200 text-slate-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-400' 
-                        : 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-xl shadow-violet-200 dark:shadow-violet-900/50 hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl'
-                    }`}
+                    className="tv-deploy-btn"
                     onClick={handleTrainModel}
                     disabled={isTraining}
                   >
                     {isTraining ? (
-                      <>
-                        <div className="w-6 h-6 border-3 border-slate-400 border-t-slate-600 rounded-full animate-spin" />
-                        Training in Progress...
-                      </>
+                      <><span className="tv-spin" /> Training…</>
                     ) : (
-                      <>
-                        <Sparkles size={24} />
-                        {formData.isModelTrained ? "Retrain AI Model" : "Deploy AI Model Now"}
-                      </>
+                      <><Sparkles size={17} /> {formData.isModelTrained ? "Retrain AI Model" : "Deploy AI Model"}</>
                     )}
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+        </div>
       </div>
+    </>
+  );
+}
+
+/* ── Sub-components ── */
+function Field({ label, placeholder, value, onChange }: {
+  label: string; placeholder?: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div className="tv-field">
+      <label className="tv-label">{label}</label>
+      <input
+        className="tv-input"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
+function TextAreaField({ label, placeholder, rows, value, onChange }: {
+  label: string; placeholder?: string; rows?: number; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div className="tv-field">
+      <label className="tv-label">{label}</label>
+      <textarea
+        className="tv-textarea"
+        placeholder={placeholder}
+        rows={rows ?? 5}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }

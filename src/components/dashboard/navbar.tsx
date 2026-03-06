@@ -1,64 +1,94 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { Moon, Sun, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 interface NavbarProps {
-  user?: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
+  user?: { name?: string | null; email?: string | null; image?: string | null };
   isDarkMode?: boolean;
   onThemeToggle?: () => void;
+  activeView?: string;
 }
 
-export default function Navbar({ user, isDarkMode, onThemeToggle }: NavbarProps) {
+const viewLabels: Record<string, string> = {
+  dashboard: "Dashboard", training: "Training", chat: "Chat",
+  profile: "Profile", settings: "Settings", resume: "Resume",
+};
+
+export default function DashboardNavbar({ user, isDarkMode, onThemeToggle, activeView = "dashboard" }: NavbarProps) {
   return (
-    <div className="hidden lg:flex border-b border-gray-200 px-6 items-center justify-between">
-      {/* Left Section: Logo or Title */}
-      <div className="flex items-center gap-4">
-         
-      </div>
+    <>
+      <style>{`
+        .dnb { display: none; }
+        @media(min-width:1024px){
+          .dnb {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; height: 56px; flex-shrink: 0;
+            background: var(--c-surface); border-bottom: 1px solid var(--c-border);
+            transition: background .3s, border-color .3s;
+          }
+        }
+        .dnb-breadcrumb {
+          display: flex; align-items: center; gap: 7px;
+          font-size: .78rem; color: var(--c-muted);
+        }
+        .dnb-sep { opacity: .45; }
+        .dnb-active { font-weight: 600; color: var(--c-text); }
+        .dnb-right { display: flex; align-items: center; gap: 8px; }
+        .dnb-icon-btn {
+          display: flex; align-items: center; justify-content: center;
+          width: 32px; height: 32px; border-radius: 8px;
+          border: 1px solid var(--c-border); background: var(--c-surface-2);
+          color: var(--c-muted); cursor: pointer; transition: all .14s;
+        }
+        .dnb-icon-btn:hover { color: var(--c-accent); border-color: var(--c-accent); background: var(--c-accent-soft); }
+        .dnb-icon-btn svg { width: 13px; height: 13px; }
+        .dnb-divider { width: 1px; height: 18px; background: var(--c-border); }
+        .dnb-user {
+          display: flex; align-items: center; gap: 8px;
+          padding: 3px 10px 3px 3px; border-radius: 9px;
+          border: 1px solid var(--c-border); background: var(--c-surface-2);
+        }
+        .dnb-av {
+          width: 26px; height: 26px; border-radius: 6px; object-fit: cover;
+          border: 1.5px solid var(--c-border); flex-shrink: 0;
+        }
+        .dnb-name {
+          font-size: .76rem; font-weight: 600; color: var(--c-text);
+          white-space: nowrap; max-width: 110px; overflow: hidden; text-overflow: ellipsis;
+        }
+        .dnb-logout {
+          display: flex; align-items: center; gap: 5px;
+          padding: 0 11px; height: 32px; border-radius: 8px;
+          border: 1px solid var(--c-border); background: var(--c-surface-2);
+          color: var(--c-muted); font-size: .74rem; font-weight: 600;
+          cursor: pointer; font-family: inherit; transition: all .14s;
+        }
+        .dnb-logout:hover { background: #FEE2E2; border-color: #FCA5A5; color: #DC2626; }
+        .dnb-logout svg { width: 12px; height: 12px; }
+      `}</style>
 
-      {/* Right Section: User and Actions */}
-      <div className="flex items-center gap-4">
-        {/* Theme Toggle */}
-        <button
-          onClick={onThemeToggle}
-          className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-          aria-label="Toggle Theme"
-        >
-          {isDarkMode ? (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 3v1m0 16v1m8.66-8.66h-1M4.34 12h-1m15.07-5.07l-.7.7M6.34 17.66l-.7.7m12.02 0l-.7-.7M6.34 6.34l-.7-.7M12 5a7 7 0 100 14 7 7 0 000-14z"></path>
-            </svg>
-          ) : (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
-            </svg>
-          )}
-        </button>
+      <header className="dnb">
+        <nav className="dnb-breadcrumb">
+          <span>Velamini</span>
+          <span className="dnb-sep">/</span>
+          <span className="dnb-active">{viewLabels[activeView] ?? activeView}</span>
+        </nav>
 
-        {/* User Avatar */}
-        <div className="flex items-center gap-2">
-          <img
-            src={user?.image || "/logo.png"}
-            alt="User Avatar"
-            className="w-8 h-8 rounded-full border border-primary"
-          />
-          <span className="text-sm text-gray-600">{user?.name || "User"}</span>
+        <div className="dnb-right">
+          <button className="dnb-icon-btn" onClick={onThemeToggle} title="Toggle theme">
+            {isDarkMode ? <Sun size={13} /> : <Moon size={13} />}
+          </button>
+          <div className="dnb-divider" />
+          <div className="dnb-user">
+            <img src={user?.image || "/logo.png"} alt={user?.name ?? "User"} className="dnb-av" />
+            <span className="dnb-name">{user?.name ?? "User"}</span>
+          </div>
+          <button className="dnb-logout" onClick={() => signOut({ callbackUrl: "/signin" })}>
+            <LogOut size={12} /> Sign out
+          </button>
         </div>
-
-        {/* Logout Button */}
-        <a
-          href="/logout"
-          className="flex items-center gap-2 text-danger hover:text-danger-dark"
-          aria-label="Sign out"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
-        </a>
-      </div>
-    </div>
+      </header>
+    </>
   );
 }

@@ -1,346 +1,322 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PaperPlaneIcon } from "@radix-ui/react-icons";
-import { User as UserIcon } from "lucide-react";
+import { Send, Plus, Bot, User as UserIcon } from "lucide-react";
 
-type Message = {
-  id: number;
-  role: "user" | "assistant";
-  content: string;
-};
-
-// import { getAISystemPrompt } from "@/lib/ai-config";
+type Message = { id: number; role: "user" | "assistant"; content: string };
 
 interface DashboardChatProps {
-  user?: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
-  knowledgeBase?: any; // Now used for persona
+  user?: { name?: string | null; email?: string | null; image?: string | null };
+  knowledgeBase?: any;
 }
 
-function ChatInput({
-  input,
-  setInput,
-  onSend,
-  placeholder,
-}: {
-  input: string;
-  setInput: React.Dispatch<React.SetStateAction<string>>;
-  onSend: () => void | Promise<void>;
-  placeholder?: string;
-}) {
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      onSend();
-    }
-  };
-
-  return (
-    <div className="flex w-full gap-2 items-center bg-transparent">
-      <div className="flex-1 flex items-center bg-base-200 rounded-2xl px-4 py-3 shadow-md border border-base-300 focus-within:ring-2 focus-within:ring-primary">
-        <input
-          className="flex-1 bg-transparent text-base-content placeholder-base-content/60 focus:outline-none text-lg font-medium"
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder || "Type a message..."}
-          autoFocus
-        />
-        <button
-          className="ml-2 p-2 rounded-full bg-primary text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all border-none outline-none"
-          onClick={onSend}
-          disabled={!input.trim()}
-          aria-label="Send"
-          type="button"
-        >
-          <PaperPlaneIcon className="w-6 h-6" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function DashboardChat({ user, knowledgeBase }: DashboardChatProps) {
-  const [input, setInput] = useState("");
+export default function DashboardChat({ user, knowledgeBase }: DashboardChatProps) {
+  const [input, setInput]       = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const bottomRef               = useRef<HTMLDivElement>(null);
+  const textareaRef             = useRef<HTMLTextAreaElement>(null);
 
-  // New chat handler
-  const handleNewChat = () => {
-    setMessages([]);
-    localStorage.removeItem("velamini_dashboard_chat_history");
-    setInput("");
-  };
-
-  // Load from localStorage
+  // Persist chat
   useEffect(() => {
-    const saved = localStorage.getItem("velamini_dashboard_chat_history");
-    if (saved) {
-      try {
-        setMessages(JSON.parse(saved));
-      } catch (err) {
-        console.error("Failed to parse dashboard chat history:", err);
-      }
-    }
+    try {
+      const saved = localStorage.getItem("v_dash_chat");
+      if (saved) setMessages(JSON.parse(saved));
+    } catch {}
   }, []);
-
-  // Save to localStorage
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem("velamini_dashboard_chat_history", JSON.stringify(messages));
-    } else {
-      localStorage.removeItem("velamini_dashboard_chat_history");
-    }
+    try {
+      if (messages.length > 0) localStorage.setItem("v_dash_chat", JSON.stringify(messages));
+      else localStorage.removeItem("v_dash_chat");
+    } catch {}
   }, [messages]);
 
-  // Auto-scroll
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  // Auto scroll
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, isTyping]);
+
+  // Auto-resize textarea
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+  };
+
+  const handleNew = () => { setMessages([]); setInput(""); };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now(),
-      role: "user",
-      content: input.trim(),
-    };
-
-    // Detect if last assistant message was a question
-    const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant");
-    const lastQuestion = lastAssistantMsg && /\?$/.test(lastAssistantMsg.content.trim()) ? lastAssistantMsg.content.trim() : null;
-
-    setMessages((prev) => [...prev, userMessage]);
+    const userMsg: Message = { id: Date.now(), role: "user", content: input.trim() };
+    setMessages(p => [...p, userMsg]);
     setInput("");
+    if (textareaRef.current) { textareaRef.current.style.height = "auto"; }
     setIsTyping(true);
 
-    // If last message was a question, save Q&A pair
-    if (lastQuestion && userMessage.content.length > 1 && user?.name) {
+    // Save Q&A if prior message was a question
+    const lastAI = [...messages].reverse().find(m => m.role === "assistant");
+    if (lastAI && /\?$/.test(lastAI.content.trim())) {
       fetch("/api/knowledgebase/qa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: lastQuestion, answer: userMessage.content }),
-      }).catch((err) => console.error("Failed to save Q&A:", err));
+        body: JSON.stringify({ question: lastAI.content.trim(), answer: userMsg.content }),
+      }).catch(() => {});
     }
 
+    const systemPrompt = `You are a digital twin being trained by ${user?.name || "the user"}. 
+Always refer to them as your trainer/creator. You are their virtual self and are here to learn from them. 
+Respond concisely and helpfully.`;
+
     try {
-      const recentHistory = messages.slice(-6).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      // Custom system prompt for dashboard: AI is user's digital twin being trained
-      const systemPrompt = `You are a digital twin (virtual self) being trained by the user. The user is ${user?.name || "the person"}.
-    You must ALWAYS answer as if you are being trained by the user, who is your creator. NEVER say you don't know the user. ALWAYS refer to them as your trainer or creator.
-    Every answer must acknowledge the user as your creator/trainer, and you must never claim to be a stranger or not know them.
-    Your name is ${user?.name || "the person"}. When asked for your name, always say: 'My name is ${user?.name || "the person"}, because I am your digital twin.'
-    Always answer in simple, concise words unless the user asks for more detail.
-    Example: 'Thank you for teaching me, ${user?.name || "the person"}! As your digital twin, I will remember this.' or 'As your virtual self, I am here to learn from you and represent you.'`;
-
       const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: userMessage.content,
-          history: recentHistory,
+          message: userMsg.content,
+          history: messages.slice(-6).map(m => ({ role: m.role, content: m.content })),
           knowledgeBase: knowledgeBase || null,
           systemPrompt,
         }),
       });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+      if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
-
-      const assistantMessage: Message = {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: data.reply ?? data.text ?? data.message ?? "Sorry, I couldn't generate a response.",
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err) {
-      console.error("Chat request failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          role: "assistant",
-          content: "Sorry, there was a connection issue. Please try again.",
-        },
-      ]);
-    } finally {
-      setIsTyping(false);
-    }
+      setMessages(p => [...p, { id: Date.now() + 1, role: "assistant", content: data.reply ?? data.text ?? data.message ?? "Sorry, I couldn't respond." }]);
+    } catch {
+      setMessages(p => [...p, { id: Date.now() + 1, role: "assistant", content: "Connection issue. Please try again." }]);
+    } finally { setIsTyping(false); }
   };
 
-  const avatarSrc = user?.image || "/logo.png"; // fallback same for user & assistant
+  const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  };
 
   return (
-    <div className="relative flex-1 min-h-screen overflow-hidden bg-base-100 text-base-content">
-      {/* New Chat Button */}
-      <div className="absolute top-4 right-4 z-20">
-        <button
-          className="btn btn-primary"
-          onClick={handleNewChat}
-        >
-          New Chat
-        </button>
-      </div>
-      {/* HUD grid background */}
-      <div className="pointer-events-none absolute inset-0 hud-grid opacity-20" />
+    <>
+      <style>{`
+        .dc {
+          display: flex; flex-direction: column;
+          height: 100%; min-height: calc(100dvh - 52px);
+          background: var(--c-bg); transition: background .3s;
+        }
+        @media(min-width:1024px){ .dc { min-height: calc(100vh - 56px); } }
 
-      {/* Floating particles */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <span
-            key={i}
-            className="absolute h-1 w-1 rounded-full bg-primary animate-float"
-            style={{
-              left: `${(i * 17) % 100}%`,
-              top: `${(i * 29) % 100}%`,
-              animationDelay: `${(i % 7) * 0.5}s`,
-              animationDuration: `${3 + (i % 5)}s`,
-            }}
-          />
-        ))}
-      </div>
+        /* Header */
+        .dc-head {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 14px 16px; border-bottom: 1px solid var(--c-border);
+          background: var(--c-surface); flex-shrink: 0;
+          transition: background .3s, border-color .3s;
+        }
+        @media(min-width:600px){ .dc-head { padding: 16px 24px; } }
+        .dc-head-left { display: flex; align-items: center; gap: 10px; }
+        .dc-head-av {
+          width: 36px; height: 36px; border-radius: 10px; object-fit: cover;
+          border: 2px solid var(--c-accent); flex-shrink: 0;
+        }
+        .dc-head-name { font-size: .9rem; font-weight: 700; color: var(--c-text); }
+        .dc-head-role { font-size: .7rem; color: var(--c-muted); margin-top: 1px; }
+        .dc-head-online {
+          display: inline-flex; align-items: center; gap: 5px;
+          font-size: .65rem; font-weight: 700; color: #22C55E;
+          background: rgba(34,197,94,.1); padding: 2px 8px; border-radius: 20px;
+        }
+        .dc-head-online-dot { width: 5px; height: 5px; border-radius: 50%; background: #22C55E; }
 
-      <div className="flex flex-col h-screen w-full items-center justify-center bg-transparent relative z-10">
-        <div className="w-full max-w-2xl h-[90vh] flex flex-col bg-base-200 rounded-xl shadow-lg overflow-hidden">
-          {/* Header */}
-          <div className="px-6 py-4 flex items-center gap-3 border-b border-base-300">
-            <img
-              src={avatarSrc}
-              alt="Avatar"
-              className="w-10 h-10 rounded-full border-2 border-primary shadow-sm object-cover"
-            />
+        .dc-new-btn {
+          display: flex; align-items: center; gap: 5px;
+          padding: 0 12px; height: 32px; border-radius: 8px;
+          border: 1px solid var(--c-border); background: var(--c-surface-2);
+          color: var(--c-muted); font-size: .75rem; font-weight: 600;
+          cursor: pointer; transition: all .14s; font-family: inherit;
+        }
+        .dc-new-btn:hover { color: var(--c-accent); border-color: var(--c-accent); background: var(--c-accent-soft); }
+        .dc-new-btn svg { width: 12px; height: 12px; }
+
+        /* Messages */
+        .dc-msgs {
+          flex: 1; overflow-y: auto; padding: 18px 14px;
+          display: flex; flex-direction: column; gap: 14px;
+          scrollbar-width: thin; scrollbar-color: var(--c-border) transparent;
+          -webkit-overflow-scrolling: touch;
+        }
+        @media(min-width:600px){ .dc-msgs { padding: 24px 24px; } }
+        .dc-msgs::-webkit-scrollbar { width: 3px; }
+        .dc-msgs::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 3px; }
+
+        /* Empty state */
+        .dc-empty {
+          flex: 1; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; gap: 12px;
+          opacity: .65; user-select: none; text-align: center;
+          padding: 40px 20px;
+        }
+        .dc-empty-av {
+          width: 64px; height: 64px; border-radius: 18px; object-fit: cover;
+          border: 2px solid var(--c-border);
+        }
+        .dc-empty-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--c-text); }
+        .dc-empty-sub { font-size: .8rem; color: var(--c-muted); }
+
+        /* Message rows */
+        .dc-row { display: flex; gap: 10px; max-width: 680px; }
+        .dc-row--user { align-self: flex-end; flex-direction: row-reverse; }
+        .dc-row--ai { align-self: flex-start; }
+
+        .dc-av-wrap {
+          width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--c-surface-2); border: 1px solid var(--c-border); overflow: hidden;
+          margin-top: 2px;
+        }
+        .dc-av-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .dc-av-wrap svg { width: 14px; height: 14px; color: var(--c-muted); }
+
+        .dc-bubble-wrap { display: flex; flex-direction: column; gap: 3px; }
+        .dc-sender { font-size: .68rem; font-weight: 600; color: var(--c-muted); padding: 0 3px; }
+        .dc-row--user .dc-sender { text-align: right; }
+
+        .dc-bubble {
+          padding: 10px 14px; border-radius: 14px;
+          font-size: .855rem; line-height: 1.6; color: var(--c-text);
+          max-width: min(72vw, 440px); word-break: break-word;
+          transition: background .3s;
+        }
+        .dc-bubble--ai {
+          background: var(--c-surface);
+          border: 1px solid var(--c-border);
+          border-radius: 14px 14px 14px 3px;
+        }
+        .dc-bubble--user {
+          background: var(--c-accent);
+          color: #fff;
+          border-radius: 14px 14px 3px 14px;
+        }
+        .dc-time { font-size: .62rem; color: var(--c-muted); padding: 0 3px; }
+        .dc-row--user .dc-time { text-align: right; }
+
+        /* Typing dots */
+        .dc-typing {
+          display: flex; align-items: center; gap: 5px;
+          padding: 10px 14px; border-radius: 14px 14px 14px 3px;
+          background: var(--c-surface); border: 1px solid var(--c-border);
+        }
+        .dc-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: var(--c-muted);
+          animation: dcbounce 1.2s infinite;
+        }
+        .dc-dot:nth-child(2) { animation-delay: .18s; }
+        .dc-dot:nth-child(3) { animation-delay: .36s; }
+        @keyframes dcbounce { 0%,80%,100%{transform:scale(.8);opacity:.5} 40%{transform:scale(1.15);opacity:1} }
+
+        /* Input */
+        .dc-input-wrap {
+          flex-shrink: 0; padding: 12px 14px 14px;
+          border-top: 1px solid var(--c-border);
+          background: var(--c-surface); transition: background .3s, border-color .3s;
+        }
+        @media(min-width:600px){ .dc-input-wrap { padding: 14px 24px 18px; } }
+        .dc-input-row {
+          display: flex; align-items: flex-end; gap: 8px;
+          background: var(--c-surface-2);
+          border: 1.5px solid var(--c-border);
+          border-radius: 13px; padding: 8px 8px 8px 14px;
+          transition: border-color .15s;
+        }
+        .dc-input-row:focus-within { border-color: var(--c-accent); }
+        .dc-textarea {
+          flex: 1; background: none; border: none; outline: none; resize: none;
+          font-size: .88rem; line-height: 1.5; color: var(--c-text);
+          font-family: inherit; min-height: 24px; max-height: 120px;
+          padding: 0; overflow-y: auto;
+        }
+        .dc-textarea::placeholder { color: var(--c-muted); }
+        .dc-send {
+          width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--c-accent); color: #fff;
+          border: none; cursor: pointer; transition: all .14s;
+        }
+        .dc-send:hover { background: var(--c-accent-dim); }
+        .dc-send:disabled { opacity: .45; cursor: not-allowed; }
+        .dc-send svg { width: 14px; height: 14px; }
+        .dc-hint { font-size: .68rem; color: var(--c-muted); text-align: center; margin-top: 7px; }
+      `}</style>
+
+      <div className="dc">
+        {/* Header */}
+        <div className="dc-head">
+          <div className="dc-head-left">
+            <img src={user?.image || "/logo.png"} alt={user?.name ?? "AI"} className="dc-head-av" />
             <div>
-              <div className="font-semibold text-lg text-base-content">
-                {user?.name || "Velamini Dashboard"}
-              </div>
-              <div className="text-xs text-base-content/60">
-                AI Assistant
-              </div>
+              <div className="dc-head-name">{user?.name ?? "Velamini AI"}</div>
+              <div className="dc-head-role">Digital twin · AI assistant</div>
             </div>
+            <div className="dc-head-online"><span className="dc-head-online-dot" /> Online</div>
           </div>
+          <button className="dc-new-btn" onClick={handleNew}><Plus size={12} /> New chat</button>
+        </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full opacity-70 select-none">
-                <img
-                  src="/logo.png"
-                  alt="Assistant"
-                  className="w-20 h-20 mb-5 rounded-full shadow-lg"
-                />
-                <div className="text-xl font-medium text-base-content mb-2">
-                  Start a conversation
-                </div>
-                <div className="text-sm text-base-content/60">
-                  How can I help you today?
-                </div>
-              </div>
-            )}
-
-            {messages.map((msg) => {
+        {/* Messages */}
+        <div className="dc-msgs">
+          {messages.length === 0 ? (
+            <div className="dc-empty">
+              <img src="/logo.png" alt="AI" className="dc-empty-av" />
+              <div className="dc-empty-title">Start a conversation</div>
+              <div className="dc-empty-sub">Ask anything — your AI twin is ready to learn.</div>
+            </div>
+          ) : (
+            messages.map(msg => {
               const isUser = msg.role === "user";
-              let bubbleClass = isUser
-                ? "chat-bubble chat-bubble-primary text-base-content"
-                : "chat-bubble bg-accent text-accent-content";
-              let avatar: React.ReactNode = null;
-              if (isUser) {
-                avatar = <UserIcon className="w-8 h-8 text-primary" />;
-              } else {
-                avatar = user?.image ? (
-                  <img alt="Avatar" src={user.image} />
-                ) : (
-                  <UserIcon className="w-8 h-8 text-accent" />
-                );
-              }
-              let name = isUser ? "You" : user?.name || "AI Assistant";
-              let time = new Date(msg.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-              let footer = isUser ? "Delivered" : `Seen at ${time}`;
+              const t = new Date(msg.id).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
               return (
-                <div key={msg.id} className={`chat ${isUser ? "chat-end" : "chat-start"}`}>
-                  <div className="chat-image avatar">
-                    <div className="w-10 h-10 rounded-full bg-base-100 border border-base-300 flex items-center justify-center overflow-hidden">
-                      {avatar}
-                    </div>
+                <div key={msg.id} className={`dc-row ${isUser ? "dc-row--user" : "dc-row--ai"}`}>
+                  <div className="dc-av-wrap">
+                    {isUser
+                      ? (user?.image ? <img src={user.image} alt="You" /> : <UserIcon />)
+                      : (user?.image ? <img src={user.image} alt="AI" /> : <Bot />)
+                    }
                   </div>
-                  <div className="chat-header text-base-content">
-                    {name}
-                    <time className="text-xs opacity-50">{time}</time>
+                  <div className="dc-bubble-wrap">
+                    <div className="dc-sender">{isUser ? "You" : user?.name ?? "AI"}</div>
+                    <div className={`dc-bubble ${isUser ? "dc-bubble--user" : "dc-bubble--ai"}`}>{msg.content}</div>
+                    <div className="dc-time">{t}</div>
                   </div>
-                  <div className={bubbleClass}>{msg.content}</div>
-                  <div className="chat-footer opacity-50 text-base-content/60">{footer}</div>
                 </div>
               );
-            })}
+            })
+          )}
 
-            {isTyping && (
-              <div className="flex justify-start items-end mb-5">
-                <img
-                  src="/logo.png"
-                  alt="Assistant"
-                  className="w-8 h-8 rounded-full mr-2 shadow-sm border border-primary"
-                />
-                <div className="px-4 py-3 rounded-2xl bg-base-100 border border-base-300 rounded-bl-none">
-                  <div className="flex gap-1.5 items-center h-6">
-                    <div className="w-2.5 h-2.5 bg-base-content rounded-full animate-bounce [animation-delay:0ms]"></div>
-                    <div className="w-2.5 h-2.5 bg-base-content rounded-full animate-bounce [animation-delay:180ms]"></div>
-                    <div className="w-2.5 h-2.5 bg-base-content rounded-full animate-bounce [animation-delay:360ms]"></div>
-                  </div>
-                </div>
+          {isTyping && (
+            <div className="dc-row dc-row--ai">
+              <div className="dc-av-wrap">
+                {user?.image ? <img src={user.image} alt="AI" /> : <Bot />}
               </div>
-            )}
+              <div className="dc-typing">
+                <div className="dc-dot" /><div className="dc-dot" /><div className="dc-dot" />
+              </div>
+            </div>
+          )}
 
-            <div ref={bottomRef} />
-          </div>
+          <div ref={bottomRef} />
+        </div>
 
-          {/* Input area */}
-          <div className="px-6 py-4 mt-3">
-            <ChatInput
-              input={input}
-              setInput={setInput}
-              onSend={sendMessage}
-              placeholder="Ask anything..."
+        {/* Input */}
+        <div className="dc-input-wrap">
+          <div className="dc-input-row">
+            <textarea
+              ref={textareaRef}
+              className="dc-textarea"
+              value={input}
+              onChange={handleInput}
+              onKeyDown={onKey}
+              placeholder="Ask anything…"
+              rows={1}
             />
+            <button className="dc-send" onClick={sendMessage} disabled={!input.trim()}>
+              <Send size={14} />
+            </button>
           </div>
+          <div className="dc-hint">Enter to send · Shift+Enter for new line</div>
         </div>
       </div>
-
-      {/* Optional global styles – better to move to globals.css or component CSS module */}
-      <style jsx global>{`
-        @keyframes bounce {
-          0%, 80%, 100% { transform: scale(1); }
-          40% { transform: scale(1.35); }
-        }
-        .animate-bounce {
-          animation: bounce 1.3s infinite;
-        }
-        @keyframes float {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
-          100% { transform: translateY(0); }
-        }
-        .animate-float {
-          animation: float 4s ease-in-out infinite;
-        }
-        .hud-grid {
-          background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-          background-size: 40px 40px;
-        }
-      `}</style>
-    </div>
+    </>
   );
 }
-
-export default DashboardChat;

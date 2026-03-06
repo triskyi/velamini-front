@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { FileText, Download, X, Loader, Sparkles, Lock, BookOpen } from "lucide-react";
+import { FileText, Download, X, Sparkles, Lock, BookOpen } from "lucide-react";
 
-const BASE64_LOGO = "data:image/png;base64,REPLACE_WITH_YOUR_BASE64_STRING";
-const TEMPLATE = { id: "modern-yellow", name: "Modern Yellow", image: BASE64_LOGO };
+const TEMPLATE = { id: "modern-yellow", name: "Modern Yellow" };
 const MIN_KNOWLEDGE = 4;
+
+// Derives the filled-section count from a knowledge base object
+function countSections(kb: Record<string, string | null | undefined>): number {
+  return [kb.bio, kb.education, kb.experience, kb.skills, kb.projects]
+    .filter(v => v && v.trim().length > 10).length;
+}
 
 export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: number }) {
   const [showPreview, setShowPreview]   = useState(false);
@@ -14,7 +19,17 @@ export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: nu
   const [resumeHtml, setResumeHtml]     = useState("");
   const [downloading, setDownloading]   = useState(false);
   const [error, setError]               = useState<string | null>(null);
+  // Live count — fetched on mount so it reflects any training done this session
+  const [liveCount, setLiveCount]       = useState<number>(knowledgeItems);
   const { data: session }               = useSession();
+
+  // Fetch current knowledge sections to get an up-to-date count
+  useEffect(() => {
+    fetch("/api/training")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.knowledgeBase) setLiveCount(countSections(d.knowledgeBase)); })
+      .catch(() => {});
+  }, []);
 
   const generate = async () => {
     setLoading(true); setShowPreview(true); setError(null); setResumeHtml("");
@@ -224,7 +239,7 @@ export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: nu
               ))}
             </div>
 
-            {knowledgeItems >= MIN_KNOWLEDGE ? (
+            {liveCount >= MIN_KNOWLEDGE ? (
               <>
                 <button className="rv-btn" onClick={generate} disabled={loading}>
                   {loading ? <><div className="rv-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Generating…</> : <><Sparkles size={15} /> Generate Resume</>}
@@ -236,14 +251,14 @@ export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: nu
                 <div className="rv-locked-icon"><Lock size={24} /></div>
                 <div className="rv-locked-title">Complete your knowledge base first</div>
                 <div className="rv-locked-sub">
-                  Resume generation requires at least <strong>{MIN_KNOWLEDGE} knowledge items</strong> so the AI has accurate information about you — no imagined content.
+                  Fill in at least <strong>4 of 5 sections</strong> (Bio, Education, Experience, Skills, Projects) so the AI has enough to work with — no imagined content.
                 </div>
                 <div className="rv-locked-progress">
                   <BookOpen size={14} style={{ color: 'var(--c-accent)', flexShrink: 0 }} />
                   <div className="rv-locked-bar-wrap">
-                    <div className="rv-locked-bar" style={{ width: `${Math.min((knowledgeItems / MIN_KNOWLEDGE) * 100, 100)}%` }} />
+                    <div className="rv-locked-bar" style={{ width: `${Math.min((liveCount / 5) * 100, 100)}%` }} />
                   </div>
-                  <span className="rv-locked-count">{knowledgeItems}/{MIN_KNOWLEDGE}</span>
+                  <span className="rv-locked-count">{liveCount}/5</span>
                 </div>
               </div>
             )}

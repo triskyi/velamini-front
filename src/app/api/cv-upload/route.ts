@@ -33,9 +33,10 @@ export async function POST(req: NextRequest) {
 
     if (ext === "pdf") {
       // Dynamically import so Next.js doesn't try to bundle it for edge
-      // pdf-parse is CJS — require() is more reliable than ESM dynamic import
+      // Use the core lib directly — the package index loads @napi-rs/canvas
+      // which crashes in Next.js serverless. lib/pdf-parse.js has no canvas deps.
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
+      const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (buf: Buffer) => Promise<{ text: string }>;
       const data = await pdfParse(buffer);
       extractedText = data.text?.trim() ?? "";
     } else {

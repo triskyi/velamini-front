@@ -1,11 +1,54 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
-import { PaperPlaneIcon } from "@radix-ui/react-icons";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Send, AlertCircle, RefreshCw } from "lucide-react";
 import FeedbackModal from "@/components/chat-ui/FeedbackModal";
 import ChatNavbar from "@/components/chat-ui/ChatNavbar";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+// Defined OUTSIDE the page so React never unmounts it on re-render
+interface ChatInputProps {
+  input: string;
+  setInput: (v: string) => void;
+  onSend: () => void;
+  isTyping: boolean;
+  placeholder?: string;
+}
+function ChatInput({ input, setInput, onSend, isTyping, placeholder }: ChatInputProps) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+  const isDisabled = !input.trim() || isTyping;
+  return (
+    <div className="flex w-full gap-2 sm:gap-3 items-end p-3 bg-base-200 rounded-xl border border-base-300 focus-within:border-primary transition-all">
+      <div className="flex-1">
+        <textarea
+          className="w-full px-2 sm:px-3 py-2 bg-transparent text-base-content placeholder-base-content/50 border-none outline-none resize-none min-h-[40px] max-h-36 text-sm sm:text-base leading-relaxed"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder || 'Type a message...'}
+          rows={1}
+        />
+      </div>
+      <button
+        className={`flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
+          isDisabled ? 'bg-base-300 text-base-content/40 cursor-not-allowed' : 'bg-primary text-primary-content hover:bg-primary/90'
+        }`}
+        onClick={onSend}
+        disabled={isDisabled}
+        aria-label="Send message"
+      >
+        {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+      </button>
+    </div>
+  );
 }
 
 export default function SharedChatPage({ params }: PageProps) {
@@ -29,42 +72,95 @@ export default function SharedChatPage({ params }: PageProps) {
   // Q&A pairs for this virtual self
   const [qaPairs, setQaPairs] = useState<Array<{ question: string; answer: string }>>([]);
 
-  // Fetch userId and virtual self info using swag as slug
+  // Fetch userId and virtual self info with proper loading states
   useEffect(() => {
     if (!slug) return;
-    fetch(`/api/swag/resolve?slug=${encodeURIComponent(slug)}`)
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
+    
+    setIsLoading(true);
+    setError(null);
+    
+    const fetchVirtualSelf = async () => {
+      try {
+        const res = await fetch(`/api/swag/resolve?slug=${encodeURIComponent(slug)}`);
+        if (!res.ok) throw new Error('Failed to load virtual self');
+        
+        const data = await res.json();
         if (data && data.userId) {
           setVirtualSelfId(data.userId);
           setVirtualSelf({ name: data.name, image: data.image });
-          fetch(`/api/knowledgebase/qa?userId=${data.userId}`)
-            .then((res) => res.ok ? res.json() : null)
-            .then((qaData) => {
-              if (qaData && Array.isArray(qaData.qaPairs)) setQaPairs(qaData.qaPairs);
-              else setQaPairs([]);
-            });
+          
+          // Fetch Q&A pairs
+          const qaRes = await fetch(`/api/knowledgebase/qa?userId=${data.userId}`);
+          if (qaRes.ok) {
+            const qaData = await qaRes.json();
+            setQaPairs(Array.isArray(qaData.qaPairs) ? qaData.qaPairs : []);
+          }
         } else {
-          setVirtualSelfId(null);
-          setVirtualSelf(null);
-          setQaPairs([]);
+          throw new Error('Virtual self not found');
         }
-      });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Something went wrong');
+        setVirtualSelfId(null);
+        setVirtualSelf(null);
+        setQaPairs([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchVirtualSelf();
   }, [slug]);
 
-  // Chat state and logic (copied from ChatPanel)
+  // Chat state and logic with enhanced UX states
   const [input, setInput] = useState("");
   type Message = {
     id: number;
     role: "user" | "assistant";
     content: string;
+    status?: "sending" | "sent" | "failed";
+    timestamp?: Date;
   };
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryMessage, setRetryMessage] = useState<Message | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Theme toggle functionality
+  useEffect(() => {
+    const theme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
+    const shouldBeDark = theme === 'dark' || (!theme && prefersDark);
+    setIsDarkMode(shouldBeDark);
+    
+    if (shouldBeDark) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   useEffect(() => {
     try {
@@ -89,18 +185,30 @@ export default function SharedChatPage({ params }: PageProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+  const sendMessage = async (messageToRetry?: Message) => {
+    const messageContent = messageToRetry?.content || input.trim();
+    if (!messageContent) return;
 
-    const userMessage: Message = {
+    const userMessage: Message = messageToRetry || {
       id: Date.now(),
       role: "user",
-      content: input.trim(),
+      content: messageContent,
+      status: "sending",
+      timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    if (!messageToRetry) {
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+    } else {
+      // Update retry message status
+      setMessages((prev) => 
+        prev.map(m => m.id === messageToRetry.id ? { ...m, status: "sending" } : m)
+      );
+    }
+    
     setIsTyping(true);
+    setRetryMessage(null);
 
     try {
       let recentHistory = messages.slice(-6).map((m) => ({
@@ -116,6 +224,10 @@ export default function SharedChatPage({ params }: PageProps) {
 
       // Wait for virtualSelfId to be resolved
       if (!virtualSelfId) {
+        setMessages((prev) => 
+          prev.map(m => m.id === userMessage.id ? { ...m, status: "failed" } : m)
+        );
+        setRetryMessage(userMessage);
         setIsTyping(false);
         return;
       }
@@ -139,24 +251,27 @@ export default function SharedChatPage({ params }: PageProps) {
 
       const data = await res.json();
 
+      // Mark user message as sent
+      setMessages((prev) => 
+        prev.map(m => m.id === userMessage.id ? { ...m, status: "sent" } : m)
+      );
+      
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           role: "assistant",
           content: data.text ?? data.error ?? "Sorry, something went wrong.",
+          timestamp: new Date(),
         } as Message,
       ]);
     } catch (err) {
       console.error("Chat request failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          role: "assistant",
-          content: "I'm having connection issues right now…",
-        } as Message,
-      ]);
+      // Mark user message as failed
+      setMessages((prev) => 
+        prev.map(m => m.id === userMessage.id ? { ...m, status: "failed" } : m)
+      );
+      setRetryMessage(userMessage);
     } finally {
       setIsTyping(false);
     }
@@ -168,201 +283,237 @@ export default function SharedChatPage({ params }: PageProps) {
     setInput("");
   };
 
-  interface ChatInputProps {
-    input: string;
-    setInput: React.Dispatch<React.SetStateAction<string>>;
-    onSend: () => void;
-    placeholder?: string;
-  }
 
-  function ChatInput({ input, setInput, onSend, placeholder }: ChatInputProps) {
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        onSend();
-      }
-    };
-    return (
-      <div className="flex w-full gap-3 items-center p-4 sm:p-6 bg-zinc-900 rounded-lg shadow-lg border border-zinc-800">
-        <input
-          className="flex-1 px-4 py-4 sm:px-8 sm:py-6 bg-transparent text-zinc-100 placeholder-zinc-400 border-none focus:outline-none focus:ring-2 focus:ring-cyan-500/60 rounded-md text-lg sm:text-2xl transition"
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder || "Type a message..."}
-          autoFocus
-        />
-        <button
-          className="flex items-center justify-center p-4 sm:p-5 text-cyan-500 rounded-md bg-transparent hover:bg-transparent focus:bg-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-cyan-400"
-          onClick={onSend}
-          disabled={!input.trim()}
-          aria-label="Send message"
-        >
-          <PaperPlaneIcon className="w-7 h-7 sm:w-8 sm:h-8" />
-        </button>
-      </div>
-    );
-  }
+
+  const hasMessages = messages.length > 0;
 
   return (
-    <div className="relative flex-1 min-h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
-      {/* HUD grid background */}
-      <div className="pointer-events-none absolute inset-0 hud-grid opacity-20" />
-
-      {/* Floating particles */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <span
-            key={i}
-            className="absolute h-1 w-1 rounded-full bg-cyan-400 animate-float"
-            style={{
-              left: `${(i * 17) % 100}%`,
-              top: `${(i * 29) % 100}%`,
-              animationDelay: `${(i % 7) * 0.5}s`,
-              animationDuration: `${3 + (i % 5)}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative z-10 flex h-screen">
-        <main className="flex flex-1 flex-col">
-          <div className="flex flex-1">
-            <section className="flex-1 border-r border-gray-800/50">
-              {/* Chat UI */}
-              <div className="h-screen w-full flex flex-col bg-whitesmoke text-gray-100 font-sans overflow-hidden">
-                <ChatNavbar
-                  onShowFeedback={() => setShowFeedbackModal(true)}
-                  onNewChat={handleNewChat}
-                />
-
-                <div
-                  className={`flex-1 flex flex-col items-center px-1 sm:px-4 pt-3 sm:pt-6 pb-24 sm:pb-20 overflow-y-auto ${
-                    messages.length === 0 ? "justify-center" : "justify-start"
-                  }`}
-                >
-                  <div className="w-full max-w-full sm:max-w-3xl mx-auto flex flex-col min-h-full">
-                    {messages.length > 0 && (
-                      <div className="flex flex-col gap-2">
-                        {messages.map((msg, idx) => {
-                          // DaisyUI bubble color logic
-                          let bubbleClass = "chat-bubble chat-bubble-primary";
-                          let avatar = "/logo.png";
-                          let name = "You";
-                          let time = new Date(msg.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                          let footer = "Delivered";
-                          if (msg.role === "assistant") {
-                            const assistantColors = [
-                              "chat-bubble-info",
-                              "chat-bubble-success",
-                             
-                            ];
-                            bubbleClass = `chat-bubble ${assistantColors[idx % assistantColors.length]}`;
-                            avatar = virtualSelf?.image || "/logo.png";
-                            name = virtualSelf?.name || "Virtual Self";
-                            footer = `Seen at ${time}`;
-                          } else {
-                            const userColors = [
-                              "chat-bubble-primary",
-                              "chat-bubble-secondary",
-                              
-                            ];
-                            bubbleClass = `chat-bubble ${userColors[idx % userColors.length]}`;
-                          }
-                          // Always show user messages on right, assistant on left
-                          const isCurrentUser = msg.role === "user";
-                          return (
-                            <div
-                              key={msg.id}
-                              className={`chat ${isCurrentUser ? "chat-end" : "chat-start"}`}
-                            >
-                              <div className="chat-image avatar">
-                                <div className="w-10 rounded-full">
-                                  <img alt="Avatar" src={avatar} />
-                                </div>
-                              </div>
-                              <div className="chat-header">
-                                {name}
-                                <time className="text-xs opacity-50">{time}</time>
-                              </div>
-                              <div className={bubbleClass}>{msg.content}</div>
-                              <div className="chat-footer opacity-50">{footer}</div>
-                            </div>
-                          );
-                        })}
-                        {isTyping && virtualSelf && (
-                          <div className="chat chat-start">
-                            <div className="chat-image avatar">
-                              <div className="w-10 rounded-full">
-                                <img alt="Avatar" src={virtualSelf?.image || "/logo.png"} />
-                              </div>
-                            </div>
-                            <div className="chat-header">
-                              {virtualSelf?.name || "Virtual Self"}
-                              <time className="text-xs opacity-50">...</time>
-                            </div>
-                            <div className="chat-bubble chat-bubble-info">Typing...</div>
-                            <div className="chat-footer opacity-50">...</div>
-                          </div>
-                        )}
-                        {!virtualSelf && (
-                          <div className="chat chat-start">
-                            <div className="chat-image avatar">
-                              <div className="w-10 rounded-full">
-                                <img alt="Avatar" src={"/logo.png"} />
-                              </div>
-                            </div>
-                            <div className="chat-header">
-                              Virtual Self
-                              <time className="text-xs opacity-50">...</time>
-                            </div>
-                            <div className="chat-bubble chat-bubble-error">Virtual self not available.</div>
-                            <div className="chat-footer opacity-50">...</div>
-                          </div>
-                        )}
-                        <div ref={bottomRef} />
-                      </div>
-                    )}
-
-                    {/* Input in the middle if new chat */}
-                    {messages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center flex-1">
-                        <div className="w-full max-w-xl mx-auto">
-                          <ChatInput
-                            input={input}
-                            setInput={setInput}
-                            onSend={sendMessage}
-                            placeholder="Ask anything..."
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="sticky bottom-0 pt-4 pb-6 bg-gradient-to-t from-gray-950 via-gray-950/90 to-transparent">
-                        <ChatInput
-                          input={input}
-                          setInput={setInput}
-                          onSend={sendMessage}
-                          placeholder="Ask anything..."
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <FeedbackModal
-                  isOpen={showFeedbackModal}
-                  onClose={() => setShowFeedbackModal(false)}
-                  rating={rating}
-                  setRating={setRating}
-                  feedbackText={feedbackText}
-                  setFeedbackText={setFeedbackText}
-                />
+    <div className="flex flex-col h-screen bg-base-100 overflow-hidden">
+      {/* Loading overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-base-100/80 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center gap-4 p-6 sm:p-8 bg-base-200 rounded-2xl border border-base-300 shadow-xl mx-4">
+              <Loader2 className="w-7 h-7 animate-spin text-primary" />
+              <div className="text-center">
+                <p className="font-medium text-sm sm:text-base">Loading virtual self...</p>
+                <p className="text-base-content/60 text-xs sm:text-sm mt-1">Preparing your conversation</p>
               </div>
-            </section>
-          </div>
-        </main>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Error State */}
+      <AnimatePresence>
+        {error && !isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-base-100/80 backdrop-blur-sm p-4"
+          >
+            <div className="flex flex-col items-center gap-4 p-6 sm:p-8 bg-base-200 rounded-2xl border border-error/30 shadow-xl max-w-sm sm:max-w-md w-full">
+              <div className="p-3 bg-error/10 rounded-full">
+                <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-error" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-base sm:text-lg font-semibold text-base-content mb-2">Connection Error</h3>
+                <p className="text-base-content/70 mb-4 text-sm sm:text-base">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="btn btn-primary btn-sm"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <ChatNavbar
+        onShowFeedback={() => setShowFeedbackModal(true)}
+        onNewChat={handleNewChat}
+        isDarkMode={isDarkMode}
+        onToggleTheme={toggleTheme}
+      />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <AnimatePresence mode="wait">
+          {!hasMessages ? (
+            /* ── WELCOME SCREEN ── */
+            <motion.div
+              key="welcome"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 overflow-y-auto"
+            >
+              {!isLoading && !error && virtualSelf && (
+                <div className="w-full max-w-xl flex flex-col items-center text-center">
+                  {/* Avatar */}
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", duration: 0.6 }}
+                    className="relative mb-5"
+                  >
+                    <img
+                      src={virtualSelf.image || "/logo.png"}
+                      alt={virtualSelf.name}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-base-300 shadow-lg bg-base-100"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-base-100" />
+                  </motion.div>
+
+                  <motion.h2
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-xl sm:text-2xl font-semibold text-base-content mb-1"
+                  >
+                    {virtualSelf.name}
+                  </motion.h2>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-base-content/60 text-sm mb-6"
+                  >
+                    Start a conversation
+                  </motion.p>
+
+                  {/* Chat input on welcome screen */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="w-full"
+                  >
+                    <ChatInput
+                      input={input}
+                      setInput={setInput}
+                      onSend={sendMessage}
+                      isTyping={isTyping}
+                      placeholder={`Message ${virtualSelf.name}…`}
+                    />
+                  </motion.div>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            /* ── CONVERSATION VIEW ── */
+            <motion.div
+              key="conversation"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25 }}
+              className="flex-1 flex flex-col overflow-hidden"
+            >
+              {/* Scrollable message list */}
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col items-center">
+                <div className="w-full max-w-xl flex flex-col gap-3 sm:gap-4 pb-2">
+                  {messages.map((msg) => {
+                    const isCurrentUser = msg.role === "user";
+                    const avatar = isCurrentUser ? "/logo.png" : (virtualSelf?.image || "/logo.png");
+                    const name = isCurrentUser ? "You" : (virtualSelf?.name || "Virtual Self");
+                    const time = msg.timestamp
+                      ? msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                      : new Date(msg.id).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ type: "spring", duration: 0.4 }}
+                        className={`chat ${isCurrentUser ? "chat-end" : "chat-start"}`}
+                      >
+                        <div className="chat-image avatar">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full">
+                            <img alt={`${name} avatar`} src={avatar} className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                        <div className="chat-header">
+                          <span className="text-xs text-base-content/60">{name}</span>
+                          <time className="text-xs text-base-content/40 ml-2">{time}</time>
+                        </div>
+                        <div className={`chat-bubble text-sm ${
+                          isCurrentUser ? "chat-bubble-primary" : "chat-bubble-accent"
+                        }`}>
+                          {msg.content}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Typing indicator — three bouncing dots */}
+                  <AnimatePresence>
+                    {isTyping && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="chat chat-start"
+                      >
+                        <div className="chat-image avatar">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full">
+                            <img alt="avatar" src={virtualSelf?.image || "/logo.png"} />
+                          </div>
+                        </div>
+                        <div className="chat-bubble chat-bubble-accent">
+                          <span className="flex items-center gap-1 h-4">
+                            {[0, 1, 2].map((i) => (
+                              <motion.span
+                                key={i}
+                                className="block w-2 h-2 rounded-full bg-current"
+                                animate={{ y: [0, -5, 0] }}
+                                transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div ref={bottomRef} />
+                </div>
+              </div>
+
+              {/* Fixed bottom input bar */}
+              <div className="border-t border-base-200 bg-base-100 px-4 sm:px-6 py-3 sm:py-4 flex justify-center">
+                <div className="w-full max-w-xl">
+                  <ChatInput
+                    input={input}
+                    setInput={setInput}
+                    onSend={sendMessage}
+                    isTyping={isTyping}
+                    placeholder={virtualSelf ? `Message ${virtualSelf.name}…` : "Type a message…"}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        rating={rating}
+        setRating={setRating}
+        feedbackText={feedbackText}
+        setFeedbackText={setFeedbackText}
+      />
     </div>
   );
-}
+};

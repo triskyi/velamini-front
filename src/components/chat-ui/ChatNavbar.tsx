@@ -2,16 +2,20 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MessageSquare, Plus, GraduationCap } from "lucide-react";
+import { MessageSquare, Plus, GraduationCap, Sun, Moon } from "lucide-react";
 
 interface ChatNavbarProps {
   onShowFeedback: () => void;
   onNewChat: () => void;
+  isDarkMode: boolean;
+  onToggleTheme: () => void;
 }
 
 export default function ChatNavbar({ 
   onShowFeedback, 
-  onNewChat
+  onNewChat,
+  isDarkMode,
+  onToggleTheme
 }: ChatNavbarProps) {
   const router = useRouter();
 
@@ -21,7 +25,7 @@ export default function ChatNavbar({
   };
 
   return (
-    <div className="w-full flex flex-col sm:flex-row justify-between items-center px-4 py-4 sm:px-8 sm:py-6 gap-4 sm:gap-0">
+    <div className="sticky top-0 z-30 w-full flex flex-col sm:flex-row justify-between items-center px-4 py-3 sm:px-8 sm:py-4 gap-4 sm:gap-0 bg-base-100/90 backdrop-blur-md border-b border-base-200">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl border border-zinc-800 flex items-center justify-center overflow-hidden p-1 bg-black/50 backdrop-blur-sm">
           <Image 
@@ -46,6 +50,18 @@ export default function ChatNavbar({
 
         <div className="w-px h-6 bg-zinc-800 mx-1" /> 
 
+        <button 
+          onClick={onToggleTheme}
+          className="btn btn-ghost btn-sm text-zinc-500 hover:text-white hover:bg-cyan-500/80 focus:text-white focus:bg-cyan-500/80"
+          aria-label="Toggle theme"
+        >
+          {isDarkMode ? (
+            <Sun className="w-4 h-4" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          )}
+        </button>
+        
         <button 
           onClick={onShowFeedback}
           className="btn btn-ghost btn-sm text-zinc-500 hover:text-white hover:bg-cyan-500/80 focus:text-white focus:bg-cyan-500/80 gap-2"

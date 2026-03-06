@@ -32,15 +32,17 @@ export async function POST(req: NextRequest) {
     html = html.replace(/src=['"]\/logo\.png['"]/g, `src="${LOGO_DATA_URL}"`);
   }
 
+  let browser;
   try {
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
-        "--single-process",
-        "--no-zygote",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--font-render-hinting=none",
       ],
       headless: true,
     });
@@ -48,12 +50,13 @@ export async function POST(req: NextRequest) {
     // All content is inline (CSS + base64 images) — no external requests needed.
     // domcontentloaded is instant vs networkidle0 which waits 30s.
     await page.setContent(html, { waitUntil: "domcontentloaded" });
+    // Give the renderer a moment to finish layout before capturing PDF.
+    await new Promise((r) => setTimeout(r, 500));
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
       margin: { top: "15mm", bottom: "15mm", left: "14mm", right: "14mm" },
     });
-    await browser.close();
     return new Response(Buffer.from(pdfBuffer), {
       status: 200,
       headers: {
@@ -67,5 +70,7 @@ export async function POST(req: NextRequest) {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
+  } finally {
+    if (browser) await browser.close().catch(() => {});
   }
 }

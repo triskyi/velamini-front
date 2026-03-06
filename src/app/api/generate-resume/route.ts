@@ -5,9 +5,9 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
-    let userId, template;
+    let userId, template, tone, focus, jobTitle;
     try {
-      ({ userId, template } = JSON.parse(body));
+      ({ userId, template, tone, focus, jobTitle } = JSON.parse(body));
     } catch (e) {
       return NextResponse.json({ error: "Malformed JSON in request body", body }, { status: 400 });
     }
@@ -91,18 +91,41 @@ export async function POST(req: NextRequest) {
     };
 
     // Prepare prompt for DeepSeek LLM
-    const prompt = `You are an expert resume writer and designer. Given the following user data, write a professional resume in HTML using a modern, visually appealing, and maximal design. The resume must have a clear header (name, title, contact info, location) and a detailed body with all relevant sections: Education, Experience, Skills, Achievements, Certifications, Projects, Languages, Summary, etc.
+    const resolvedStyle  = template || "modern";
+    const resolvedTone   = tone    || "Professional";
+    const resolvedFocus  = focus   || "Balanced";
+    const targetRole     = jobTitle ? `Target Role: ${jobTitle}` : "";
 
-For each section, generate full, detailed entries. For education, include institution, years attended, degree, location, and a short description. For experience, include company, years, role, location, and achievements. For skills, list each skill with a short description or proficiency if available. For achievements, certifications, and projects, provide full details (name, year, description, etc.).
+    const prompt = `You are an expert resume writer and designer. Given the following user data, write a professional resume in HTML.
 
-At the bottom left corner of the resume, add our watermark logo using <img src='/logo.png' alt='logo' style='position: absolute; left: 24px; bottom: 24px; width: 60px; opacity: 0.15;'>. The logo should be subtle and not interfere with the content.
+STYLE PREFERENCES:
+- Visual Style: ${resolvedStyle} (modern=clean accent colours, classic=traditional, minimal=ultra-clean white space, bold=strong headers high impact)
+- Tone: ${resolvedTone}
+- Emphasis: ${resolvedFocus}
+${targetRole ? `- ${targetRole}` : ""}
 
-Parse and use all available JSON/text fields (education, experience, skills, awards, projects, etc.) from the knowledge base. If a field contains JSON, parse it and display the information in the appropriate section. If a field contains plain text, display it as a paragraph or list. Each section should have detailed content, not just the header. Do not invent facts. Return only the HTML, no explanations. Don't use word like professional summary just say summary. 
+DESIGN REQUIREMENTS:
+- Use a modern, visually appealing HTML layout with inline CSS only
+- Clear header: name, ${targetRole || "professional title"}, contact info, location
+- Detailed sections: Summary, Experience, Education, Skills, Projects, Achievements/Certifications
+- For each experience entry: company, role, years, location, bullet achievements
+- For education: institution, degree, years, short description
+- For skills: list with categories if possible
+- Tone should feel ${resolvedTone.toLowerCase()} throughout
+- Emphasise ${resolvedFocus} aspects where choosing what to highlight
+- Watermark: <img src='/logo.png' alt='logo' style='position:absolute;left:24px;bottom:24px;width:60px;opacity:0.12;'>
+
+RULES:
+- Return ONLY the HTML body content (no <html>/<head> wrapper)
+- Inline CSS only, no external stylesheets
+- Do NOT invent facts — use only what is in the user data
+- Do NOT use markdown fences
+- Say "Summary" not "Professional Summary"
 
 User Data (JSON):
 ${JSON.stringify(resumeData, null, 2)}
 
-Write the resume in HTML now:`;
+Write the resume HTML now:`;
 
     // Call DeepSeek API (replace with your actual DeepSeek endpoint and API key)
     const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
@@ -123,8 +146,8 @@ Write the resume in HTML now:`;
           { role: "system", content: "You are a professional resume writer. Return only clean HTML, no markdown fences, no explanations." },
           { role: "user", content: prompt },
         ],
-        max_tokens: 2800,   // reduced from 4096 — plenty for a full resume
-        temperature: 0.2,   // more deterministic = faster sampling
+        max_tokens: 3500,
+        temperature: 0.25,
         stream: true,       // stream tokens as they are generated
       }),
     });

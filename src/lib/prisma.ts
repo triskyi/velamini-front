@@ -6,7 +6,10 @@ const globalForPrisma = globalThis as unknown as { prismaVelamini: PrismaClient 
 
 const connectionString = process.env.DATABASE_URL!;
 
-const pool = new Pool({ connectionString });
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: true }, // explicit verify-full — silences pg SSL deprecation warning
+});
 const adapter = new PrismaPg(pool);
 
 export const prisma =

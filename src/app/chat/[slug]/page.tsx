@@ -283,7 +283,12 @@ export default function SharedChatPage({ params }: PageProps) {
           display:flex;align-items:center;justify-content:space-between;
           padding:0 12px;height:52px;
           background:var(--c-surface);border-bottom:1px solid var(--c-border);
-          flex-shrink:0;gap:8px;position:relative;z-index:30;
+          flex-shrink:0;gap:8px;position:fixed;top:0;left:0;right:0;z-index:100;
+        }
+        .body-row{padding-top:52px}
+        @media(min-width:640px){
+          .navbar{position:relative;top:auto;left:auto;right:auto;}
+          .body-row{padding-top:0}
         }
         .nb-left{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
         .nb-logo{

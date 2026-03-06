@@ -16,6 +16,7 @@ function countSections(kb: Record<string, string | null | undefined>): number {
 export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: number }) {
   const [showPreview, setShowPreview]   = useState(false);
   const [loading, setLoading]           = useState(false);
+  const [streaming, setStreaming]       = useState(false);
   const [resumeHtml, setResumeHtml]     = useState("");
   const [downloading, setDownloading]   = useState(false);
   const [error, setError]               = useState<string | null>(null);
@@ -32,19 +33,40 @@ export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: nu
   }, []);
 
   const generate = async () => {
-    setLoading(true); setShowPreview(true); setError(null); setResumeHtml("");
+    setLoading(true); setStreaming(true); setShowPreview(true); setError(null); setResumeHtml("");
     try {
       const res = await fetch("/api/generate-resume", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: session?.user?.id, template: TEMPLATE.id }),
       });
-      if (!res.ok) throw new Error("Failed to generate resume");
-      const data = await res.json();
-      let html = data.resumeHtml || "";
-      if (html.trim().startsWith("```")) html = html.replace(/^```[a-zA-Z]*\n?|```$/g, "").trim();
-      setResumeHtml(html || data.resumeText || "");
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || "Failed to generate resume");
+      }
+      if (!res.body) throw new Error("No response body");
+
+      // Read the streamed plain-text response chunk by chunk
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+      let firstChunk = true;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+
+        // Strip ```html fences that the model may emit at the start
+        let clean = accumulated.replace(/^```[a-zA-Z]*\n?/, "").replace(/```\s*$/, "").trim();
+
+        if (firstChunk && clean.length > 0) {
+          setLoading(false); // Hide spinner — show partial HTML immediately
+          firstChunk = false;
+        }
+        setResumeHtml(clean);
+      }
     } catch (e: any) { setError(e.message || "Unknown error"); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setStreaming(false); }
   };
 
   const download = async () => {
@@ -281,16 +303,24 @@ export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: nu
               {loading ? (
                 <div className="rv-loading">
                   <div className="rv-spinner" />
-                  <span style={{ fontSize: '.82rem' }}>Generating your resume…</span>
+                  <span style={{ fontSize: '.82rem' }}>Connecting to AI…</span>
                 </div>
               ) : resumeHtml ? (
-                <div dangerouslySetInnerHTML={{ __html: resumeHtml }} />
+                <>
+                  <div dangerouslySetInnerHTML={{ __html: resumeHtml }} />
+                  {streaming && (
+                    <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 0', color:'var(--c-muted)', fontSize:'.75rem' }}>
+                      <div className="rv-spinner" style={{ width:12, height:12, borderWidth:2, flexShrink:0 }} />
+                      Building…
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="rv-loading"><span style={{ fontSize: '.82rem', color: 'var(--c-muted)' }}>No content generated.</span></div>
               )}
             </div>
 
-            {resumeHtml && !loading && (
+            {resumeHtml && !loading && !streaming && (
               <div className="rv-modal-foot">
                 <button className="rv-dl-btn" onClick={download} disabled={downloading}>
                   {downloading ? <><div className="rv-spinner" style={{ width: 13, height: 13, borderWidth: 2 }} /> Downloading…</> : <><Download size={13} /> Download PDF</>}

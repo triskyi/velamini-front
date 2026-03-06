@@ -118,25 +118,58 @@ Write the resume in HTML now:`;
         "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "deepseek-chat", // or your DeepSeek model name
+        model: "deepseek-chat",
         messages: [
-          { role: "system", content: "You are a helpful assistant." },
+          { role: "system", content: "You are a professional resume writer. Return only clean HTML, no markdown fences, no explanations." },
           { role: "user", content: prompt },
         ],
-        max_tokens: 4096,
-        temperature: 0.5,
+        max_tokens: 2800,   // reduced from 4096 — plenty for a full resume
+        temperature: 0.2,   // more deterministic = faster sampling
+        stream: true,       // stream tokens as they are generated
       }),
     });
 
-    if (!deepseekRes.ok) {
+    if (!deepseekRes.ok || !deepseekRes.body) {
       const errorBody = await deepseekRes.text();
       console.error("DeepSeek API error:", deepseekRes.status, errorBody);
       return NextResponse.json({ error: "Failed to generate resume with DeepSeek.", status: deepseekRes.status, errorBody }, { status: 500 });
     }
 
-    const deepseekData = await deepseekRes.json();
-    const resumeHtml = deepseekData.choices?.[0]?.message?.content || "<div>Failed to generate resume.</div>";
-    return NextResponse.json({ resumeHtml });
+    // Pipe the SSE stream — parse `data: {…}` lines and forward raw content tokens
+    const upstreamReader = deepseekRes.body.getReader();
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    const readable = new ReadableStream({
+      async pull(controller) {
+        while (true) {
+          const { done, value } = await upstreamReader.read();
+          if (done) { controller.close(); return; }
+
+          const text = decoder.decode(value, { stream: true });
+          for (const line of text.split("\n")) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const payload = trimmed.slice(5).trim();
+            if (payload === "[DONE]") { controller.close(); return; }
+            try {
+              const parsed = JSON.parse(payload);
+              const chunk: string | undefined = parsed.choices?.[0]?.delta?.content;
+              if (chunk) controller.enqueue(encoder.encode(chunk));
+            } catch { /* skip malformed lines */ }
+          }
+        }
+      },
+      cancel() { upstreamReader.cancel(); },
+    });
+
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+        "Cache-Control": "no-store",
+      },
+    });
   } catch (err) {
     return NextResponse.json({ error: "Failed to generate resume." }, { status: 500 });
   }

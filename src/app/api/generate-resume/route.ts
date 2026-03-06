@@ -28,6 +28,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Gate: require at least 4 of the 5 knowledge sections to be filled
+    const kb2 = user.knowledgeBase;
+    const sections = [
+      !!(kb2?.fullName || kb2?.birthDate || kb2?.bio),
+      !!kb2?.education,
+      !!kb2?.experience,
+      !!kb2?.skills,
+      !!kb2?.projects,
+    ];
+    const completedCount = sections.filter(Boolean).length;
+    if (completedCount < 4) {
+      return NextResponse.json(
+        { error: `Resume generation requires at least 4 completed knowledge sections. You have ${completedCount}/4.` },
+        { status: 403 }
+      );
+    }
+
     // Extract resume-relevant fields from knowledgeBase
     type KnowledgeBase = {
       fullName?: string | null;

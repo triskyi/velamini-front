@@ -114,7 +114,7 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList 
       case "training":  return <TrainingView user={user} knowledgeBase={knowledgeBase} />;
       case "chat":      return <DashboardChat user={user} knowledgeBase={knowledgeBase} />;
       case "profile":   return <ProfileView user={user} knowledgeBase={knowledgeBase} />;
-      case "resume":    return <ResumeView />;
+      case "resume":    return <ResumeView knowledgeItems={stats.knowledgeItems} />;
       case "settings":  return <SettingsView />;
       default:          return <DashboardView stats={stats} onNavigate={handleViewChange} />;
     }

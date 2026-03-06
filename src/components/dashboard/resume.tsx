@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { FileText, Download, X, Loader, Sparkles } from "lucide-react";
+import { FileText, Download, X, Loader, Sparkles, Lock, BookOpen } from "lucide-react";
 
 const BASE64_LOGO = "data:image/png;base64,REPLACE_WITH_YOUR_BASE64_STRING";
 const TEMPLATE = { id: "modern-yellow", name: "Modern Yellow", image: BASE64_LOGO };
+const MIN_KNOWLEDGE = 4;
 
-export default function ResumeView() {
+export default function ResumeView({ knowledgeItems = 0 }: { knowledgeItems?: number }) {
   const [showPreview, setShowPreview]   = useState(false);
   const [loading, setLoading]           = useState(false);
   const [resumeHtml, setResumeHtml]     = useState("");
@@ -99,6 +100,39 @@ export default function ResumeView() {
         .rv-btn:disabled { opacity: .65; cursor: not-allowed; transform: none; }
         .rv-btn svg { width: 15px; height: 15px; }
 
+        /* Locked gate */
+        .rv-locked {
+          display: flex; flex-direction: column; align-items: center;
+          text-align: center; padding: 32px 20px; gap: 16px;
+        }
+        .rv-locked-icon {
+          width: 56px; height: 56px; border-radius: 16px;
+          background: color-mix(in srgb, var(--c-accent) 12%, var(--c-surface-2));
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .rv-locked-icon svg { color: var(--c-accent); }
+        .rv-locked-title {
+          font-family: 'DM Serif Display', serif; font-size: 1.05rem;
+          color: var(--c-text); font-weight: 400;
+        }
+        .rv-locked-sub { font-size: .81rem; color: var(--c-muted); line-height: 1.6; max-width: 340px; }
+        .rv-locked-progress {
+          display: flex; align-items: center; gap: 10px;
+          background: var(--c-surface-2); border: 1px solid var(--c-border);
+          border-radius: 10px; padding: 12px 16px; width: 100%; max-width: 340px;
+          font-size: .82rem; color: var(--c-text);
+        }
+        .rv-locked-bar-wrap {
+          flex: 1; height: 6px; border-radius: 99px;
+          background: var(--c-border); overflow: hidden;
+        }
+        .rv-locked-bar {
+          height: 100%; border-radius: 99px;
+          background: var(--c-accent); transition: width .4s ease;
+        }
+        .rv-locked-count { font-weight: 700; font-size: .82rem; color: var(--c-accent); white-space: nowrap; }
+
         /* Preview modal */
         .rv-modal {
           position: fixed; inset: 0; z-index: 300;
@@ -189,10 +223,30 @@ export default function ResumeView() {
                 <div key={i} className="rv-tip"><div className="rv-tip-dot" />{t}</div>
               ))}
             </div>
-            <button className="rv-btn" onClick={generate} disabled={loading}>
-              {loading ? <><div className="rv-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Generating…</> : <><Sparkles size={15} /> Generate Resume</>}
-            </button>
-            {error && <div className="rv-error">{error}</div>}
+
+            {knowledgeItems >= MIN_KNOWLEDGE ? (
+              <>
+                <button className="rv-btn" onClick={generate} disabled={loading}>
+                  {loading ? <><div className="rv-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Generating…</> : <><Sparkles size={15} /> Generate Resume</>}
+                </button>
+                {error && <div className="rv-error">{error}</div>}
+              </>
+            ) : (
+              <div className="rv-locked">
+                <div className="rv-locked-icon"><Lock size={24} /></div>
+                <div className="rv-locked-title">Complete your knowledge base first</div>
+                <div className="rv-locked-sub">
+                  Resume generation requires at least <strong>{MIN_KNOWLEDGE} knowledge items</strong> so the AI has accurate information about you — no imagined content.
+                </div>
+                <div className="rv-locked-progress">
+                  <BookOpen size={14} style={{ color: 'var(--c-accent)', flexShrink: 0 }} />
+                  <div className="rv-locked-bar-wrap">
+                    <div className="rv-locked-bar" style={{ width: `${Math.min((knowledgeItems / MIN_KNOWLEDGE) * 100, 100)}%` }} />
+                  </div>
+                  <span className="rv-locked-count">{knowledgeItems}/{MIN_KNOWLEDGE}</span>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

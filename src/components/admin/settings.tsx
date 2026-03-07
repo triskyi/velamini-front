@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Save, AlertTriangle, Shield, Bell, Globe, Cpu } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, AlertTriangle, Shield, Bell, Globe, Cpu, Loader2 } from "lucide-react";
 
-interface ToggleProps { on: boolean; onChange: () => void }
-function Toggle({ on, onChange }: ToggleProps) {
+interface ToggleProps { on: boolean; onChange: () => void; disabled?: boolean }
+function Toggle({ on, onChange, disabled }: ToggleProps) {
   return (
-    <button role="switch" aria-checked={on} onClick={onChange} style={{
-      width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer',
+    <button role="switch" aria-checked={on} onClick={onChange} disabled={disabled} style={{
+      width: 40, height: 22, borderRadius: 11, border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
       background: on ? 'var(--c-accent)' : 'var(--c-border)',
       position: 'relative', transition: 'background .2s', flexShrink: 0,
+      opacity: disabled ? 0.5 : 1,
     }}>
       <span style={{
         position: 'absolute', top: 3, width: 16, height: 16, borderRadius: '50%',
@@ -20,30 +21,121 @@ function Toggle({ on, onChange }: ToggleProps) {
   );
 }
 
-export default function AdminSettings() {
-  const [settings, setSettings] = useState({
-    allowSignups:      true,
-    requireEmailVerify: true,
-    maintenanceMode:   false,
-    aiEnabled:         true,
-    moderationAI:      true,
-    emailNotifs:       true,
-    slackNotifs:       false,
-    publicProfiles:    true,
-    analyticsTracking: true,
-    rateLimit:         "100",
-    maxQaPairs:        "500",
-    platformName:      "Velamini",
-    supportEmail:      "support@velamini.example",
-  });
-  const [saved, setSaved] = useState(false);
+const DEFAULTS = {
+  allowSignups:       true,
+  requireEmailVerify: true,
+  maintenanceMode:    false,
+  aiEnabled:          true,
+  moderationAI:       true,
+  emailNotifs:        true,
+  slackNotifs:        false,
+  publicProfiles:     true,
+  analyticsTracking:  true,
+  rateLimit:          "100",
+  maxQaPairs:         "500",
+  platformName:       "Velamini",
+  supportEmail:       "support@velamini.example",
+};
 
-  const toggle = (key: keyof typeof settings) =>
+type Settings = typeof DEFAULTS;
+
+export default function AdminSettings() {
+  const [settings, setSettings] = useState<Settings>(DEFAULTS);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState(false);
+  const [error, setError]       = useState<string | null>(null);
+
+  // Danger zone confirmation states: null | "pending" | "running"
+  const [clearState, setClearState]   = useState<"idle" | "confirm" | "running">("idle");
+  const [resetState, setResetState]   = useState<"idle" | "confirm" | "running">("idle");
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then(r => r.json())
+      .then((data: Record<string, string>) => {
+        setSettings({
+          allowSignups:       data.allowSignups       === "true",
+          requireEmailVerify: data.requireEmailVerify === "true",
+          maintenanceMode:    data.maintenanceMode    === "true",
+          aiEnabled:          data.aiEnabled          === "true",
+          moderationAI:       data.moderationAI       === "true",
+          emailNotifs:        data.emailNotifs        === "true",
+          slackNotifs:        data.slackNotifs        === "true",
+          publicProfiles:     data.publicProfiles     === "true",
+          analyticsTracking:  data.analyticsTracking  === "true",
+          rateLimit:          data.rateLimit          ?? "100",
+          maxQaPairs:         data.maxQaPairs         ?? "500",
+          platformName:       data.platformName       ?? "Velamini",
+          supportEmail:       data.supportEmail       ?? "support@velamini.example",
+        } as Settings);
+      })
+      .catch(() => setError("Failed to load settings."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const toggle = (key: keyof Settings) =>
     setSettings(p => ({ ...p, [key]: !p[key] }));
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const body: Record<string, string> = {};
+      for (const [k, v] of Object.entries(settings)) {
+        body[k] = typeof v === "boolean" ? String(v) : v;
+      }
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      setError("Failed to save settings. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClearChats = async () => {
+    if (clearState === "idle")    { setClearState("confirm"); return; }
+    if (clearState === "confirm") {
+      setClearState("running");
+      try {
+        const res = await fetch("/api/admin/settings/clear-chats", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ confirm: "CLEAR_ALL_CHATS" }),
+        });
+        if (!res.ok) throw new Error();
+      } catch {
+        setError("Failed to clear chat history.");
+      } finally {
+        setClearState("idle");
+      }
+    }
+  };
+
+  const handleResetTraining = async () => {
+    if (resetState === "idle")    { setResetState("confirm"); return; }
+    if (resetState === "confirm") {
+      setResetState("running");
+      try {
+        const res = await fetch("/api/admin/settings/reset-training", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ confirm: "RESET_TRAINING" }),
+        });
+        if (!res.ok) throw new Error();
+      } catch {
+        setError("Failed to reset training data.");
+      } finally {
+        setResetState("idle");
+      }
+    }
   };
 
   return (

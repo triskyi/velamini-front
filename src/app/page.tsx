@@ -332,7 +332,7 @@ export default function Home() {
                   transition={{ duration: 0.55, delay: 0.36 }}
                   style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginBottom: "1.75rem" }}
                 >
-                  <Link href="/auth/signin" className="btn-solid">
+                  <Link href="/onboarding" className="btn-solid">
                     Get Started Free <ArrowRight size={13} />
                   </Link>
                   <a href="#how-it-works" className="btn-outline">How It Works</a>
@@ -503,7 +503,7 @@ export default function Home() {
                 </p>
                 <div style={{ marginTop: "2.5rem" }}>
                   <Link
-                    href="/auth/signin"
+                    href="/onboarding"
                     style={{
                       fontFamily: "Geist Mono, monospace",
                       fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase",

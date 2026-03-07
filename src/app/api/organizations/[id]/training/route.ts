@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 interface QAPair {
   question: string;
@@ -65,13 +66,14 @@ export async function POST(
     }
 
     const trainedPrompt = lines.join("\n");
+    const qaPairsJson = validPairs as unknown as Prisma.InputJsonValue;
 
     // Upsert the KnowledgeBase for this organisation
     if (org.knowledgeBase) {
       await prisma.knowledgeBase.update({
         where: { id: org.knowledgeBase.id },
         data: {
-          qaPairs: validPairs as unknown as object[],
+          qaPairs: qaPairsJson,
           trainedPrompt,
           isModelTrained: true,
           lastTrainedAt: new Date(),
@@ -81,7 +83,7 @@ export async function POST(
       await prisma.knowledgeBase.create({
         data: {
           organizationId: org.id,
-          qaPairs: validPairs as unknown as object[],
+          qaPairs: qaPairsJson,
           trainedPrompt,
           isModelTrained: true,
           lastTrainedAt: new Date(),

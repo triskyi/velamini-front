@@ -68,7 +68,7 @@ export const authConfig: NextAuthConfig = {
 
       if (isOnAuth) {
         if (isLoggedIn) {
-          const callbackUrl = nextUrl.searchParams.get("callbackUrl") || "/Dashboard"
+          const callbackUrl = nextUrl.searchParams.get("callbackUrl") || "/onboarding"
           return Response.redirect(new URL(callbackUrl, nextUrl))
         }
         return true

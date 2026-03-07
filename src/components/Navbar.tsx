@@ -157,6 +157,24 @@ export default function Navbar({ isDarkMode, onThemeToggle, className = "" }: Na
         }
         .nav-cta:hover { background: var(--sky, ${SKY}); color: #fff; }
 
+        /* ── Get Started (filled) button ── */
+        .nav-cta-solid {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.63rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          text-decoration: none;
+          padding: 0.55rem 1.3rem;
+          border: 1.5px solid var(--sky, ${SKY});
+          color: #fff;
+          background: var(--sky, ${SKY});
+          display: inline-flex;
+          align-items: center;
+          white-space: nowrap;
+          transition: opacity 0.2s;
+        }
+        .nav-cta-solid:hover { opacity: 0.82; }
+
         /* ── Icon button ── */
         .icon-btn {
           background: none;
@@ -275,6 +293,9 @@ export default function Navbar({ isDarkMode, onThemeToggle, className = "" }: Na
             {/* Sign in — desktop only */}
             <Link href="/auth/signin" className="nav-cta desktop-only">Sign In</Link>
 
+            {/* Get Started — desktop only */}
+            <Link href="/onboarding" className="nav-cta-solid desktop-only">Get Started</Link>
+
             {/* Hamburger — mobile only */}
             <button
               onClick={() => setMenuOpen(v => !v)}
@@ -312,10 +333,11 @@ export default function Navbar({ isDarkMode, onThemeToggle, className = "" }: Na
               </Link>
             ))}
 
-            {/* Sign in CTA */}
-            <div style={{ paddingTop: "1.25rem" }}>
+            {/* Mobile CTAs */}
+            <div style={{ paddingTop: "1.25rem", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {/* Get Started — filled */}
               <Link
-                href="/auth/signin"
+                href="/onboarding"
                 onClick={() => setMenuOpen(false)}
                 style={{
                   fontFamily: "Geist Mono, monospace",
@@ -336,6 +358,30 @@ export default function Navbar({ isDarkMode, onThemeToggle, className = "" }: Na
                 }}
                 onMouseEnter={e => (e.currentTarget.style.opacity = "0.88")}
                 onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+              >
+                Get Started
+              </Link>
+              {/* Sign In — outlined */}
+              <Link
+                href="/auth/signin"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  fontFamily: "Geist Mono, monospace",
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                  padding: "0.9rem 1.5rem",
+                  background: "transparent",
+                  color: accent,
+                  border: `1.5px solid ${accent}`,
+                  textDecoration: "none",
+                  transition: "background 0.2s, color 0.2s",
+                  width: "100%",
+                }}
               >
                 Sign In
               </Link>

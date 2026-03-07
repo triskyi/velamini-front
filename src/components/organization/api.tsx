@@ -51,7 +51,7 @@ export default function OrgApi({ org, onKeyRotated }: Props) {
 
   const restSnippet =
 `// POST /api/agent/chat
-fetch("https://velamini.com/api/agent/chat", {
+fetch("https://velamini-front.vercel.app/api/agent/chat", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -71,7 +71,7 @@ fetch("https://velamini.com/api/agent/chat", {
   const embedSnippet =
 `<!-- Paste before </body> on any page -->
 <script
-  src="https://velamini.com/embed/agent.js"
+  src="https://velamini-front.vercel.app/embed/agent.js"
   data-agent-key="${apiKey}"
   data-agent-name="${agentName}"
   data-theme="auto"
@@ -227,7 +227,7 @@ export default function AgentChat() {
         <motion.div className="od-card"
           initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.13 }}>
           <div className="od-card-title">Available Endpoints</div>
-          <div className="od-card-sub">All requests go to <code style={{ fontFamily:"monospace", fontSize:".78rem", color:"var(--c-accent)" }}>https://velamini.com</code> with your <code style={{ fontFamily:"monospace", fontSize:".78rem", color:"var(--c-org)" }}>X-Agent-Key</code> header.</div>
+          <div className="od-card-sub">All requests go to <code style={{ fontFamily:"monospace", fontSize:".78rem", color:"var(--c-accent)" }}>https://velamini-front.vercel.app</code> with your <code style={{ fontFamily:"monospace", fontSize:".78rem", color:"var(--c-org)" }}>X-Agent-Key</code> header.</div>
 
           <div className="oapi-endpoints">
             {endpoints.map(({ method, path, desc }) => (
@@ -236,7 +236,7 @@ export default function AgentChat() {
                 <span className="oapi-ep-path">{path}</span>
                 <span className="oapi-ep-desc">{desc}</span>
                 <button className={`oapi-icon-btn ${copied === path ? "oapi-icon-btn--done" : ""}`}
-                  title="Copy path" onClick={() => copy(`https://velamini.com${path}`, path)}>
+                  title="Copy path" onClick={() => copy(`https://velamini-front.vercel.app${path}`, path)}>
                   {copied === path ? <Check size={11}/> : <Copy size={11}/>}
                 </button>
               </div>
@@ -251,10 +251,10 @@ export default function AgentChat() {
           <div className="od-card-sub">Your agent's unique endpoint for this organisation.</div>
           <div className="oapi-key-row">
             <div className="oapi-key-ic"><Globe size={12}/></div>
-            <span className="oapi-key-val">https://velamini.com/api/agent/{org.id}</span>
+            <span className="oapi-key-val">https://velamini-front.vercel.app/api/agent/{org.id}</span>
             <div className="oapi-key-actions">
               <button className={`oapi-icon-btn ${copied === "url" ? "oapi-icon-btn--done" : ""}`}
-                onClick={() => copy(`https://velamini.com/api/agent/${org.id}`, "url")}>
+                onClick={() => copy(`https://velamini-front.vercel.app/api/agent/${org.id}`, "url")}>
                 {copied === "url" ? <Check size={11}/> : <Copy size={11}/>}
               </button>
             </div>

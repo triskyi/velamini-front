@@ -89,9 +89,9 @@ export default function Home() {
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_EMBED_AGENT_KEY;
-    if (!key || document.getElementById("vela-root")) return;
+    if (!key || document.getElementById("vela-widget")) return;
     const s = Object.assign(document.createElement("script"), {
-      src: "/embed/agent.js", defer: true, id: "vela-widget",
+      src: "https://velamini-front.vercel.app/embed/agent.js", async: true, id: "vela-widget",
     });
     (s as any).dataset.agentKey  = key;
     (s as any).dataset.agentName = process.env.NEXT_PUBLIC_EMBED_AGENT_NAME || "Velamini";

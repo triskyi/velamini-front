@@ -145,7 +145,7 @@ const PAGES: Record<string, React.FC> = {
       <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:20, background:"color-mix(in srgb,var(--org) 10%,transparent)", border:"1px solid color-mix(in srgb,var(--org) 22%,transparent)", color:"var(--org)", fontSize:".65rem", fontWeight:700, letterSpacing:".04em", marginBottom:16 }}>v1.0 · Public API</div>
       <H title="Velamini Public API" sub="Integrate your trained AI agent into any platform using 4 simple REST endpoints."/>
       <Note>
-        <strong>Base URL — </strong><IC v="https://velamini.com/api"/><br/>
+        <strong>Base URL — </strong><IC v="https://velamini-front.vercel.app/api"/><br/>
         All public endpoints live under <IC v="/api/agent/"/> and authenticate via <IC v="X-Agent-Key"/>.
       </Note>
       <P c="Every organisation gets a unique API key (format: vela_xxxx…). Use it to chat with your agent, list sessions, retrieve history, and collect feedback — without exposing your dashboard credentials."/>
@@ -162,7 +162,7 @@ const PAGES: Record<string, React.FC> = {
       <Step n={1} title="Open your dashboard"     desc="Go to Dashboard → your organisation → API & Embed tab."/>
       <Step n={2} title="Copy your API key"       desc="Copy the key shown (vela_xxxx…). Treat it like a password — never commit to git."/>
       <Step n={3} title="Make your first request" desc="Run the cURL below, replacing the key with yours."/>
-      <CodeBlock lang="bash" code={`curl -X POST https://velamini.com/api/agent/chat \\
+      <CodeBlock lang="bash" code={`curl -X POST https://velamini-front.vercel.app/api/agent/chat \\
   -H "Content-Type: application/json" \\
   -H "X-Agent-Key: vela_your_key_here" \\
   -d '{"message": "Hello, what can you help me with?"}'`}/>
@@ -204,7 +204,7 @@ const PAGES: Record<string, React.FC> = {
         ["history",   "array",  false, "Fallback context: [{ role: 'user'|'assistant', content: string }]. Used only if sessionId is absent."],
       ]}/>
       <H3 t="cURL example"/>
-      <CodeBlock lang="bash" code={`curl -X POST https://velamini.com/api/agent/chat \\
+      <CodeBlock lang="bash" code={`curl -X POST https://velamini-front.vercel.app/api/agent/chat \\
   -H "Content-Type: application/json" \\
   -H "X-Agent-Key: vela_your_key_here" \\
   -d '{
@@ -220,7 +220,7 @@ const PAGES: Record<string, React.FC> = {
       <H3 t="Multi-turn conversation"/>
       <P c="Re-send the same sessionId on every follow-up. The agent automatically has the full conversation history as context."/>
       <CodeBlock lang="js" code={`// Turn 1 — omit sessionId to start a new conversation
-const r1 = await fetch("https://velamini.com/api/agent/chat", {
+const r1 = await fetch("https://velamini-front.vercel.app/api/agent/chat", {
   method:  "POST",
   headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
   body:    JSON.stringify({ message: "What products do you sell?" }),
@@ -228,7 +228,7 @@ const r1 = await fetch("https://velamini.com/api/agent/chat", {
 const { sessionId } = await r1.json();
 
 // Turn 2 — pass the same sessionId to continue
-const r2 = await fetch("https://velamini.com/api/agent/chat", {
+const r2 = await fetch("https://velamini-front.vercel.app/api/agent/chat", {
   method:  "POST",
   headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
   body:    JSON.stringify({ message: "Which one is cheapest?", sessionId }),
@@ -246,7 +246,7 @@ const r2 = await fetch("https://velamini.com/api/agent/chat", {
         ["page",  "number", false, "Page number (1-based). Default 1."],
       ]}/>
       <H3 t="cURL example"/>
-      <CodeBlock lang="bash" code={`curl "https://velamini.com/api/agent/sessions?limit=10&page=1" \\
+      <CodeBlock lang="bash" code={`curl "https://velamini-front.vercel.app/api/agent/sessions?limit=10&page=1" \\
   -H "X-Agent-Key: vela_your_key_here"`}/>
       <H3 t="Response"/>
       <CodeBlock lang="json" code={`{
@@ -279,7 +279,7 @@ const r2 = await fetch("https://velamini.com/api/agent/chat", {
         ["sessionId", "string", true, "The session ID returned by POST /api/agent/chat."],
       ]}/>
       <H3 t="cURL example"/>
-      <CodeBlock lang="bash" code={`curl "https://velamini.com/api/agent/history?sessionId=cm9abc123def456" \\
+      <CodeBlock lang="bash" code={`curl "https://velamini-front.vercel.app/api/agent/history?sessionId=cm9abc123def456" \\
   -H "X-Agent-Key: vela_your_key_here"`}/>
       <H3 t="Response"/>
       <CodeBlock lang="json" code={`{
@@ -306,7 +306,7 @@ const r2 = await fetch("https://velamini.com/api/agent/chat", {
         ["comment",   "string", false, "Optional free-text comment from the user."],
       ]}/>
       <H3 t="cURL example"/>
-      <CodeBlock lang="bash" code={`curl -X POST https://velamini.com/api/agent/feedback \\
+      <CodeBlock lang="bash" code={`curl -X POST https://velamini-front.vercel.app/api/agent/feedback \\
   -H "Content-Type: application/json" \\
   -H "X-Agent-Key: vela_your_key_here" \\
   -d '{
@@ -318,7 +318,7 @@ const r2 = await fetch("https://velamini.com/api/agent/chat", {
       <CodeBlock lang="json" code={`{ "ok": true, "id": "feedback_cm9xyz" }`}/>
       <H3 t="Typical usage — show thumbs after each reply"/>
       <CodeBlock lang="ts" code={`async function submitFeedback(rating: 1 | -1, sessionId: string) {
-  await fetch("https://velamini.com/api/agent/feedback", {
+  await fetch("https://velamini-front.vercel.app/api/agent/feedback", {
     method:  "POST",
     headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
     body:    JSON.stringify({ rating, sessionId }),
@@ -334,7 +334,7 @@ const r2 = await fetch("https://velamini.com/api/agent/chat", {
       <H3 t="Installation"/>
       <CodeBlock lang="html" code={`<!-- Paste before </body> on any HTML page -->
 <script
-  src="https://velamini.com/embed/agent.js"
+  src="https://velamini-front.vercel.app/embed/agent.js"
   data-agent-key="vela_your_key_here"
   data-agent-name="Support Bot"
   data-theme="auto"
@@ -355,7 +355,7 @@ export function AgentWidget() {
   useEffect(() => {
     if (document.getElementById("vela-widget")) return;
     const s = Object.assign(document.createElement("script"), {
-      id: "vela-widget", src: "https://velamini.com/embed/agent.js", defer: true,
+      id: "vela-widget", src: "https://velamini-front.vercel.app/embed/agent.js", defer: true,
     });
     s.dataset.agentKey = process.env.NEXT_PUBLIC_AGENT_KEY!;
     s.dataset.theme    = "auto";
@@ -376,7 +376,7 @@ window.dispatchEvent(new CustomEvent("vela:close"));`}/>
       <CodeBlock lang="ts" code={`import { useState, useRef } from "react";
 
 const KEY  = process.env.NEXT_PUBLIC_AGENT_KEY!;
-const BASE = "https://velamini.com/api/agent";
+const BASE = "https://velamini-front.vercel.app/api/agent";
 
 export function useAgentChat() {
   const [messages, setMessages] = useState<{ role:string; content:string }[]>([]);

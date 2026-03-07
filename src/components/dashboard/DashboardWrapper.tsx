@@ -19,7 +19,7 @@ import Sidebar, { DashboardViewType } from "@/components/dashboard/sidebar";
 export type { DashboardViewType };
 
 interface DashboardWrapperProps {
-  user: { name?: string | null; email?: string | null; image?: string | null; id?: string };
+  user: { name?: string | null; email?: string | null; image?: string | null; id?: string; status?: string };
   stats: { trainingEntries: number; qaPairs: number; personalityTraits: number; knowledgeItems: number };
   knowledgeBase: any;
   swagList?: { id: string; content: string }[];
@@ -494,6 +494,25 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList 
               </button>
             </div>
           </div>
+
+          {/* Flagged account banner */}
+          {user.status === "flagged" && (
+            <div style={{
+              display:"flex", alignItems:"center", gap:10,
+              padding:"10px 20px",
+              background:"color-mix(in srgb,#F59E0B 12%,transparent)",
+              borderBottom:"1px solid color-mix(in srgb,#F59E0B 30%,transparent)",
+              fontSize:".8rem", color:"#B45309",
+            }}>
+              <span style={{fontSize:"1rem"}}>⚠️</span>
+              <span>
+                <strong>Your account has been flagged.</strong>{" "}
+                Some features may be restricted. Please contact{" "}
+                <a href="mailto:support@velamini.com" style={{color:"inherit",fontWeight:700,textDecoration:"underline"}}>support@velamini.com</a>{" "}
+                if you believe this is a mistake.
+              </span>
+            </div>
+          )}
 
           {/* Main content */}
           <main className="dw-main">{renderView()}</main>

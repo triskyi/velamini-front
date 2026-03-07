@@ -53,7 +53,8 @@ export default function AdminSettings() {
   useEffect(() => {
     fetch("/api/admin/settings")
       .then(r => r.json())
-      .then((data: Record<string, string>) => {
+      .then((res: { settings: Record<string, string> }) => {
+        const data = res.settings ?? {};
         setSettings({
           allowSignups:       data.allowSignups       === "true",
           requireEmailVerify: data.requireEmailVerify === "true",
@@ -138,6 +139,14 @@ export default function AdminSettings() {
     }
   };
 
+  if (loading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 320, gap: 10, color: "var(--c-muted)" }}>
+      <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
+      <span style={{ fontSize: ".85rem" }}>Loading settings…</span>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
   return (
     <>
       <style>{`
@@ -148,6 +157,8 @@ export default function AdminSettings() {
 
         .as-title{font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:400;letter-spacing:-.022em;color:var(--c-text);margin-bottom:4px}
         .as-sub{font-size:.8rem;color:var(--c-muted)}
+
+        .as-error{padding:11px 16px;border-radius:10px;background:color-mix(in srgb,var(--c-danger) 12%,transparent);border:1px solid color-mix(in srgb,var(--c-danger) 30%,transparent);color:var(--c-danger);font-size:.8rem}
 
         .as-section{background:var(--c-surface);border:1px solid var(--c-border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);transition:background .3s,border-color .3s}
         .as-section-head{display:flex;align-items:center;gap:9px;padding:14px 18px 12px;border-bottom:1px solid var(--c-border);background:var(--c-surface-2)}
@@ -166,16 +177,21 @@ export default function AdminSettings() {
         .as-input{padding:7px 11px;border-radius:9px;border:1px solid var(--c-border);background:var(--c-surface-2);color:var(--c-text);font-size:.82rem;font-family:inherit;outline:none;transition:border-color .14s;max-width:180px;width:100%}
         .as-input:focus{border-color:var(--c-accent)}
 
-        .as-danger-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;border:1px solid var(--c-danger);background:var(--c-danger-soft);color:var(--c-danger);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .14s;font-family:inherit}
-        .as-danger-btn:hover{background:var(--c-danger);color:#fff}
-        .as-danger-btn svg{width:13px;height:13px}
+        .as-danger-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;border:1px solid var(--c-danger);background:var(--c-danger-soft);color:var(--c-danger);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .14s;font-family:inherit;white-space:nowrap}
+        .as-danger-btn:hover:not(:disabled){background:var(--c-danger);color:#fff}
+        .as-danger-btn:disabled{opacity:.6;cursor:not-allowed}
+        .as-danger-btn svg{width:13px;height:13px;flex-shrink:0}
+        .as-danger-btn--confirm{background:var(--c-danger);color:#fff;animation:pulse-danger .4s ease}
+        @keyframes pulse-danger{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--c-danger) 25%,transparent)}}
 
         .as-save{display:flex;align-items:center;gap:8px;justify-content:flex-end}
         .as-save-btn{display:flex;align-items:center;gap:7px;padding:10px 22px;border-radius:11px;border:none;background:var(--c-accent);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
-        .as-save-btn:hover{background:var(--c-accent-dim);transform:translateY(-1px);box-shadow:0 6px 18px rgba(41,169,212,.28)}
-        .as-save-btn--saved{background:var(--c-success)}
+        .as-save-btn:hover:not(:disabled){background:var(--c-accent-dim);transform:translateY(-1px);box-shadow:0 6px 18px rgba(41,169,212,.28)}
+        .as-save-btn:disabled{opacity:.6;cursor:not-allowed}
+        .as-save-btn--saved{background:var(--c-success) !important}
         .as-save-btn svg{width:14px;height:14px}
         .as-save-note{font-size:.74rem;color:var(--c-muted)}
+        @keyframes spin{to{transform:rotate(360deg)}}
       `}</style>
 
       <div className="as">
@@ -185,6 +201,8 @@ export default function AdminSettings() {
             <p className="as-sub">Configure platform-wide behaviour and permissions.</p>
           </div>
 
+          {error && <div className="as-error">{error}</div>}
+
           {/* General */}
           <div className="as-section">
             <div className="as-section-head">
@@ -193,19 +211,19 @@ export default function AdminSettings() {
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Platform Name</div><div className="as-row-sub">Displayed across the platform</div></div>
-              <input className="as-input" value={settings.platformName} onChange={e => setSettings(p => ({ ...p, platformName: e.target.value }))} />
+              <input className="as-input" value={settings.platformName as string} onChange={e => setSettings(p => ({ ...p, platformName: e.target.value }))} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Support Email</div><div className="as-row-sub">Used in user-facing communications</div></div>
-              <input className="as-input" value={settings.supportEmail} onChange={e => setSettings(p => ({ ...p, supportEmail: e.target.value }))} />
+              <input className="as-input" value={settings.supportEmail as string} onChange={e => setSettings(p => ({ ...p, supportEmail: e.target.value }))} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Public Profiles</div><div className="as-row-sub">Allow virtual selves to be publicly viewable</div></div>
-              <Toggle on={settings.publicProfiles} onChange={() => toggle("publicProfiles")} />
+              <Toggle on={settings.publicProfiles as boolean} onChange={() => toggle("publicProfiles")} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Analytics Tracking</div><div className="as-row-sub">Collect usage data for admin insights</div></div>
-              <Toggle on={settings.analyticsTracking} onChange={() => toggle("analyticsTracking")} />
+              <Toggle on={settings.analyticsTracking as boolean} onChange={() => toggle("analyticsTracking")} />
             </div>
           </div>
 
@@ -217,15 +235,15 @@ export default function AdminSettings() {
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Allow New Signups</div><div className="as-row-sub">Disable to freeze user registration</div></div>
-              <Toggle on={settings.allowSignups} onChange={() => toggle("allowSignups")} />
+              <Toggle on={settings.allowSignups as boolean} onChange={() => toggle("allowSignups")} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Require Email Verification</div><div className="as-row-sub">New users must verify email before access</div></div>
-              <Toggle on={settings.requireEmailVerify} onChange={() => toggle("requireEmailVerify")} />
+              <Toggle on={settings.requireEmailVerify as boolean} onChange={() => toggle("requireEmailVerify")} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">API Rate Limit (req/min)</div><div className="as-row-sub">Per-user request cap</div></div>
-              <input className="as-input" type="number" value={settings.rateLimit} onChange={e => setSettings(p => ({ ...p, rateLimit: e.target.value }))} />
+              <input className="as-input" type="number" value={settings.rateLimit as string} onChange={e => setSettings(p => ({ ...p, rateLimit: e.target.value }))} />
             </div>
           </div>
 
@@ -237,15 +255,15 @@ export default function AdminSettings() {
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">AI Chat Enabled</div><div className="as-row-sub">Toggle all AI responses platform-wide</div></div>
-              <Toggle on={settings.aiEnabled} onChange={() => toggle("aiEnabled")} />
+              <Toggle on={settings.aiEnabled as boolean} onChange={() => toggle("aiEnabled")} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">AI Moderation</div><div className="as-row-sub">Auto-flag suspicious AI outputs</div></div>
-              <Toggle on={settings.moderationAI} onChange={() => toggle("moderationAI")} />
+              <Toggle on={settings.moderationAI as boolean} onChange={() => toggle("moderationAI")} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Max Q&A Pairs / User</div><div className="as-row-sub">Cap on knowledge base size per user</div></div>
-              <input className="as-input" type="number" value={settings.maxQaPairs} onChange={e => setSettings(p => ({ ...p, maxQaPairs: e.target.value }))} />
+              <input className="as-input" type="number" value={settings.maxQaPairs as string} onChange={e => setSettings(p => ({ ...p, maxQaPairs: e.target.value }))} />
             </div>
           </div>
 
@@ -257,11 +275,11 @@ export default function AdminSettings() {
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Email Notifications</div><div className="as-row-sub">Receive admin alerts via email</div></div>
-              <Toggle on={settings.emailNotifs} onChange={() => toggle("emailNotifs")} />
+              <Toggle on={settings.emailNotifs as boolean} onChange={() => toggle("emailNotifs")} />
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Slack Notifications</div><div className="as-row-sub">Send alerts to a Slack channel</div></div>
-              <Toggle on={settings.slackNotifs} onChange={() => toggle("slackNotifs")} />
+              <Toggle on={settings.slackNotifs as boolean} onChange={() => toggle("slackNotifs")} />
             </div>
           </div>
 
@@ -273,23 +291,67 @@ export default function AdminSettings() {
             </div>
             <div className="as-row">
               <div><div className="as-row-lbl">Maintenance Mode</div><div className="as-row-sub">Shows a maintenance page to all users</div></div>
-              <Toggle on={settings.maintenanceMode} onChange={() => toggle("maintenanceMode")} />
+              <Toggle on={settings.maintenanceMode as boolean} onChange={() => toggle("maintenanceMode")} />
             </div>
             <div className="as-row">
-              <div><div className="as-row-lbl">Clear All Chat History</div><div className="as-row-sub">Permanently delete all user chat logs</div></div>
-              <button className="as-danger-btn"><AlertTriangle size={13} /> Clear All</button>
+              <div>
+                <div className="as-row-lbl">Clear All Chat History</div>
+                <div className="as-row-sub">
+                  {clearState === "confirm"
+                    ? "⚠ Click again to confirm — this cannot be undone"
+                    : "Permanently delete all user chat logs"}
+                </div>
+              </div>
+              <button
+                className={`as-danger-btn${clearState === "confirm" ? " as-danger-btn--confirm" : ""}`}
+                disabled={clearState === "running"}
+                onClick={handleClearChats}
+                onBlur={() => { if (clearState === "confirm") setClearState("idle"); }}
+              >
+                {clearState === "running"
+                  ? <><Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Clearing…</>
+                  : clearState === "confirm"
+                  ? <><AlertTriangle size={13} /> Confirm Clear</>
+                  : <><AlertTriangle size={13} /> Clear All</>}
+              </button>
             </div>
             <div className="as-row">
-              <div><div className="as-row-lbl">Reset Training Data</div><div className="as-row-sub">Wipe all knowledge base entries</div></div>
-              <button className="as-danger-btn"><AlertTriangle size={13} /> Reset</button>
+              <div>
+                <div className="as-row-lbl">Reset Training Data</div>
+                <div className="as-row-sub">
+                  {resetState === "confirm"
+                    ? "⚠ Click again to confirm — this cannot be undone"
+                    : "Mark all knowledge bases as untrained"}
+                </div>
+              </div>
+              <button
+                className={`as-danger-btn${resetState === "confirm" ? " as-danger-btn--confirm" : ""}`}
+                disabled={resetState === "running"}
+                onClick={handleResetTraining}
+                onBlur={() => { if (resetState === "confirm") setResetState("idle"); }}
+              >
+                {resetState === "running"
+                  ? <><Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Resetting…</>
+                  : resetState === "confirm"
+                  ? <><AlertTriangle size={13} /> Confirm Reset</>
+                  : <><AlertTriangle size={13} /> Reset</>}
+              </button>
             </div>
           </div>
 
           {/* Save */}
           <div className="as-save">
             <span className="as-save-note">Changes apply immediately after saving.</span>
-            <button className={`as-save-btn ${saved ? "as-save-btn--saved" : ""}`} onClick={handleSave}>
-              <Save size={14} /> {saved ? "Saved!" : "Save Changes"}
+            <button
+              className={`as-save-btn${saved ? " as-save-btn--saved" : ""}`}
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving
+                ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Saving…</>
+                : saved
+                ? <><Save size={14} /> Saved!</>
+                : <><Save size={14} /> Save Changes</>}
             </button>
           </div>
         </div>

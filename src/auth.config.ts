@@ -13,43 +13,73 @@ export const authConfig = {
     signIn: "/auth/signin",
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user
-      const isOnAuth = nextUrl.pathname.startsWith("/auth")
-      const isOnAdminLogin = nextUrl.pathname.startsWith("/admin/auth")
-      
-      // Public routes that don't require authentication
-      const isPublicRoute = nextUrl.pathname === "/" || nextUrl.pathname === "/chat" || nextUrl.pathname === "/logout"
-      
-      const isOnProtected =
-        nextUrl.pathname.startsWith("/Dashboard") ||
-        nextUrl.pathname.startsWith("/dashboard") ||
-        nextUrl.pathname.startsWith("/training") ||
-        nextUrl.pathname.startsWith("/profile") ||
-        nextUrl.pathname.startsWith("/settings")
+    // Map custom JWT fields into session.user so the middleware's authorized callback
+    // can read them. No DB calls here — just pass-through from token.
+    async session({ session, token }) {
+      if (token.id)          (session.user as any).id          = token.id;
+      if (token.isAdminAuth) (session.user as any).isAdminAuth = token.isAdminAuth;
+      if (token.status)      (session.user as any).status      = token.status;
+      return session;
+    },
 
-      // Admin login page is always accessible
-      if (isOnAdminLogin) return true
+    async authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn  = !!auth?.user
+      const isAdminUser = !!(auth?.user as any)?.isAdminAuth
+      const pathname    = nextUrl.pathname
+
+      const isOnAuth       = pathname.startsWith("/auth")
+      const isOnAdminLogin = pathname.startsWith("/admin/auth")
+      const isOnMaintenance = pathname === "/maintenance"
+
+      // Maintenance page and admin-auth pages are always accessible
+      if (isOnMaintenance) return true
+      if (isOnAdminLogin)  return true
+
+      // Block banned users from every page (they already can't log in,
+      // but this catches anyone banned while already having a valid session)
+      if (!isAdminUser && (auth?.user as any)?.status === "banned") {
+        return Response.redirect(new URL("/auth/signin?error=banned", nextUrl))
+      }
+
+      // Check maintenance mode for non-admin users.
+      // Auth pages (/auth/*) are skipped so the admin can still sign in to disable it.
+      if (!isAdminUser && !isOnAuth) {
+        try {
+          const res  = await fetch(`${nextUrl.origin}/api/maintenance`, { cache: "no-store" })
+          const data = await res.json() as { on: boolean }
+          if (data.on) {
+            return Response.redirect(new URL("/maintenance", nextUrl))
+          }
+        } catch {
+          // If the check fails, allow through — don't block the site
+        }
+      }
+
+      // Public routes that don't require authentication
+      const isPublicRoute =
+        pathname === "/" || pathname === "/chat" || pathname === "/logout"
+
+      const isOnProtected =
+        pathname.startsWith("/Dashboard") ||
+        pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/training") ||
+        pathname.startsWith("/profile") ||
+        pathname.startsWith("/settings")
 
       if (isOnAuth) {
         if (isLoggedIn) {
-          // Respect callbackUrl if provided, otherwise go to Dashboard
           const callbackUrl = nextUrl.searchParams.get("callbackUrl") || "/Dashboard"
           return Response.redirect(new URL(callbackUrl, nextUrl))
         }
         return true
       }
 
-      // Allow access to public routes without authentication
-      if (isPublicRoute) {
-        return true
-      }
+      if (isPublicRoute) return true
 
       if (isOnProtected) {
         if (isLoggedIn) return true
-        // Redirect to sign in with callback URL
         return Response.redirect(
-          new URL(`/auth/signin?callbackUrl=${encodeURIComponent(nextUrl.pathname)}`, nextUrl)
+          new URL(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`, nextUrl)
         )
       }
 

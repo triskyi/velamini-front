@@ -16,13 +16,13 @@ export default async function DashboardPage() {
   if (!userId && session.user.email) {
     user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true, accountType: true },
+      select: { id: true, accountType: true, status: true },
     });
     userId = user?.id;
   } else if (userId) {
     user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, accountType: true },
+      select: { id: true, accountType: true, status: true },
     });
   }
 
@@ -64,5 +64,6 @@ export default async function DashboardPage() {
     lastTrainedAt: knowledgeBase.lastTrainedAt?.toISOString() || null,
   } : null;
 
-  return <DashboardWrapper user={session.user} stats={stats} knowledgeBase={serializedKnowledgeBase} />;
+  const userWithStatus = { ...session.user, status: (user as any)?.status ?? "active" };
+  return <DashboardWrapper user={userWithStatus} stats={stats} knowledgeBase={serializedKnowledgeBase} />;
 }

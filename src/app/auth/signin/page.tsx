@@ -58,6 +58,7 @@ function FeaturePill({ icon, text, delay }: { icon: string; text: string; delay:
 function SignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get("callbackUrl") || "/Dashboard";
+  const isBanned = searchParams?.get("error") === "banned";
   const [isDark, setIsDark] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
@@ -493,6 +494,17 @@ function SignInContent() {
                   <h2 className="si-card-title">Get started free</h2>
                   <p className="si-card-sub">Sign in to create your virtual self and share it with the world.</p>
                 </div>
+
+                {isBanned && (
+                  <div style={{
+                    padding: "10px 14px", borderRadius: 10, marginBottom: 16,
+                    background: "color-mix(in srgb,#EF4444 12%,transparent)",
+                    border: "1px solid color-mix(in srgb,#EF4444 30%,transparent)",
+                    color: "#EF4444", fontSize: ".8rem", lineHeight: 1.5,
+                  }}>
+                    <strong>Account suspended.</strong> Your account has been banned. Contact support if you believe this is a mistake.
+                  </div>
+                )}
 
                 <motion.button
                   className="si-google-btn"

@@ -163,9 +163,10 @@ export default function OnboardingPage() {
     // Step 1 → Step 2 for org
     if (step === 1) {
       if (!selectedType) { setError("Please choose an account type."); return; }
+
       if (selectedType === "personal") {
         if (status !== "authenticated") {
-          // Not signed in — send to sign-in page, then back to onboarding
+          // Not signed in — send to Google sign-in, then back to onboarding
           try { localStorage.setItem("ob_account_type", "personal"); } catch {}
           router.push("/auth/signin?callbackUrl=/onboarding");
           return;
@@ -173,7 +174,16 @@ export default function OnboardingPage() {
         await submit();
         return;
       }
-      setStep(2); return;
+
+      // Organization — must create/sign-in to an org account first
+      if (selectedType === "organization") {
+        if (status !== "authenticated") {
+          router.push("/auth/org/signup");
+          return;
+        }
+        setStep(2);
+        return;
+      }
     }
 
     // Step 2 (org details)

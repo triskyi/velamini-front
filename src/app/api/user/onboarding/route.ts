@@ -63,7 +63,14 @@ export async function POST(req: Request) {
         onboardingComplete: updatedUser.onboardingComplete,
       }
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    const prismaError = error as { code?: string };
+    if (prismaError?.code === "P2025") {
+      return NextResponse.json(
+        { ok: false, error: "User not found — please sign in again" },
+        { status: 404 }
+      );
+    }
     console.error("Onboarding error:", error);
     return NextResponse.json(
       { ok: false, error: "Failed to complete onboarding" },

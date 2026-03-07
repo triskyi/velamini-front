@@ -97,7 +97,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { id: token.id as string },
           select: { status: true },
         });
-        token.status = dbUser?.status ?? "active";
+        if (!dbUser) {
+          // User no longer exists in DB — invalidate token so session fails the
+          // session.user.id check and the user is redirected to sign in again
+          token.id = undefined;
+          token.status = undefined;
+        } else {
+          token.status = dbUser.status;
+        }
       }
       return token;
     },

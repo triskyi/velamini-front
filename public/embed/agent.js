@@ -44,8 +44,8 @@
   var styleEl = d.createElement('style');
   styleEl.textContent = [
     /* Floating button — always bottom-right */
-    '#vela-btn{position:fixed;bottom:24px;right:24px;z-index:2147483646;width:54px;height:54px;border-radius:50%;background:#38bdf8;border:none;cursor:pointer;box-shadow:0 4px 24px rgba(56,189,248,.45);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;outline:none;padding:0}',
-    '#vela-btn:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(56,189,248,.6)}',
+    '#vela-btn{position:fixed;bottom:24px;right:24px;z-index:2147483646;width:54px;height:54px;border-radius:50%;background:rgba(56,189,248,.62);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(56,189,248,.22);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;outline:none;padding:0}',
+    '#vela-btn:hover{transform:scale(1.08);box-shadow:0 8px 24px rgba(56,189,248,.32)}',
     '#vela-btn svg{pointer-events:none;flex-shrink:0}',
     /* Panel — always anchored bottom-right */
     '#vela-panel{position:fixed;bottom:90px;right:24px;z-index:2147483645;width:360px;max-width:calc(100vw - 32px);height:520px;max-height:calc(100dvh - 110px);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 64px rgba(0,0,0,.28);transform-origin:bottom right;transition:transform .22s cubic-bezier(.16,1,.3,1),opacity .18s ease}',

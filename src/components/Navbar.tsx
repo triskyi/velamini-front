@@ -167,9 +167,9 @@ export default function Navbar({ isDarkMode, onThemeToggle, className = "" }: Na
           text-transform: uppercase;
           text-decoration: none;
           padding: 0.55rem 1.3rem;
-          border: 1.5px solid var(--sky, ${SKY});
+          border: 1.5px solid color-mix(in srgb, var(--sky, ${SKY}) 55%, transparent);
           color: #fff;
-          background: var(--sky, ${SKY});
+          background: color-mix(in srgb, var(--sky, ${SKY}) 70%, transparent);
           display: inline-flex;
           align-items: center;
           white-space: nowrap;

@@ -251,8 +251,8 @@ export default function Home() {
           box-shadow: 0 4px 24px rgba(0,0,0,.18);
         }
         .btn-primary:hover { opacity: .86; transform: translateY(-2px); }
-        .btn-primary.personal { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 24px color-mix(in srgb,var(--accent) 42%,transparent); }
-        .btn-primary.org      { background: var(--org-c);  border-color: var(--org-c);  color: #fff; box-shadow: 0 4px 24px color-mix(in srgb,var(--org-c)  42%,transparent); }
+        .btn-primary.personal { background: color-mix(in srgb,var(--accent) 72%,transparent); border-color: color-mix(in srgb,var(--accent) 55%,transparent); color: #fff; box-shadow: 0 4px 18px color-mix(in srgb,var(--accent) 22%,transparent); }
+        .btn-primary.org      { background: color-mix(in srgb,var(--org-c) 72%,transparent);  border-color: color-mix(in srgb,var(--org-c) 55%,transparent);  color: #fff; box-shadow: 0 4px 18px color-mix(in srgb,var(--org-c)  22%,transparent); }
         .btn-ghost {
           font-family: 'Geist Mono', monospace;
           font-size: .7rem; letter-spacing: .14em; text-transform: uppercase;
@@ -391,8 +391,8 @@ export default function Home() {
           font-weight: 500;
         }
         .cta-btn:hover { opacity: .84; transform: translateY(-2px); }
-        .cta-btn.personal { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 24px color-mix(in srgb,var(--accent) 42%,transparent); }
-        .cta-btn.org      { background: var(--org-c);  border-color: var(--org-c);  color: #fff; box-shadow: 0 4px 24px color-mix(in srgb,var(--org-c)  42%,transparent); }
+        .cta-btn.personal { background: color-mix(in srgb,var(--accent) 72%,transparent); border-color: color-mix(in srgb,var(--accent) 55%,transparent); color: #fff; box-shadow: 0 4px 18px color-mix(in srgb,var(--accent) 22%,transparent); }
+        .cta-btn.org      { background: color-mix(in srgb,var(--org-c) 72%,transparent);  border-color: color-mix(in srgb,var(--org-c) 55%,transparent);  color: #fff; box-shadow: 0 4px 18px color-mix(in srgb,var(--org-c)  22%,transparent); }
         .cta-btn-ghost {
           font-family: 'Geist Mono', monospace;
           font-size: .7rem; letter-spacing: .14em; text-transform: uppercase;

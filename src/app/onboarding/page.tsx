@@ -14,6 +14,18 @@ export const dynamic = "force-dynamic";
 
 type AccountType = "personal" | "organization" | null;
 
+const PERSONAL_DOMAINS = new Set([
+  "gmail.com","yahoo.com","hotmail.com","outlook.com","icloud.com",
+  "live.com","msn.com","aol.com","protonmail.com","me.com",
+  "ymail.com","googlemail.com","mail.com","inbox.com",
+]);
+
+function isPersonalEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const domain = email.split("@")[1]?.toLowerCase();
+  return !!domain && PERSONAL_DOMAINS.has(domain);
+}
+
 const personalFeatures = [
   { Icon: Brain,        text: "Train AI with your personality & knowledge"     },
   { Icon: Share2,       text: "Share your virtual self with a public link"      },
@@ -71,12 +83,18 @@ export default function OnboardingPage() {
     try {
       const saved = localStorage.getItem("ob_account_type") as AccountType;
       if (saved === "personal" || saved === "organization") {
-        setSelectedType(saved);
         localStorage.removeItem("ob_account_type");
+        // Block personal emails for org accounts
+        if (saved === "organization" && isPersonalEmail(session?.user?.email)) {
+          setSelectedType(null);
+          setError("Organisation accounts require a work/business email (e.g. name@yourcompany.com). Please sign in again with your work email.");
+          return;
+        }
+        setSelectedType(saved);
         if (saved === "organization") setStep(2);
       }
     } catch {}
-  }, [status]);
+  }, [status, session?.user?.email]);  // eslint-disable-line
 
   // Only redirect away if the user has already completed onboarding
   useEffect(() => {
@@ -122,6 +140,10 @@ export default function OnboardingPage() {
     // Step 2 (org details)
     if (!orgName.trim())  { setError("Organisation name is required."); return; }
     if (!agentName.trim()){ setError("Agent name is required."); return; }
+    if (isPersonalEmail(session?.user?.email)) {
+      setError("Organisation accounts require a work/business email (e.g. name@yourcompany.com).");
+      return;
+    }
     await submit();
   };
 
@@ -455,6 +477,7 @@ export default function OnboardingPage() {
                         <div>
                           <div className="ob-type-title">Organisation</div>
                           <div className="ob-type-sub">Create an AI agent for your business</div>
+                          <div style={{display:"inline-flex",alignItems:"center",gap:4,marginTop:4,padding:"2px 7px",borderRadius:6,background:"var(--c-org-soft)",border:"1px solid color-mix(in srgb,var(--c-org) 25%,transparent)",fontSize:".62rem",fontWeight:700,color:"var(--c-org)",letterSpacing:".04em"}}>Work email required</div>
                         </div>
                         <div className="ob-type-features">
                           {orgFeatures.slice(0,4).map(({Icon, text}) => (
@@ -482,7 +505,7 @@ export default function OnboardingPage() {
                       ) : (
                         <button className="ob-google-btn" disabled={!selectedType} onClick={handleGoogleSignIn}>
                           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.58-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                          Continue with Google
+                          {selectedType === "organization" ? "Continue with work email" : "Continue with Google"}
                         </button>
                       )}
                     </div>

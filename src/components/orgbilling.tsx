@@ -6,8 +6,54 @@ import {
   Zap, Check, ArrowRight, CreditCard, AlertTriangle,
   TrendingUp, Calendar, Receipt, Star, RefreshCw, X,
 } from "lucide-react";
-import { PLANS } from "./PricingPage";
-import type { Organization } from "./org-types";
+import type { Organization } from "@/types/organization/org-type";
+
+type Plan = {
+  id: string;
+  name: string;
+  price: number;
+  messages: number;
+  accent: string;
+  badge?: string;
+  features: string[];
+};
+
+const PLANS: Plan[] = [
+  {
+    id: "free",
+    name: "Free",
+    price: 0,
+    messages: 500,
+    accent: "#34D399",
+    features: ["500 messages/mo", "1 AI agent", "API access", "Embed widget"],
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    price: 5000,
+    messages: 2000,
+    accent: "#38AECC",
+    features: ["2,000 messages/mo", "1 AI agent", "API + Embed", "Priority support"],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: 15000,
+    messages: 8000,
+    accent: "#818CF8",
+    badge: "Most popular",
+    features: ["8,000 messages/mo", "1 AI agent", "API + Embed", "Analytics", "Priority support"],
+  },
+  {
+    id: "scale",
+    name: "Scale",
+    price: 35000,
+    messages: 25000,
+    accent: "#FCD34D",
+    badge: "Best value",
+    features: ["25,000 messages/mo", "1 AI agent", "API + Embed", "Analytics", "Dedicated support", "SLA guarantee"],
+  },
+];
 
 interface Invoice {
   id: string;

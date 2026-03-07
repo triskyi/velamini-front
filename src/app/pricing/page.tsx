@@ -20,13 +20,13 @@ export const PERSONAL_PLANS = [
     tagline: "Explore the platform",
     badge: null,
     features: [
-      { t: "200 messages / month",         ok: true  },
-      { t: "1 personal AI agent",          ok: true  },
-      { t: "Chat via dashboard",           ok: true  },
-      { t: "Conversation history (7 days)",ok: true  },
-      { t: "REST API access",              ok: false },
-      { t: "Embed widget",                 ok: false },
-      { t: "Analytics",                    ok: false },
+      { t: "200 messages / month",          ok: true  },
+      { t: "1 personal AI agent",           ok: true  },
+      { t: "Chat via dashboard",            ok: true  },
+      { t: "Conversation history (7 days)", ok: true  },
+      { t: "REST API access",               ok: false },
+      { t: "Embed widget",                  ok: false },
+      { t: "Analytics",                     ok: false },
     ],
     cta: "Start Free",
     ctaHref: "/auth/signin",
@@ -40,15 +40,15 @@ export const PERSONAL_PLANS = [
     Icon: Sparkles,
     color: "#38AECC",
     tagline: "For power users",
-    badge: null,
+    badge: "Recommended",
     features: [
-      { t: "1,500 messages / month",       ok: true },
-      { t: "1 personal AI agent",          ok: true },
-      { t: "Chat via dashboard",           ok: true },
-      { t: "Full conversation history",    ok: true },
-      { t: "REST API access",              ok: true },
-      { t: "Embed widget",                 ok: false },
-      { t: "Basic analytics",              ok: true },
+      { t: "1,500 messages / month",        ok: true },
+      { t: "1 personal AI agent",           ok: true },
+      { t: "Chat via dashboard",            ok: true },
+      { t: "Full conversation history",     ok: true },
+      { t: "REST API access",               ok: true },
+      { t: "Embed widget",                  ok: false },
+      { t: "Basic analytics",               ok: true },
     ],
     cta: "Get Personal Plus",
     ctaHref: "/auth/signin?plan=personal-plus",
@@ -67,13 +67,13 @@ export const ORG_PLANS = [
     tagline: "Test the waters",
     badge: null,
     features: [
-      { t: "500 messages / month",         ok: true  },
-      { t: "1 AI agent",                   ok: true  },
-      { t: "REST API access",              ok: true  },
-      { t: "Embed widget",                 ok: true  },
-      { t: "Multi-turn conversations",     ok: true  },
-      { t: "Session history (7 days)",     ok: true  },
-      { t: "Analytics dashboard",          ok: false },
+      { t: "500 messages / month",          ok: true  },
+      { t: "1 AI agent",                    ok: true  },
+      { t: "REST API access",               ok: true  },
+      { t: "Embed widget",                  ok: true  },
+      { t: "Multi-turn conversations",      ok: true  },
+      { t: "Session history (7 days)",      ok: true  },
+      { t: "Analytics dashboard",           ok: false },
     ],
     cta: "Get Started Free",
     ctaHref: "/auth/signin",
@@ -89,13 +89,13 @@ export const ORG_PLANS = [
     tagline: "For small businesses",
     badge: null,
     features: [
-      { t: "2,000 messages / month",       ok: true },
-      { t: "1 AI agent",                   ok: true },
-      { t: "REST API + Embed widget",      ok: true },
-      { t: "Full session history",         ok: true },
-      { t: "Feedback analytics",           ok: true },
-      { t: "Email support",                ok: true },
-      { t: "Advanced analytics",           ok: false },
+      { t: "2,000 messages / month",        ok: true },
+      { t: "1 AI agent",                    ok: true },
+      { t: "REST API + Embed widget",       ok: true },
+      { t: "Full session history",          ok: true },
+      { t: "Feedback analytics",            ok: true },
+      { t: "Email support",                 ok: true },
+      { t: "Advanced analytics",            ok: false },
     ],
     cta: "Upgrade to Starter",
     ctaHref: "/auth/signin?plan=starter",
@@ -111,13 +111,13 @@ export const ORG_PLANS = [
     tagline: "Most popular",
     badge: "Most Popular",
     features: [
-      { t: "8,000 messages / month",       ok: true },
-      { t: "1 AI agent",                   ok: true },
-      { t: "REST API + Embed + React SDK", ok: true },
-      { t: "Full session history",         ok: true },
-      { t: "Usage analytics dashboard",    ok: true },
-      { t: "Priority email support",       ok: true },
-      { t: "Advanced analytics",           ok: true },
+      { t: "8,000 messages / month",        ok: true },
+      { t: "1 AI agent",                    ok: true },
+      { t: "REST API + Embed + React SDK",  ok: true },
+      { t: "Full session history",          ok: true },
+      { t: "Usage analytics dashboard",     ok: true },
+      { t: "Priority email support",        ok: true },
+      { t: "Advanced analytics",            ok: true },
     ],
     cta: "Upgrade to Pro",
     ctaHref: "/auth/signin?plan=pro",
@@ -133,13 +133,13 @@ export const ORG_PLANS = [
     tagline: "High-traffic orgs",
     badge: "Best Value",
     features: [
-      { t: "25,000 messages / month",      ok: true },
-      { t: "1 AI agent",                   ok: true },
-      { t: "REST API + Embed + React SDK", ok: true },
-      { t: "Full session history",         ok: true },
-      { t: "Advanced analytics",           ok: true },
-      { t: "Dedicated support + SLA",      ok: true },
-      { t: "Custom onboarding",            ok: true },
+      { t: "25,000 messages / month",       ok: true },
+      { t: "1 AI agent",                    ok: true },
+      { t: "REST API + Embed + React SDK",  ok: true },
+      { t: "Full session history",          ok: true },
+      { t: "Advanced analytics",            ok: true },
+      { t: "Dedicated support + SLA",       ok: true },
+      { t: "Custom onboarding",             ok: true },
     ],
     cta: "Upgrade to Scale",
     ctaHref: "/auth/signin?plan=scale",
@@ -162,61 +162,80 @@ function fmtRWF(n: number) { return n.toLocaleString("en-RW"); }
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="pfaq-item">
-      <button className="pfaq-item-btn" onClick={() => setOpen(p => !p)}>
-        {q}
-        <ChevronDown size={14} style={{ flexShrink:0, transform:open?"rotate(180deg)":"none", transition:"transform .22s", color:"var(--ac)" }}/>
+    <div className="fi">
+      <button className="fi-q" onClick={() => setOpen(p => !p)}>
+        <span>{q}</span>
+        <ChevronDown size={14} className={`fi-icon${open ? " fi-icon--open" : ""}`}/>
       </button>
-      <div className="pfaq-item-ans" style={{ maxHeight:open?320:0 }}>
-        <p>{a}</p>
+      <div className="fi-body" style={{ maxHeight: open ? 260 : 0 }}>
+        <p className="fi-a">{a}</p>
       </div>
     </div>
   );
 }
 
 /* ── Plan card ───────────────────────────────────────────────── */
-function PlanCard({ plan }: { plan: typeof ORG_PLANS[number] | typeof PERSONAL_PLANS[number] }) {
-  const IconComp = plan.Icon;
+function PlanCard({ plan, dark }: { plan: typeof ORG_PLANS[number] | typeof PERSONAL_PLANS[number]; dark: boolean }) {
+  const Ic = plan.Icon;
+  const hi = plan.highlight;
   return (
-    <div className={`pc${plan.highlight ? " pc--hi" : ""}`} style={{ ["--pc" as any]: plan.color }}>
+    <div className={`pc${hi ? " pc--hi" : ""}`} style={{ ["--col" as any]: plan.color }}>
+      {/* top accent line */}
+      <div className="pc-line" style={{ background: hi ? plan.color : "transparent" }}/>
+
       {plan.badge && (
-        <div className="pc-badge" style={{ background: plan.color }}>
+        <div className="pc-bdg" style={{ background: plan.color }}>
           {plan.badge}
         </div>
       )}
-      <div className="pc-top">
-        <div className="pc-ic" style={{ background:`${plan.color}1e` }}>
-          <IconComp size={17} style={{ color:plan.color }}/>
+
+      {/* header */}
+      <div className="pc-head">
+        <div className="pc-ic" style={{ background: `${plan.color}18`, boxShadow: `0 0 0 1px ${plan.color}30` }}>
+          <Ic size={16} style={{ color: plan.color }}/>
         </div>
         <div>
           <div className="pc-name">{plan.label}</div>
-          <div className="pc-tag">{plan.tagline}</div>
+          <div className="pc-sub">{plan.tagline}</div>
         </div>
       </div>
 
-      <div className="pc-price-wrap">
-        <div className="pc-amt">
-          {plan.price === 0
-            ? <span style={{ fontFamily:"'DM Serif Display',serif", fontSize:"2.2rem" }}>Free</span>
-            : <>{fmtRWF(plan.price)}<span className="pc-cur">RWF</span></>}
-        </div>
-        {plan.price > 0 && <div className="pc-per">per month</div>}
-        <div className="pc-msgs">{plan.msgs.toLocaleString()} messages / month</div>
+      {/* price */}
+      <div className="pc-price">
+        {plan.price === 0
+          ? <span className="pc-free">Free</span>
+          : <>
+              <span className="pc-num">{fmtRWF(plan.price)}</span>
+              <span className="pc-rwf">RWF<span className="pc-mo">/mo</span></span>
+            </>
+        }
+      </div>
+      <div className="pc-limit" style={{ color: plan.color }}>
+        {plan.msgs.toLocaleString()} messages / month
       </div>
 
+      <div className="pc-divider"/>
+
+      {/* features */}
       <ul className="pc-feats">
         {plan.features.map(f => (
           <li key={f.t} className={`pc-feat${f.ok ? "" : " pc-feat--off"}`}>
-            {f.ok
-              ? <Check size={12} style={{ color:plan.color, flexShrink:0 }}/>
-              : <X     size={12} style={{ color:"var(--br)", flexShrink:0 }}/>}
+            <span className="pc-feat-icon">
+              {f.ok
+                ? <Check size={10} style={{ color: plan.color }}/>
+                : <X     size={10} style={{ color: dark ? "#1e3a50" : "#b8d4e8" }}/>}
+            </span>
             {f.t}
           </li>
         ))}
       </ul>
 
-      <Link href={plan.ctaHref} className={`pc-cta${plan.highlight ? " pc-cta--hi" : ""}`}
-        style={plan.highlight ? { background:plan.color, borderColor:plan.color } : undefined}>
+      {/* cta */}
+      <Link
+        href={plan.ctaHref}
+        className={`pc-cta${hi ? " pc-cta--hi" : ""}`}
+        style={hi ? { background: plan.color, boxShadow: `0 4px 22px ${plan.color}50` } : { borderColor: `${plan.color}40` }}
+      >
         {plan.cta}
         <ArrowRight size={13}/>
       </Link>
@@ -226,15 +245,14 @@ function PlanCard({ plan }: { plan: typeof ORG_PLANS[number] | typeof PERSONAL_P
 
 /* ── Page ────────────────────────────────────────────────────── */
 export default function PricingPage() {
-  const [isDark, setIsDark] = useState(true);
-  const [tab,    setTab]    = useState<"personal"|"org">("org");
-  const [mounted,setMounted]= useState(false);
+  const [isDark,  setIsDark]  = useState(true);
+  const [tab,     setTab]     = useState<"personal"|"org">("org");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     try {
-      const stored = localStorage.getItem("theme") || "dark";
-      const d = stored === "dark";
+      const d = (localStorage.getItem("theme") || "dark") === "dark";
       setIsDark(d); applyTheme(d);
     } catch {}
   }, []);
@@ -252,228 +270,421 @@ export default function PricingPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
 
-        /* ── tokens ── */
+        /* ─── Tokens ─────────────────────────────────────────── */
         :root,[data-mode="light"]{
-          --bg:#EFF7FF;--su:#FFFFFF;--s2:#E2F0FC;
-          --br:#C5DCF2;--fg:#0B1E2E;--mu:#5A84A0;
-          --ac:#29A9D4;--org:#6366F1;
-          --sh:0 8px 32px rgba(10,50,90,.09);
+          --bg:       #E8F4FD;
+          --bg2:      #D8ECF9;
+          --su:       #FFFFFF;
+          --su2:      #F0F8FF;
+          --br:       #BDD9F0;
+          --br2:      #D6ECFA;
+          --fg:       #091828;
+          --fg2:      #1C3A52;
+          --mu:       #527A96;
+          --ac:       #29A9D4;
+          --ac2:      #1B90B8;
+          --org:      #6366F1;
+          --glow-ac:  rgba(41,169,212,.22);
+          --glow-org: rgba(99,102,241,.16);
         }
         [data-mode="dark"]{
-          --bg:#081420;--su:#0F1E2D;--s2:#121F2E;
-          --br:#1A3045;--fg:#C8E8F8;--mu:#3D6580;
-          --ac:#38AECC;--org:#818CF8;
-          --sh:0 8px 32px rgba(0,0,0,.38);
+          --bg:       #060E18;
+          --bg2:      #08111E;
+          --su:       #0C1A28;
+          --su2:      #0F2030;
+          --br:       #132234;
+          --br2:      #1A3045;
+          --fg:       #D4EEFF;
+          --fg2:      #8BBAD6;
+          --mu:       #2E5470;
+          --ac:       #38AECC;
+          --ac2:      #29A9D4;
+          --org:      #818CF8;
+          --glow-ac:  rgba(56,174,204,.18);
+          --glow-org: rgba(129,140,248,.14);
         }
 
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+        html{scroll-behavior:smooth}
+        body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;transition:background .35s,color .35s}
 
-        .pw{min-height:100dvh;padding-top:3.75rem;overflow-x:hidden}
-
-        /* ── grid bg ── */
-        .pw::before{
-          content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-          background-image:
-            linear-gradient(var(--br) 1px,transparent 1px),
-            linear-gradient(90deg,var(--br) 1px,transparent 1px);
-          background-size:48px 48px;opacity:.13;
+        /* ─── Page wrapper ─────────────────────────────────────── */
+        .pw{
+          min-height:100dvh;
+          padding-top:3.75rem;
+          overflow-x:hidden;
+          position:relative;
         }
 
-        /* ── hero ── */
-        .ph{position:relative;z-index:1;text-align:center;padding:4.5rem 1.5rem 3rem;max-width:640px;margin:0 auto}
-        .ph::before{
-          content:'';position:absolute;width:700px;height:380px;
-          background:radial-gradient(ellipse,color-mix(in srgb,var(--ac) 18%,transparent) 0%,transparent 68%);
-          top:-60px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:-1;
-        }
-        .ph-eye{display:inline-flex;align-items:center;gap:6px;font-size:.62rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,transparent);border:1px solid color-mix(in srgb,var(--ac) 28%,transparent);padding:5px 14px;border-radius:20px;margin-bottom:1.4rem}
-        .ph-h1{font-family:'DM Serif Display',Georgia,serif;font-size:clamp(2.2rem,5vw,3.4rem);font-weight:400;line-height:1.1;letter-spacing:-.025em;color:var(--fg);margin-bottom:1rem}
-        .ph-h1 em{font-style:italic;color:var(--ac)}
-        .ph-sub{font-size:.9rem;color:var(--mu);line-height:1.75;margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto}
-        .ph-badge{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:1px solid var(--br);border-radius:30px;font-size:.77rem;font-weight:600;color:var(--fg);background:var(--su);box-shadow:0 2px 10px rgba(0,0,0,.06)}
-        .ph-badge b{color:var(--ac)}
-
-        /* ── tab switcher ── */
-        .ptab-wrap{position:relative;z-index:1;display:flex;justify-content:center;margin-bottom:2.8rem}
-        .ptab{display:inline-flex;align-items:center;background:var(--su);border:1.5px solid var(--br);border-radius:14px;padding:4px;gap:3px;box-shadow:0 2px 14px rgba(0,0,0,.07)}
-        .ptab-btn{display:flex;align-items:center;gap:7px;padding:9px 22px;border:none;border-radius:10px;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;color:var(--mu);background:none}
-        .ptab-btn.on{background:var(--ac);color:#fff;box-shadow:0 2px 14px color-mix(in srgb,var(--ac) 38%,transparent)}
-        .ptab-btn svg{width:13px;height:13px}
-
-        /* ── cards grid ── */
-        .pgrid{position:relative;z-index:1;display:grid;gap:18px;max-width:1140px;margin:0 auto;padding:0 20px 3rem}
-        .pgrid--2{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));max-width:700px}
-        .pgrid--4{grid-template-columns:repeat(auto-fill,minmax(245px,1fr))}
-
-        /* ── plan card ── */
-        .pc{
-          position:relative;background:var(--su);
-          border:1.5px solid var(--br);border-radius:20px;
-          padding:24px 22px 22px;
-          display:flex;flex-direction:column;gap:0;
+        /* ─── Background: rich dark gradient + blurred orbs ─────── */
+        .pw-bg{
+          position:fixed;inset:0;z-index:0;pointer-events:none;
           overflow:hidden;
-          transition:border-color .22s,box-shadow .22s,transform .22s;
-          box-shadow:inset 0 3px 0 var(--pc);
         }
+
+        /* Base gradient */
+        .pw-bg::before{
+          content:'';position:absolute;inset:0;
+          background:
+            radial-gradient(ellipse 80% 60% at 10% -10%, color-mix(in srgb,var(--ac) 14%,transparent) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 50% at 90% 20%,  color-mix(in srgb,var(--org) 10%,transparent) 0%, transparent 55%),
+            radial-gradient(ellipse 70% 40% at 50% 100%, color-mix(in srgb,var(--ac) 9%,transparent)  0%, transparent 60%),
+            var(--bg);
+        }
+
+        /* Floating orbs */
+        .orb{
+          position:absolute;border-radius:50%;
+          filter:blur(80px);opacity:.55;
+          pointer-events:none;
+          animation:orb-drift 18s ease-in-out infinite alternate;
+        }
+        [data-mode="light"] .orb{opacity:.25;filter:blur(100px)}
+        .orb-1{width:520px;height:520px;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 65%,transparent),transparent 72%);top:-120px;left:-100px;animation-delay:0s;animation-duration:22s}
+        .orb-2{width:400px;height:400px;background:radial-gradient(circle,color-mix(in srgb,var(--org) 55%,transparent),transparent 72%);top:80px;right:-80px;animation-delay:-7s;animation-duration:26s}
+        .orb-3{width:460px;height:460px;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 45%,transparent),transparent 72%);bottom:5%;left:30%;animation-delay:-13s;animation-duration:20s}
+        .orb-4{width:280px;height:280px;background:radial-gradient(circle,color-mix(in srgb,#34D399 40%,transparent),transparent 72%);bottom:20%;right:10%;animation-delay:-4s;animation-duration:30s}
+
+        @keyframes orb-drift{
+          0%  {transform:translate(0,0)   scale(1)}
+          33% {transform:translate(24px,-18px) scale(1.04)}
+          66% {transform:translate(-16px,22px) scale(.97)}
+          100%{transform:translate(10px,-8px)  scale(1.02)}
+        }
+
+        /* Fine dot grid overlay */
+        .pw-bg::after{
+          content:'';position:absolute;inset:0;
+          background-image:radial-gradient(circle,color-mix(in srgb,var(--fg) 18%,transparent) 1px,transparent 1px);
+          background-size:28px 28px;
+          opacity:.12;
+          mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,black 30%,transparent 100%);
+        }
+        [data-mode="light"] .pw-bg::after{opacity:.07}
+
+        /* ─── All content above bg ─────────────────────────────── */
+        .pw > *:not(.pw-bg){position:relative;z-index:1}
+
+        /* ─── Hero ─────────────────────────────────────────────── */
+        .ph{
+          text-align:center;padding:5rem 1.5rem 3.5rem;
+          max-width:640px;margin:0 auto;
+        }
+        .ph-pill{
+          display:inline-flex;align-items:center;gap:6px;
+          font-size:.6rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+          color:var(--ac);
+          background:color-mix(in srgb,var(--ac) 10%,transparent);
+          border:1px solid color-mix(in srgb,var(--ac) 28%,transparent);
+          padding:5px 14px;border-radius:20px;margin-bottom:1.5rem;
+        }
+        .ph-h1{
+          font-family:'DM Serif Display',Georgia,serif;
+          font-size:clamp(2.4rem,5.5vw,3.8rem);
+          font-weight:400;line-height:1.08;
+          letter-spacing:-.03em;color:var(--fg);
+          margin-bottom:1.1rem;
+        }
+        .ph-h1 em{font-style:italic;color:var(--ac)}
+        .ph-sub{
+          font-size:.9rem;color:var(--mu);line-height:1.78;
+          margin-bottom:2.2rem;max-width:460px;
+          margin-left:auto;margin-right:auto;
+        }
+        .ph-chip{
+          display:inline-flex;align-items:center;gap:9px;
+          padding:10px 22px;border-radius:40px;
+          background:color-mix(in srgb,var(--su) 70%,transparent);
+          border:1px solid var(--br2);
+          backdrop-filter:blur(12px);
+          font-size:.78rem;font-weight:600;color:var(--fg2);
+          box-shadow:0 2px 18px rgba(0,0,0,.1);
+        }
+        .ph-chip b{color:var(--ac)}
+
+        /* ─── Tab switcher ─────────────────────────────────────── */
+        .pts{
+          display:flex;justify-content:center;
+          margin-bottom:3rem;
+        }
+        .pts-inner{
+          display:inline-flex;align-items:center;
+          background:color-mix(in srgb,var(--su) 80%,transparent);
+          border:1.5px solid var(--br2);border-radius:16px;padding:5px;
+          backdrop-filter:blur(14px);gap:4px;
+          box-shadow:0 4px 24px rgba(0,0,0,.1);
+        }
+        .pts-btn{
+          display:flex;align-items:center;gap:8px;
+          padding:9px 24px;border:none;border-radius:11px;
+          font-family:inherit;font-size:.8rem;font-weight:600;
+          cursor:pointer;transition:all .22s;
+          color:var(--mu);background:none;
+        }
+        .pts-btn svg{width:14px;height:14px}
+        .pts-btn.on{
+          background:var(--ac);color:#fff;
+          box-shadow:0 2px 16px color-mix(in srgb,var(--ac) 42%,transparent);
+        }
+        .pts-btn.on svg{color:#fff}
+
+        /* ─── Cards grid ───────────────────────────────────────── */
+        .pgrid{
+          display:grid;gap:20px;
+          max-width:1160px;margin:0 auto;
+          padding:0 20px 3rem;
+        }
+        .pgrid--2{grid-template-columns:repeat(auto-fill,minmax(290px,1fr));max-width:720px}
+        .pgrid--4{grid-template-columns:repeat(auto-fill,minmax(248px,1fr))}
+        @media(max-width:600px){
+          .pgrid--4,.pgrid--2{grid-template-columns:1fr;max-width:100%}
+        }
+
+        /* ─── Plan card ────────────────────────────────────────── */
+        .pc{
+          position:relative;
+          background:color-mix(in srgb,var(--su) 80%,transparent);
+          border:1px solid var(--br2);
+          border-radius:22px;
+          padding:0 0 20px;
+          display:flex;flex-direction:column;
+          overflow:hidden;
+          backdrop-filter:blur(16px);
+          transition:transform .24s,box-shadow .24s,border-color .24s;
+        }
+        [data-mode="light"] .pc{background:rgba(255,255,255,.82)}
         .pc:hover{
-          transform:translateY(-4px);
-          box-shadow:inset 0 3px 0 var(--pc),0 14px 36px rgba(0,0,0,.13);
-        }
-        .pc--hi{
-          border-color:color-mix(in srgb,var(--pc) 50%,var(--br))!important;
-          background:color-mix(in srgb,var(--pc) 3%,var(--su))!important;
-          box-shadow:
-            inset 0 3px 0 var(--pc),
-            0 0 0 3px color-mix(in srgb,var(--pc) 18%,transparent),
-            0 14px 44px color-mix(in srgb,var(--pc) 16%,transparent)!important;
-        }
-        .pc--hi:hover{
           transform:translateY(-5px);
+          box-shadow:0 18px 48px rgba(0,0,0,.22),0 0 0 1px var(--br2);
+        }
+        [data-mode="light"] .pc:hover{box-shadow:0 14px 36px rgba(10,50,90,.13)}
+        .pc--hi{
+          border-color:color-mix(in srgb,var(--col) 55%,var(--br))!important;
+          background:color-mix(in srgb,var(--col) 5%,var(--su))!important;
+        }
+        [data-mode="light"] .pc--hi{background:color-mix(in srgb,var(--col) 4%,#fff)!important}
+        .pc--hi:hover{
           box-shadow:
-            inset 0 3px 0 var(--pc),
-            0 0 0 3px color-mix(in srgb,var(--pc) 24%,transparent),
-            0 22px 52px color-mix(in srgb,var(--pc) 22%,transparent)!important;
+            0 18px 52px rgba(0,0,0,.24),
+            0 0 0 2px color-mix(in srgb,var(--col) 42%,transparent),
+            0 0 60px color-mix(in srgb,var(--col) 18%,transparent)!important;
         }
-        .pc-badge{
-          position:absolute;top:0;left:50%;transform:translateX(-50%);
-          font-size:.56rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-          color:#fff;padding:4px 14px;border-radius:0 0 10px 10px;white-space:nowrap;
-          box-shadow:0 3px 10px color-mix(in srgb,var(--pc) 38%,transparent);
+
+        /* top accent bar */
+        .pc-line{height:3px;width:100%;transition:opacity .2s}
+
+        /* badge */
+        .pc-bdg{
+          position:absolute;top:12px;right:14px;
+          font-size:.54rem;font-weight:800;letter-spacing:.1em;
+          text-transform:uppercase;color:#fff;
+          padding:4px 10px;border-radius:20px;
+          box-shadow:0 2px 12px rgba(0,0,0,.3);
         }
-        .pc-top{display:flex;align-items:center;gap:11px;margin-top:10px;margin-bottom:18px}
-        .pc-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .18s}
-        .pc:hover .pc-ic{transform:scale(1.1)}
-        .pc-name{font-weight:800;font-size:.97rem;color:var(--fg)}
-        .pc-tag{font-size:.68rem;color:var(--mu);margin-top:2px}
 
-        .pc-price-wrap{display:flex;flex-direction:column;gap:2px;padding:16px 0;border-top:1px solid var(--br);border-bottom:1px solid var(--br);margin-bottom:16px}
-        .pc-amt{font-family:'DM Serif Display',serif;font-size:2.5rem;font-weight:400;color:var(--fg);display:flex;align-items:baseline;gap:5px;line-height:1}
-        .pc-cur{font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:700;color:var(--mu);margin-left:2px}
-        .pc-per{font-size:.68rem;color:var(--mu);margin-top:5px}
-        .pc-msgs{font-size:.71rem;font-weight:700;color:var(--pc);margin-top:7px;letter-spacing:.01em}
+        /* content area */
+        .pc-head{display:flex;align-items:center;gap:11px;padding:20px 20px 0}
+        .pc-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s}
+        .pc:hover .pc-ic{transform:scale(1.08) rotate(-4deg)}
+        .pc-name{font-weight:800;font-size:.96rem;color:var(--fg)}
+        .pc-sub{font-size:.67rem;color:var(--mu);margin-top:2px}
 
-        .pc-feats{list-style:none;padding:0;display:flex;flex-direction:column;gap:9px;flex:1;margin-bottom:20px}
+        .pc-price{
+          display:flex;align-items:baseline;gap:5px;
+          padding:18px 20px 0;
+        }
+        .pc-free{
+          font-family:'DM Serif Display',serif;
+          font-size:2.6rem;font-weight:400;color:var(--fg);line-height:1;
+        }
+        .pc-num{
+          font-family:'DM Serif Display',serif;
+          font-size:2.2rem;font-weight:400;color:var(--fg);line-height:1;
+          letter-spacing:-.02em;
+        }
+        .pc-rwf{font-size:.72rem;font-weight:700;color:var(--mu);margin-bottom:3px}
+        .pc-mo{font-weight:400;color:var(--mu);opacity:.7}
+        .pc-limit{
+          padding:5px 20px 0;
+          font-size:.7rem;font-weight:700;
+          letter-spacing:.01em;
+        }
+        .pc-divider{height:1px;background:var(--br);margin:16px 20px}
+
+        .pc-feats{list-style:none;padding:0 20px;display:flex;flex-direction:column;gap:9px;flex:1;margin-bottom:20px}
         .pc-feat{display:flex;align-items:center;gap:9px;font-size:.79rem;color:var(--fg);line-height:1.4}
-        .pc-feat--off{color:var(--mu);opacity:.4}
+        .pc-feat--off{color:var(--mu);opacity:.38}
+        .pc-feat-icon{display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;flex-shrink:0;background:color-mix(in srgb,var(--col) 12%,transparent)}
+        .pc-feat--off .pc-feat-icon{background:transparent}
 
         .pc-cta{
           display:flex;align-items:center;justify-content:center;gap:7px;
-          padding:12px 16px;border-radius:12px;
-          border:1.5px solid color-mix(in srgb,var(--pc) 38%,var(--br));
+          margin:0 20px;padding:12px;border-radius:13px;
+          border:1.5px solid var(--br2);
           font-size:.8rem;font-weight:700;text-decoration:none;
-          color:var(--fg);background:color-mix(in srgb,var(--pc) 7%,transparent);
-          transition:all .17s;width:100%;
+          color:var(--fg);
+          background:color-mix(in srgb,var(--col) 8%,transparent);
+          transition:all .18s;
         }
         .pc-cta:hover{
-          border-color:var(--pc);
-          background:color-mix(in srgb,var(--pc) 13%,transparent);
-          color:var(--pc);transform:translateY(-1px);
+          border-color:var(--col);
+          background:color-mix(in srgb,var(--col) 15%,transparent);
+          color:var(--col);transform:translateY(-1px);
         }
         .pc-cta--hi{color:#fff!important}
-        .pc-cta--hi:hover{opacity:.9;color:#fff!important;transform:translateY(-1px)}
+        .pc-cta--hi:hover{opacity:.88;color:#fff!important}
 
-        /* ── payment strip ── */
-        .ppay{position:relative;z-index:1;text-align:center;padding:0 1rem 3.5rem}
-        .ppay-lbl{font-size:.63rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);margin-bottom:12px}
-        .ppay-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-        .ppay-chip{padding:6px 16px;background:var(--su);border:1.5px solid var(--br);border-radius:20px;font-size:.72rem;font-weight:600;color:var(--mu);transition:border-color .15s,color .15s}
+        /* ─── Payment methods ──────────────────────────────────── */
+        .ppay{text-align:center;padding:0 1rem 3.5rem}
+        .ppay-lbl{font-size:.6rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin-bottom:14px}
+        .ppay-chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+        .ppay-chip{
+          display:flex;align-items:center;gap:6px;
+          padding:7px 16px;
+          background:color-mix(in srgb,var(--su) 75%,transparent);
+          border:1px solid var(--br2);border-radius:24px;
+          font-size:.72rem;font-weight:600;color:var(--mu);
+          backdrop-filter:blur(8px);
+          transition:border-color .15s,color .15s;
+        }
         .ppay-chip:hover{border-color:var(--ac);color:var(--ac)}
 
-        /* ── comparison table ── */
-        .ptbl-wrap{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:0 20px 4.5rem;overflow-x:auto}
-        .ptbl-h{font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.4rem,3vw,1.9rem);font-weight:400;text-align:center;margin-bottom:1.6rem;color:var(--fg)}
-        .ptbl{width:100%;border-collapse:collapse;font-size:.79rem;min-width:480px}
-        .ptbl th,.ptbl td{padding:11px 14px;border-bottom:1px solid var(--br);text-align:center}
+        /* ─── Divider ──────────────────────────────────────────── */
+        .pdiv{padding:0 20px 2.5rem;max-width:740px;margin:0 auto}
+        .pdiv-line{height:1px;background:linear-gradient(90deg,transparent,var(--br2) 30%,var(--br2) 70%,transparent)}
+
+        /* ─── Comparison table ─────────────────────────────────── */
+        .ptbl-wrap{max-width:960px;margin:0 auto;padding:0 20px 5rem;overflow-x:auto}
+        .ptbl-hd{
+          font-family:'DM Serif Display',Georgia,serif;
+          font-size:clamp(1.5rem,3vw,2rem);font-weight:400;
+          text-align:center;margin-bottom:1.8rem;color:var(--fg);
+        }
+        .ptbl-box{
+          border-radius:18px;overflow:hidden;
+          border:1px solid var(--br2);
+          background:color-mix(in srgb,var(--su) 75%,transparent);
+          backdrop-filter:blur(14px);
+        }
+        .ptbl{width:100%;border-collapse:collapse;font-size:.79rem;min-width:440px}
+        .ptbl th,.ptbl td{padding:12px 16px;border-bottom:1px solid var(--br);text-align:center}
         .ptbl th:first-child,.ptbl td:first-child{text-align:left;font-weight:600;color:var(--fg)}
-        .ptbl thead th{background:var(--s2);color:var(--mu);font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
-        .ptbl tbody tr:hover td{background:color-mix(in srgb,var(--s2) 55%,transparent)}
-        .ptbl-yes{color:#34D399;font-weight:700;font-size:.9rem}
-        .ptbl-no{color:var(--br);opacity:.7}
-        /* org table: Pro = 4th col */
-        .ptbl--org thead th:nth-child(4),.ptbl--org tbody td:nth-child(4){background:color-mix(in srgb,var(--ac) 7%,transparent)}
-        .ptbl--org thead th:nth-child(4){color:var(--ac)!important;border-bottom:2px solid color-mix(in srgb,var(--ac) 30%,var(--br))}
-        /* personal table: Plus = 3rd col */
-        .ptbl--personal thead th:nth-child(3),.ptbl--personal tbody td:nth-child(3){background:color-mix(in srgb,var(--ac) 7%,transparent)}
-        .ptbl--personal thead th:nth-child(3){color:var(--ac)!important;border-bottom:2px solid color-mix(in srgb,var(--ac) 30%,var(--br))}
+        .ptbl thead th{
+          background:color-mix(in srgb,var(--su2) 85%,transparent);
+          color:var(--mu);font-size:.59rem;font-weight:800;
+          letter-spacing:.1em;text-transform:uppercase;
+        }
+        .ptbl tbody tr:last-child td{border-bottom:none}
+        .ptbl tbody tr:hover td{background:color-mix(in srgb,var(--ac) 4%,transparent)}
+        .ptbl-yes{color:#34D399;font-weight:700}
+        .ptbl-no{color:var(--br2);opacity:.6}
+        /* highlight column */
+        .ptbl--org  thead th:nth-child(4),
+        .ptbl--org  tbody td:nth-child(4){background:color-mix(in srgb,var(--ac) 8%,transparent)}
+        .ptbl--org  thead th:nth-child(4){color:var(--ac)!important}
+        .ptbl--pers thead th:nth-child(3),
+        .ptbl--pers tbody td:nth-child(3){background:color-mix(in srgb,var(--ac) 8%,transparent)}
+        .ptbl--pers thead th:nth-child(3){color:var(--ac)!important}
 
-        /* ── faq ── */
-        .pfaq{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:0 20px 5rem}
-        .pfaq-h{font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.4rem,3vw,1.9rem);font-weight:400;text-align:center;margin-bottom:1.8rem;color:var(--fg)}
-        .pfaq-card{background:var(--su);border:1.5px solid var(--br);border-radius:18px;padding:0 22px;overflow:hidden}
-        .pfaq-item{border-bottom:1px solid var(--br)}
-        .pfaq-item:last-child{border-bottom:none}
-        .pfaq-item-btn{width:100%;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:16px 0;color:var(--fg);font-family:inherit;font-size:.86rem;font-weight:600;text-align:left;gap:12px;transition:color .15s}
-        .pfaq-item-btn:hover{color:var(--ac)}
-        .pfaq-item-ans{overflow:hidden;transition:max-height .28s ease}
-        .pfaq-item-ans p{margin:0 0 16px;font-size:.81rem;color:var(--mu);line-height:1.75}
+        /* ─── FAQ ──────────────────────────────────────────────── */
+        .pfaq{max-width:680px;margin:0 auto;padding:0 20px 5rem}
+        .pfaq-hd{
+          font-family:'DM Serif Display',Georgia,serif;
+          font-size:clamp(1.5rem,3vw,2rem);font-weight:400;
+          text-align:center;margin-bottom:1.8rem;color:var(--fg);
+        }
+        .pfaq-card{
+          border-radius:18px;overflow:hidden;
+          border:1px solid var(--br2);
+          background:color-mix(in srgb,var(--su) 75%,transparent);
+          backdrop-filter:blur(14px);
+          padding:0 22px;
+        }
+        .fi{border-bottom:1px solid var(--br)}
+        .fi:last-child{border-bottom:none}
+        .fi-q{
+          width:100%;background:none;border:none;cursor:pointer;
+          display:flex;justify-content:space-between;align-items:center;
+          padding:16px 0;color:var(--fg);font-family:inherit;
+          font-size:.86rem;font-weight:600;text-align:left;gap:12px;
+          transition:color .15s;
+        }
+        .fi-q:hover{color:var(--ac)}
+        .fi-icon{color:var(--ac);transition:transform .22s,color .15s;flex-shrink:0}
+        .fi-icon--open{transform:rotate(180deg)}
+        .fi-body{overflow:hidden;transition:max-height .3s ease}
+        .fi-a{margin:0 0 16px;font-size:.81rem;color:var(--mu);line-height:1.78}
 
-        /* ── bottom cta ── */
-        .pcta-band{
-          position:relative;z-index:1;overflow:hidden;
-          padding:5rem 1.5rem;text-align:center;
-          background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 8%,var(--su)) 0%,var(--su) 55%,color-mix(in srgb,var(--org) 6%,var(--su)) 100%);
+        /* ─── Bottom CTA ───────────────────────────────────────── */
+        .pcta{
+          position:relative;overflow:hidden;
+          padding:5.5rem 1.5rem;text-align:center;
           border-top:1px solid var(--br);
         }
-        .pcta-band::before{
-          content:'';position:absolute;width:560px;height:560px;border-radius:50%;
-          background:radial-gradient(circle,color-mix(in srgb,var(--ac) 12%,transparent),transparent 68%);
-          top:-160px;left:50%;transform:translateX(-50%);pointer-events:none;
+        .pcta::before{
+          content:'';position:absolute;inset:0;
+          background:
+            radial-gradient(ellipse 70% 80% at 50% 0%,
+              color-mix(in srgb,var(--ac) 14%,transparent) 0%,
+              transparent 65%),
+            var(--bg2);
         }
-        .pcta-band-h{position:relative;font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.5rem,3vw,2.1rem);font-weight:400;margin-bottom:.65rem;color:var(--fg)}
-        .pcta-band-sub{position:relative;color:var(--mu);font-size:.84rem;margin-bottom:1.8rem;line-height:1.65}
-        .pcta-band-btns{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-        .pcta-band-btn{display:inline-flex;align-items:center;gap:7px;padding:12px 28px;border-radius:12px;font-weight:700;font-size:.85rem;text-decoration:none;transition:all .15s}
-        .pcta-band-btn--ac{background:var(--ac);color:#fff;box-shadow:0 4px 20px color-mix(in srgb,var(--ac) 38%,transparent)}
-        .pcta-band-btn--ac:hover{opacity:.87;transform:translateY(-1px)}
-        .pcta-band-btn--ghost{background:none;border:1.5px solid var(--br);color:var(--fg)}
-        .pcta-band-btn--ghost:hover{border-color:var(--ac);color:var(--ac)}
-
-        /* ── section divider ── */
-        .pdiv{position:relative;z-index:1;text-align:center;padding:0 20px 2rem}
-        .pdiv-line{height:1px;background:linear-gradient(90deg,transparent,var(--br),transparent);max-width:600px;margin:0 auto}
-
-        /* ── responsive ── */
-        @media(max-width:640px){
-          .ptab-btn{padding:8px 14px;font-size:.75rem}
-          .pgrid--4{grid-template-columns:1fr}
-          .pgrid--2{grid-template-columns:1fr;max-width:100%}
+        .pcta-content{position:relative;z-index:1}
+        .pcta-h{
+          font-family:'DM Serif Display',Georgia,serif;
+          font-size:clamp(1.6rem,3.5vw,2.3rem);font-weight:400;
+          margin-bottom:.7rem;color:var(--fg);
         }
+        .pcta-sub{color:var(--mu);font-size:.85rem;margin-bottom:1.8rem;line-height:1.65}
+        .pcta-btns{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap}
+        .pcta-btn{display:inline-flex;align-items:center;gap:7px;padding:13px 30px;border-radius:13px;font-weight:700;font-size:.85rem;text-decoration:none;transition:all .17s}
+        .pcta-btn--main{background:var(--ac);color:#fff;box-shadow:0 4px 24px color-mix(in srgb,var(--ac) 42%,transparent)}
+        .pcta-btn--main:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 8px 32px color-mix(in srgb,var(--ac) 50%,transparent)}
+        .pcta-btn--ghost{background:color-mix(in srgb,var(--su) 70%,transparent);border:1.5px solid var(--br2);color:var(--fg);backdrop-filter:blur(8px)}
+        .pcta-btn--ghost:hover{border-color:var(--ac);color:var(--ac)}
       `}</style>
 
-      <div className={`pw`}>
+      <div className="pw">
+        {/* ── Rich background ── */}
+        <div className="pw-bg" aria-hidden="true">
+          <div className="orb orb-1"/>
+          <div className="orb orb-2"/>
+          <div className="orb orb-3"/>
+          <div className="orb orb-4"/>
+        </div>
+
         <Navbar isDarkMode={isDark} onThemeToggle={toggleTheme}/>
 
         {/* ── Hero ── */}
         <section className="ph">
-          <div className="ph-eye"><Zap size={10}/> Pricing</div>
+          <div className="ph-pill"><Zap size={9}/> Pricing</div>
           <h1 className="ph-h1">
             Simple, <em>transparent</em><br/>pricing for everyone
           </h1>
           <p className="ph-sub">
             From a personal project to a full business — pick the right plan and scale with confidence.
           </p>
-          <div className="ph-badge">
+          <div className="ph-chip">
             <Zap size={12}/>
-            <b>Free messages</b> on every new account — no card required
+            <span><b>Free messages</b> on every new account — no card required</span>
           </div>
         </section>
 
         {/* ── Tab switcher ── */}
-        <div className="ptab-wrap">
-          <div className="ptab">
-            <button className={`ptab-btn${tab==="personal"?" on":""}`} onClick={() => setTab("personal")}>
-              <User size={13}/> Personal
+        <div className="pts">
+          <div className="pts-inner">
+            <button className={`pts-btn${tab==="personal"?" on":""}`} onClick={() => setTab("personal")}>
+              <User size={14}/> Personal
             </button>
-            <button className={`ptab-btn${tab==="org"?" on":""}`} onClick={() => setTab("org")}>
-              <Building2 size={13}/> Organisation
+            <button className={`pts-btn${tab==="org"?" on":""}`} onClick={() => setTab("org")}>
+              <Building2 size={14}/> Organisation
             </button>
           </div>
         </div>
 
         {/* ── Plan cards ── */}
         <div className={`pgrid ${tab==="personal" ? "pgrid--2" : "pgrid--4"}`}>
-          {plans.map(plan => <PlanCard key={plan.id} plan={plan as any}/>)}
+          {plans.map(plan => <PlanCard key={plan.id} plan={plan as any} dark={isDark}/>)}
         </div>
 
         {/* ── Payment methods ── */}
@@ -490,90 +701,95 @@ export default function PricingPage() {
 
         {/* ── Comparison table ── */}
         <div className="ptbl-wrap">
-          <div className="ptbl-h">Full Comparison</div>
-          {tab === "personal" ? (
-            <table className="ptbl ptbl--personal">
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th>Personal Free</th>
-                  <th>Personal Plus</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ["Messages / month",       "200",        "1,500"],
-                  ["Personal AI agent",      "✓",          "✓"],
-                  ["Dashboard chat",         "✓",          "✓"],
-                  ["Conversation history",   "7 days",     "Full"],
-                  ["REST API access",        "—",          "✓"],
-                  ["Embed widget",           "—",          "—"],
-                  ["Analytics",              "—",          "Basic"],
-                  ["Support",                "Docs",       "Email"],
-                ].map(([feat,...vals]) => (
-                  <tr key={feat}>
-                    <td>{feat}</td>
-                    {vals.map((v,i) => <td key={i} className={v==="✓"?"ptbl-yes":v==="—"?"ptbl-no":""}>{v}</td>)}
+          <div className="ptbl-hd">Full Comparison</div>
+          <div className="ptbl-box">
+            {tab === "personal" ? (
+              <table className="ptbl ptbl--pers">
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>Personal Free</th>
+                    <th>Personal Plus</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <table className="ptbl ptbl--org">
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th>Free</th>
-                  <th>Starter</th>
-                  <th>Pro</th>
-                  <th>Scale</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ["Messages / month",       "500",    "2,000",    "8,000",      "25,000"],
-                  ["REST API",               "✓",      "✓",        "✓",          "✓"],
-                  ["Embed widget",           "✓",      "✓",        "✓",          "✓"],
-                  ["React / JS SDK",         "✓",      "✓",        "✓",          "✓"],
-                  ["Session history",        "7 days", "Full",     "Full",       "Full"],
-                  ["Analytics dashboard",    "—",      "Basic",    "Full",       "Advanced"],
-                  ["Feedback tracking",      "—",      "✓",        "✓",          "✓"],
-                  ["Support",                "Docs",   "Email",    "Priority",   "Dedicated"],
-                  ["SLA guarantee",          "—",      "—",        "—",          "✓"],
-                ].map(([feat,...vals]) => (
-                  <tr key={feat}>
-                    <td>{feat}</td>
-                    {vals.map((v,i) => <td key={i} className={v==="✓"?"ptbl-yes":v==="—"?"ptbl-no":""}>{v}</td>)}
+                </thead>
+                <tbody>
+                  {[
+                    ["Messages / month",     "200",    "1,500"],
+                    ["Personal AI agent",    "✓",      "✓"],
+                    ["Dashboard chat",       "✓",      "✓"],
+                    ["Conversation history", "7 days", "Full"],
+                    ["REST API access",      "—",      "✓"],
+                    ["Embed widget",         "—",      "—"],
+                    ["Analytics",            "—",      "Basic"],
+                    ["Support",              "Docs",   "Email"],
+                  ].map(([feat,...vs]) => (
+                    <tr key={feat}>
+                      <td>{feat}</td>
+                      {vs.map((v,i) => <td key={i} className={v==="✓"?"ptbl-yes":v==="—"?"ptbl-no":""}>{v}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table className="ptbl ptbl--org">
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>Free</th>
+                    <th>Starter</th>
+                    <th>Pro</th>
+                    <th>Scale</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {[
+                    ["Messages / month",    "500",    "2,000",  "8,000",    "25,000"],
+                    ["REST API",            "✓",      "✓",      "✓",        "✓"],
+                    ["Embed widget",        "✓",      "✓",      "✓",        "✓"],
+                    ["React / JS SDK",      "✓",      "✓",      "✓",        "✓"],
+                    ["Session history",     "7 days", "Full",   "Full",     "Full"],
+                    ["Analytics",           "—",      "Basic",  "Full",     "Advanced"],
+                    ["Feedback tracking",   "—",      "✓",      "✓",        "✓"],
+                    ["Support",             "Docs",   "Email",  "Priority", "Dedicated"],
+                    ["SLA guarantee",       "—",      "—",      "—",        "✓"],
+                  ].map(([feat,...vs]) => (
+                    <tr key={feat}>
+                      <td>{feat}</td>
+                      {vs.map((v,i) => <td key={i} className={v==="✓"?"ptbl-yes":v==="—"?"ptbl-no":""}>{v}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
 
         <div className="pdiv"><div className="pdiv-line"/></div>
 
         {/* ── FAQ ── */}
         <div className="pfaq">
-          <div className="pfaq-h">Frequently asked questions</div>
+          <div className="pfaq-hd">Frequently asked questions</div>
           <div className="pfaq-card">
             {FAQS.map(f => <FaqItem key={f.q} {...f}/>)}
           </div>
         </div>
 
         {/* ── Bottom CTA ── */}
-        <div className="pcta-band">
-          <div className="pcta-band-h">Ready to put your AI agent to work?</div>
-          <p className="pcta-band-sub">Start free — no credit card. Upgrade any time from your dashboard.</p>
-          <div className="pcta-band-btns">
-            <Link href="/auth/signin" className="pcta-band-btn pcta-band-btn--ac">
-              Get Started Free <ArrowRight size={13}/>
-            </Link>
-            <Link href="/docs" className="pcta-band-btn pcta-band-btn--ghost">
-              Read the Docs
-            </Link>
+        <div className="pcta">
+          <div className="pcta-content">
+            <div className="pcta-h">Ready to put your AI agent to work?</div>
+            <p className="pcta-sub">Start free — no credit card. Upgrade any time from your dashboard.</p>
+            <div className="pcta-btns">
+              <Link href="/auth/signin" className="pcta-btn pcta-btn--main">
+                Get Started Free <ArrowRight size={13}/>
+              </Link>
+              <Link href="/docs" className="pcta-btn pcta-btn--ghost">
+                Read the Docs
+              </Link>
+            </div>
           </div>
         </div>
+
       </div>
     </>
   );

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-function isAdmin(session: Awaited<ReturnType<typeof auth>>) {
+function isAdmin(session: Session | null) {
   return (session?.user as any)?.isAdminAuth === true;
 }
 

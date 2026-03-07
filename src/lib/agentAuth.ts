@@ -17,7 +17,7 @@ export interface AgentAuthOk {
     knowledgeBase: {
       trainedPrompt: string | null;
       isModelTrained: boolean;
-      qaPairs: { question: string; answer: string }[];
+      qaPairs: unknown;
     } | null;
   };
   rlRemaining: number;
@@ -77,7 +77,7 @@ export async function authenticateAgent(
       knowledgeBase: {
         select: {
           trainedPrompt: true, isModelTrained: true,
-          qaPairs: { select: { question: true, answer: true } },
+          qaPairs: true,
         },
       },
     },

@@ -6,6 +6,7 @@ export interface Organization {
   description?: string;
   displayName?: string;
   planType: string;
+  planRenewalDate?: string | null;
   isActive: boolean;
   monthlyMessageCount: number;
   monthlyMessageLimit: number;

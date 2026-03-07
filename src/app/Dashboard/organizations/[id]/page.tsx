@@ -54,7 +54,7 @@ export default async function OrganizationDetailPage({
     usagePercentage,
     recentConversations: recentChats.map((chat) => ({
       id: chat.id,
-      userId: chat.userId,
+      userId: chat.userId ?? "",
       lastMessage: chat.messages[0]?.content || "No messages",
       lastMessageAt: (chat.messages[0]?.createdAt ?? chat.createdAt).toISOString(),
       messageCount: chat._count.messages,

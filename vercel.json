@@ -1,3 +1,9 @@
 {
-  "regions": ["cpt1"]
+  "regions": ["cpt1"],
+  "crons": [
+    {
+      "path": "/api/cron/reset-usage",
+      "schedule": "0 0 1 * *"
+    }
+  ]
 }

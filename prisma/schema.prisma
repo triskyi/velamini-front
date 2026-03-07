@@ -142,7 +142,8 @@ model Organization {
   agentPersonality String? @db.Text
 
   // API access key for external integrations
-  apiKey String? @unique
+  apiKey     String? @unique
+  apiKeyHash String? @unique // SHA-256 of apiKey — use this for secure lookups after migration
 
   // Business Info
   industry     String?
@@ -162,15 +163,36 @@ model Organization {
   totalMessages       Int    @default(0)
   averageResponseTime Float? // In seconds
 
+  // Billing
+  planRenewalDate DateTime?
+  billingEmail    String?
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  chats Chat[]
+  chats          Chat[]
+  billingRecords BillingRecord[]
 
   @@index([ownerId])
   @@index([whatsappNumber])
+}
+
+model BillingRecord {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan           String   // "starter" | "pro" | "scale"
+  amountRWF      Int      // Amount in RWF
+  txRef          String   @unique // Flutterwave transaction reference
+  flwRef         String?  // Flutterwave internal reference (after verify)
+  status         String   @default("pending") // "pending" | "success" | "failed"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([txRef])
 }
 
 // NextAuth Models

@@ -1,37 +1,30 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { authenticateAgent, corsHeaders } from "@/lib/agentAuth";
 
 export const dynamic = "force-dynamic";
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders(req) });
+}
 
 /**
  * GET /api/agent/history
  *
- * Public endpoint — authenticated via X-Agent-Key header.
- * Returns all messages for a given session (chat).
- *
- * Query params:
- *   sessionId  - (required) the session ID returned by /api/agent/chat
- *
- * Response: { sessionId: string, messages: Message[] }
+ * Public — authenticated via X-Agent-Key header.
+ * Rate limited. Cross-org session guard enforced.
  */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const cors = corsHeaders(req);
   try {
-    const agentKey = req.headers.get("x-agent-key") || req.headers.get("X-Agent-Key");
-    if (!agentKey) {
-      return NextResponse.json({ error: "Missing X-Agent-Key header" }, { status: 401 });
+    const auth = await authenticateAgent(req);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: auth.status, headers: { ...cors, ...(auth.headers ?? {}) } }
+      );
     }
-
-    const org = await prisma.organization.findUnique({
-      where: { apiKey: agentKey },
-      select: { id: true, isActive: true },
-    });
-
-    if (!org) {
-      return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
-    }
-    if (!org.isActive) {
-      return NextResponse.json({ error: "Organisation is inactive" }, { status: 403 });
-    }
+    const { org } = auth;
 
     const url = new URL(req.url);
     const sessionId = url.searchParams.get("sessionId");
@@ -58,15 +51,18 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      sessionId:    chat.id,
-      createdAt:    chat.createdAt,
-      updatedAt:    chat.updatedAt,
-      messageCount: chat.messages.length,
-      messages:     chat.messages,
-    });
+    return NextResponse.json(
+      {
+        sessionId:    chat.id,
+        createdAt:    chat.createdAt,
+        updatedAt:    chat.updatedAt,
+        messageCount: chat.messages.length,
+        messages:     chat.messages,
+      },
+      { headers: cors }
+    );
   } catch (error) {
-    console.error("Agent history error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("[agent/history] error:", error);
+    return NextResponse.json({ error: "Internal server error." }, { status: 500, headers: cors });
   }
 }

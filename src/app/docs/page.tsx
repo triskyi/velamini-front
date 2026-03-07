@@ -1,402 +1,255 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
-import { applyTheme } from "@/components/Navbar";
+import { useState, useEffect } from "react";
 import {
   MessageSquare, List, History, ThumbsUp,
   Puzzle, Code2, Key, Zap, BookOpen,
   Globe, Lock, Copy, Check, Layers,
+  ChevronLeft, ChevronRight, Moon, Sun, Menu, X,
 } from "lucide-react";
 
-/* ── Sidebar ────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+   SECTIONS CONFIG
+───────────────────────────────────────────────────────────── */
 const SECTIONS = [
-  { id: "overview",   label: "Overview",           Icon: BookOpen,    group: "Getting Started" },
-  { id: "quickstart", label: "Quick Start",        Icon: Zap,         group: "Getting Started" },
-  { id: "auth",       label: "Authentication",     Icon: Key,         group: "Getting Started" },
-  { id: "chat",       label: "POST /agent/chat",   Icon: MessageSquare, group: "Public Endpoints" },
-  { id: "sessions",   label: "GET /agent/sessions",Icon: List,        group: "Public Endpoints" },
-  { id: "history",    label: "GET /agent/history", Icon: History,     group: "Public Endpoints" },
-  { id: "feedback",   label: "POST /agent/feedback",Icon: ThumbsUp,   group: "Public Endpoints" },
-  { id: "embed",      label: "Embed Widget",       Icon: Puzzle,      group: "Integrations" },
-  { id: "react",      label: "React / JS",         Icon: Code2,       group: "Integrations" },
-  { id: "widget-ref", label: "Widget Options",     Icon: Layers,      group: "Reference" },
-  { id: "errors",     label: "Error Codes",        Icon: Globe,       group: "Reference" },
-  { id: "security",   label: "Security",           Icon: Lock,        group: "Reference" },
+  { id: "overview",   label: "Overview",             Icon: BookOpen,      group: "Getting Started" },
+  { id: "quickstart", label: "Quick Start",          Icon: Zap,           group: "Getting Started" },
+  { id: "auth",       label: "Authentication",       Icon: Key,           group: "Getting Started" },
+  { id: "chat",       label: "POST /agent/chat",     Icon: MessageSquare, group: "Endpoints"       },
+  { id: "sessions",   label: "GET /agent/sessions",  Icon: List,          group: "Endpoints"       },
+  { id: "history",    label: "GET /agent/history",   Icon: History,       group: "Endpoints"       },
+  { id: "feedback",   label: "POST /agent/feedback", Icon: ThumbsUp,      group: "Endpoints"       },
+  { id: "embed",      label: "Embed Widget",         Icon: Puzzle,        group: "Integrations"    },
+  { id: "react",      label: "React / JS",           Icon: Code2,         group: "Integrations"    },
+  { id: "widget-ref", label: "Widget Options",       Icon: Layers,        group: "Reference"       },
+  { id: "errors",     label: "Error Codes",          Icon: Globe,         group: "Reference"       },
+  { id: "security",   label: "Security",             Icon: Lock,          group: "Reference"       },
 ];
-const GROUPS = ["Getting Started", "Public Endpoints", "Integrations", "Reference"];
+const GROUPS = ["Getting Started", "Endpoints", "Integrations", "Reference"];
 
-/* ── CodeBlock ──────────────────────────────────────────────── */
-function CodeBlock({ code }: { code: string }) {
+/* ─────────────────────────────────────────────────────────────
+   SHARED PRIMITIVES
+───────────────────────────────────────────────────────────── */
+function CodeBlock({ code, lang }: { code: string; lang?: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch {}
   };
   return (
-    <div style={{ position: "relative", marginBottom: "1.2rem" }}>
-      <pre style={{
-        background: "var(--dc-bg)", border: "1px solid var(--dc-border-code)",
-        borderRadius: 10, padding: "1rem 3.5rem 1rem 1.2rem", overflowX: "auto",
-        fontSize: ".77rem", lineHeight: 1.75, color: "var(--dc-code)",
-        fontFamily: "'Geist Mono','Cascadia Code','Courier New',monospace",
-        margin: 0, whiteSpace: "pre",
-      }}>
-        <code>{code}</code>
-      </pre>
-      <button onClick={copy} style={{
-        position: "absolute", top: 10, right: 10,
-        background: "var(--dc-surface2)", border: "1px solid var(--dc-border)",
-        borderRadius: 7, padding: "4px 8px", cursor: "pointer",
-        color: copied ? "var(--dc-green)" : "var(--dc-muted)",
-        display: "flex", alignItems: "center", gap: 4,
-        fontSize: ".61rem", fontFamily: "inherit", transition: "color .15s",
-      }}>
-        {copied ? <Check size={10} /> : <Copy size={10} />}
+    <div className="cb">
+      {lang && <span className="cb-lang">{lang}</span>}
+      <pre className="cb-pre"><code>{code}</code></pre>
+      <button className={`cb-copy${copied ? " done" : ""}`} onClick={copy}>
+        {copied ? <Check size={10}/> : <Copy size={10}/>}
         {copied ? "Copied" : "Copy"}
       </button>
     </div>
   );
 }
 
-/* ── Note ────────────────────────────────────────────────────── */
-function Note({ children, warn }: { children: React.ReactNode; warn?: boolean }) {
-  const c = warn ? "#f59e0b" : "var(--dc-accent)";
+function Note({ children, warn, success }: { children: React.ReactNode; warn?: boolean; success?: boolean }) {
+  const col = warn ? "#f59e0b" : success ? "#10b981" : "var(--a)";
+  const bg  = warn ? "rgba(245,158,11,.08)" : success ? "rgba(16,185,129,.08)" : "color-mix(in srgb,var(--a) 8%,transparent)";
   return (
-    <div style={{
-      borderLeft: `3px solid ${c}`, borderRadius: "0 10px 10px 0",
-      background: warn ? "rgba(245,158,11,.07)" : "color-mix(in srgb,var(--dc-accent) 7%,transparent)",
-      padding: "10px 14px", fontSize: ".82rem", color: "var(--dc-muted)",
-      lineHeight: 1.65, marginBottom: "1.1rem",
-    }}>{children}</div>
-  );
-}
-
-/* ── Inline code ─────────────────────────────────────────────── */
-function C({ children }: { children: string }) {
-  return (
-    <code style={{
-      fontFamily: "'Geist Mono',monospace", fontSize: ".77rem",
-      color: "var(--dc-accent)",
-      background: "color-mix(in srgb,var(--dc-accent) 10%,transparent)",
-      padding: "1px 5px", borderRadius: 4,
-    }}>{children}</code>
-  );
-}
-
-/* ── H2 ──────────────────────────────────────────────────────── */
-function H2({ title, sub }: { title: string; sub?: string }) {
-  return (
-    <div style={{ marginBottom: "1.3rem" }}>
-      <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--dc-fg)", margin: 0 }}>{title}</h2>
-      {sub && <p style={{ color: "var(--dc-muted)", fontSize: ".82rem", marginTop: ".3rem", marginBottom: 0 }}>{sub}</p>}
+    <div style={{ borderLeft:`3px solid ${col}`, borderRadius:"0 10px 10px 0", background:bg, padding:"10px 14px", fontSize:".8rem", color:"var(--mu)", lineHeight:1.65, marginBottom:14 }}>
+      {children}
     </div>
   );
 }
 
-/* ── H3 ──────────────────────────────────────────────────────── */
-function H3({ title }: { title: string }) {
-  return <h3 style={{ fontSize: ".92rem", fontWeight: 700, color: "var(--dc-fg)", margin: "1.5rem 0 .55rem" }}>{title}</h3>;
+function IC({ v }: { v: string }) {
+  return <code style={{ fontFamily:"ui-monospace,monospace", fontSize:".75rem", color:"var(--a)", background:"color-mix(in srgb,var(--a) 10%,transparent)", padding:"1px 6px", borderRadius:4, whiteSpace:"nowrap" }}>{v}</code>;
 }
 
-/* ── Method pill ─────────────────────────────────────────────── */
-function Method({ m }: { m: "POST" | "GET" | "DELETE" | "PATCH" }) {
-  const c: Record<string, string> = { POST: "#0ea5e9", GET: "#22c55e", DELETE: "#ef4444", PATCH: "#f59e0b" };
+function H({ title, sub }: { title: string; sub?: string }) {
   return (
-    <span style={{
-      background: `${c[m]}22`, color: c[m],
-      fontWeight: 800, fontSize: ".6rem", letterSpacing: ".05em",
-      padding: "3px 8px", borderRadius: 5,
-    }}>{m}</span>
+    <div style={{ marginBottom:20 }}>
+      <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(1.35rem,4vw,1.85rem)", fontWeight:400, color:"var(--fg)", margin:0, letterSpacing:"-.02em", lineHeight:1.2 }}>{title}</h2>
+      {sub && <p style={{ color:"var(--mu)", fontSize:".82rem", marginTop:6, marginBottom:0, lineHeight:1.6 }}>{sub}</p>}
+    </div>
   );
 }
 
-/* ── Endpoint card ───────────────────────────────────────────── */
-function EP({ method, path, desc }: { method: "POST" | "GET" | "DELETE" | "PATCH"; path: string; desc: string }) {
+function H3({ t }: { t: string }) {
+  return <h3 style={{ fontSize:".88rem", fontWeight:700, color:"var(--fg)", margin:"20px 0 8px" }}>{t}</h3>;
+}
+
+function P({ c }: { c: string }) {
+  return <p style={{ fontSize:".82rem", color:"var(--mu)", lineHeight:1.8, marginBottom:14 }}>{c}</p>;
+}
+
+function Method({ m }: { m: "POST"|"GET" }) {
+  const col: Record<string,string> = { POST:"#0ea5e9", GET:"#22c55e" };
+  return <span style={{ background:`${col[m]}1a`, color:col[m], fontWeight:800, fontSize:".58rem", letterSpacing:".06em", padding:"3px 8px", borderRadius:5, textTransform:"uppercase" as const, flexShrink:0 }}>{m}</span>;
+}
+
+function EP({ method, path, desc }: { method:"POST"|"GET"; path:string; desc:string }) {
   return (
-    <div style={{
-      display: "flex", alignItems: "flex-start", gap: 10, padding: "11px 14px",
-      border: "1px solid var(--dc-border)", borderRadius: 10,
-      background: "var(--dc-surface2)", marginBottom: 8,
-    }}>
-      <Method m={method} />
-      <div style={{ minWidth: 0 }}>
-        <code style={{ fontFamily: "'Geist Mono',monospace", fontSize: ".8rem", color: "var(--dc-accent)" }}>{path}</code>
-        <p style={{ margin: "3px 0 0", fontSize: ".76rem", color: "var(--dc-muted)" }}>{desc}</p>
+    <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"11px 14px", border:"1px solid var(--br)", borderRadius:10, background:"var(--s2)", marginBottom:8 }}>
+      <Method m={method}/>
+      <div>
+        <code style={{ fontFamily:"ui-monospace,monospace", fontSize:".79rem", color:"var(--a)", display:"block" }}>{path}</code>
+        <p style={{ margin:"3px 0 0", fontSize:".75rem", color:"var(--mu)" }}>{desc}</p>
       </div>
     </div>
   );
 }
 
-/* ── Badge ───────────────────────────────────────────────────── */
-function Badge({ label, c }: { label: string; c: string }) {
+function Badge({ label, c }: { label:string; c:string }) {
+  return <span style={{ background:`${c}18`, color:c, fontSize:".58rem", fontWeight:800, letterSpacing:".06em", textTransform:"uppercase" as const, padding:"2px 7px", borderRadius:4, whiteSpace:"nowrap" as const }}>{label}</span>;
+}
+
+function ParamTable({ rows }: { rows: [string,string,boolean,string][] }) {
   return (
-    <span style={{
-      background: `${c}18`, color: c,
-      fontSize: ".59rem", fontWeight: 800, letterSpacing: ".06em",
-      textTransform: "uppercase" as const, padding: "2px 7px", borderRadius: 4, whiteSpace: "nowrap" as const,
-    }}>{label}</span>
+    <div style={{ overflowX:"auto", borderRadius:10, border:"1px solid var(--br)", marginBottom:14 }}>
+      <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem", minWidth:420 }}>
+        <thead>
+          <tr>{["Field","Type","Required","Description"].map(h => (
+            <th key={h} style={{ textAlign:"left", padding:"7px 12px", background:"var(--s2)", color:"var(--mu)", fontSize:".6rem", fontWeight:800, letterSpacing:".08em", textTransform:"uppercase" as const, borderBottom:"1px solid var(--br)" }}>{h}</th>
+          ))}</tr>
+        </thead>
+        <tbody>
+          {rows.map(([field,type,req,desc]) => (
+            <tr key={field}>
+              <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", verticalAlign:"top" }}><IC v={field}/></td>
+              <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", color:"var(--mu)", verticalAlign:"top" }}>{type}</td>
+              <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", verticalAlign:"top" }}><Badge label={req?"yes":"no"} c={req?"#f59e0b":"#64748b"}/></td>
+              <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", color:"var(--mu)", verticalAlign:"top", lineHeight:1.5 }}>{desc}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-/* ── Param table ─────────────────────────────────────────────── */
-function ParamTable({ rows }: { rows: [string, string, boolean, string][] }) {
-  const th: React.CSSProperties = {
-    textAlign: "left", padding: "7px 12px",
-    background: "var(--dc-surface2)", color: "var(--dc-muted)",
-    fontSize: ".61rem", fontWeight: 700, letterSpacing: ".08em",
-    textTransform: "uppercase", borderBottom: "1px solid var(--dc-border)",
-  };
-  const td: React.CSSProperties = { padding: "8px 12px", borderBottom: "1px solid var(--dc-border)", verticalAlign: "top", lineHeight: 1.5 };
+function Step({ n, title, desc }: { n:number; title:string; desc:string }) {
   return (
-    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: ".79rem", marginBottom: "1.1rem" }}>
-      <thead><tr><th style={th}>Field</th><th style={th}>Type</th><th style={th}>Required</th><th style={th}>Description</th></tr></thead>
-      <tbody>
-        {rows.map(([field, type, req, desc]) => (
-          <tr key={field}>
-            <td style={td}><C>{field}</C></td>
-            <td style={{ ...td, color: "var(--dc-muted)" }}>{type}</td>
-            <td style={td}><Badge label={req ? "yes" : "no"} c={req ? "#f59e0b" : "#64748b"} /></td>
-            <td style={{ ...td, color: "var(--dc-muted)" }}>{desc}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div style={{ display:"flex", gap:12, padding:"12px 14px", marginBottom:8, border:"1px solid var(--br)", borderRadius:10, background:"var(--s2)" }}>
+      <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0, background:"color-mix(in srgb,var(--a) 14%,transparent)", color:"var(--a)", fontSize:".7rem", fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center" }}>{n}</div>
+      <div>
+        <div style={{ fontSize:".84rem", fontWeight:700, color:"var(--fg)", marginBottom:2 }}>{title}</div>
+        <div style={{ fontSize:".77rem", color:"var(--mu)", lineHeight:1.5 }}>{desc}</div>
+      </div>
+    </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────── */
-/*  PAGE                                                           */
-/* ─────────────────────────────────────────────────────────────── */
-export default function DocsPage() {
-  const [isDark, setIsDark] = useState(false);
-  const [active, setActive] = useState("overview");
+/* ─────────────────────────────────────────────────────────────
+   ONE COMPONENT PER SECTION
+───────────────────────────────────────────────────────────── */
+const PAGES: Record<string, React.FC> = {
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("theme");
-      const prefer = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const d = stored ? stored === "dark" : prefer;
-      setIsDark(d); applyTheme(d);
-    } catch {}
-  }, []);
-
-  const toggleTheme = () => setIsDark(p => {
-    const n = !p; applyTheme(n); localStorage.setItem("theme", n ? "dark" : "light"); return n;
-  });
-
-  const scrollTo = (id: string) => {
-    setActive(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      es => es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }),
-      { rootMargin: "-25% 0px -65% 0px" }
-    );
-    SECTIONS.forEach(s => { const el = document.getElementById(s.id); if (el) obs.observe(el); });
-    return () => obs.disconnect();
-  }, []);
-
-  const p = (txt: string) => (
-    <p style={{ fontSize: ".83rem", color: "var(--dc-muted)", lineHeight: 1.8, margin: "0 0 .9rem" }}>{txt}</p>
-  );
-
-  return (
+  overview: () => (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Geist+Mono:wght@400&display=swap');
-        *,*::before,*::after{box-sizing:border-box}
-        body{margin:0}
-        :root{
-          --dc-page:   #f0f8ff;
-          --dc-surface:#fff;
-          --dc-surface2:#f4faff;
-          --dc-border: #cae6f8;
-          --dc-border-code:#1a3248;
-          --dc-fg:     #0c1a26;
-          --dc-muted:  #4a7a98;
-          --dc-accent: #0ea5e9;
-          --dc-bg:     #0c1420;
-          --dc-code:   #a5d8f0;
-          --dc-green:  #16a34a;
-        }
-        .ddark{
-          --dc-page:   #070c12;
-          --dc-surface:#0a1520;
-          --dc-surface2:#0e1c2a;
-          --dc-border: #1a3248;
-          --dc-border-code:#1a3248;
-          --dc-fg:     #e8f4fd;
-          --dc-muted:  #7ea8c4;
-          --dc-accent: #38bdf8;
-          --dc-bg:     #060d14;
-          --dc-code:   #93d4f5;
-          --dc-green:  #22c55e;
-        }
-        .dw{background:var(--dc-page);color:var(--dc-fg);min-height:100dvh;transition:background .3s,color .3s;font-family:system-ui,-apple-system,sans-serif}
-        .dl{display:flex;max-width:1220px;margin:0 auto;padding:0 1rem;padding-top:3.75rem}
-        /* sidebar */
-        .dsb{width:230px;flex-shrink:0;position:sticky;top:3.75rem;height:calc(100dvh - 3.75rem);overflow-y:auto;padding:2rem 0;scrollbar-width:none;border-right:1px solid var(--dc-border)}
-        .dsb::-webkit-scrollbar{display:none}
-        .dsb-lbl{font-size:.57rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dc-muted);padding:0 1rem 5px;margin-top:1.4rem}
-        .dsb-lbl:first-child{margin-top:0}
-        .dsb-btn{display:flex;align-items:center;gap:8px;padding:6px 1rem;border:none;border-left:2px solid transparent;background:none;width:100%;text-align:left;font-size:.79rem;color:var(--dc-muted);cursor:pointer;font-family:inherit;transition:color .12s,background .12s}
-        .dsb-btn:hover{color:var(--dc-fg)}
-        .dsb-btn.on{color:var(--dc-accent)!important;border-left-color:var(--dc-accent);background:color-mix(in srgb,var(--dc-accent) 7%,transparent);font-weight:600}
-        .dsb-btn svg{width:12px;height:12px;flex-shrink:0}
-        /* content */
-        .dcon{flex:1;min-width:0;padding:2.5rem 1rem 5rem 3rem;max-width:800px}
-        .dsec{padding-top:2.5rem;border-top:1px solid var(--dc-border);margin-top:2.5rem}
-        .dsec:first-child{border-top:none;margin-top:0;padding-top:0}
-        /* response grid */
-        .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-        @media(max-width:700px){.dgrid{grid-template-columns:1fr}}
-        @media(max-width:860px){.dsb{display:none}.dcon{padding-left:0}}
-      `}</style>
+      <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:20, background:"color-mix(in srgb,var(--org) 10%,transparent)", border:"1px solid color-mix(in srgb,var(--org) 22%,transparent)", color:"var(--org)", fontSize:".65rem", fontWeight:700, letterSpacing:".04em", marginBottom:16 }}>v1.0 · Public API</div>
+      <H title="Velamini Public API" sub="Integrate your trained AI agent into any platform using 4 simple REST endpoints."/>
+      <Note>
+        <strong>Base URL — </strong><IC v="https://velamini.com/api"/><br/>
+        All public endpoints live under <IC v="/api/agent/"/> and authenticate via <IC v="X-Agent-Key"/>.
+      </Note>
+      <P c="Every organisation gets a unique API key (format: vela_xxxx…). Use it to chat with your agent, list sessions, retrieve history, and collect feedback — without exposing your dashboard credentials."/>
+      <EP method="POST" path="/api/agent/chat"     desc="Send a message, receive an AI reply"/>
+      <EP method="GET"  path="/api/agent/sessions" desc="List all conversation sessions"/>
+      <EP method="GET"  path="/api/agent/history"  desc="Get all messages in a session"/>
+      <EP method="POST" path="/api/agent/feedback" desc="Submit thumbs up / thumbs down feedback"/>
+    </>
+  ),
 
-      <div className={`dw${isDark ? " ddark" : ""}`}>
-        <Navbar isDarkMode={isDark} onThemeToggle={toggleTheme} />
-
-        <div className="dl">
-
-          {/* ── Sidebar ── */}
-          <aside className="dsb">
-            {GROUPS.map(group => (
-              <div key={group}>
-                <div className="dsb-lbl">{group}</div>
-                {SECTIONS.filter(s => s.group === group).map(({ id, label, Icon }) => (
-                  <button key={id} className={`dsb-btn${active === id ? " on" : ""}`} onClick={() => scrollTo(id)}>
-                    <Icon />{label}
-                  </button>
-                ))}
-              </div>
-            ))}
-          </aside>
-
-          {/* ── Content ── */}
-          <main className="dcon">
-
-            {/* ─── OVERVIEW ─────────────────────────────────── */}
-            <section id="overview" className="dsec">
-              <H2 title="Velamini Public API" sub="Integrate your trained AI agent into any platform using 4 simple endpoints." />
-              <Note>
-                <strong>Base URL — </strong><C>https://velamini.com/api</C><br />
-                All endpoints below live under <C>/api/agent/</C> and authenticate via the <C>X-Agent-Key</C> header.
-              </Note>
-              {p("Every organisation on Velamini gets a unique API key (looks like vela_xxxx). Use it to chat with the agent, retrieve past conversations, view message history, and collect user feedback — without exposing your dashboard credentials.")}
-
-              <EP method="POST" path="/api/agent/chat"     desc="Send a message, get a reply" />
-              <EP method="GET"  path="/api/agent/sessions" desc="List all conversation sessions" />
-              <EP method="GET"  path="/api/agent/history"  desc="Get all messages for a session" />
-              <EP method="POST" path="/api/agent/feedback" desc="Submit thumbs up / thumbs down feedback" />
-            </section>
-
-            {/* ─── QUICK START ──────────────────────────────── */}
-            <section id="quickstart" className="dsec">
-              <H2 title="Quick Start" sub="Get your agent responding in 60 seconds." />
-              {[
-                ["Open the API & Embed tab", "Go to your organisation dashboard → API & Embed tab."],
-                ["Copy your API key",        "Copy the key shown (vela_xxxx). Keep it secret."],
-                ["Make your first request",  "Run the curl command below — replace the key with yours."],
-              ].map(([t, d], i) => (
-                <div key={i} style={{ display: "flex", gap: 12, padding: "12px 14px", marginBottom: 8, border: "1px solid var(--dc-border)", borderRadius: 10, background: "var(--dc-surface2)" }}>
-                  <div style={{ width: 26, height: 26, borderRadius: "50%", flexShrink: 0, background: "color-mix(in srgb,var(--dc-accent) 14%,transparent)", color: "var(--dc-accent)", fontSize: ".7rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</div>
-                  <div>
-                    <div style={{ fontSize: ".84rem", fontWeight: 700, color: "var(--dc-fg)", marginBottom: 2 }}>{t}</div>
-                    <div style={{ fontSize: ".77rem", color: "var(--dc-muted)", lineHeight: 1.55 }}>{d}</div>
-                  </div>
-                </div>
-              ))}
-              <CodeBlock code={`curl -X POST https://velamini.com/api/agent/chat \\
+  quickstart: () => (
+    <>
+      <H title="Quick Start" sub="Your agent responding to real users in under 60 seconds."/>
+      <Step n={1} title="Open your dashboard"     desc="Go to Dashboard → your organisation → API & Embed tab."/>
+      <Step n={2} title="Copy your API key"       desc="Copy the key shown (vela_xxxx…). Treat it like a password — never commit to git."/>
+      <Step n={3} title="Make your first request" desc="Run the cURL below, replacing the key with yours."/>
+      <CodeBlock lang="bash" code={`curl -X POST https://velamini.com/api/agent/chat \\
   -H "Content-Type: application/json" \\
   -H "X-Agent-Key: vela_your_key_here" \\
-  -d '{"message": "Hello, what can you help me with?"}'`} />
-              <CodeBlock code={`// Response
-{
-  "reply":     "Hi! I'm your AI assistant. I can help you with...",
+  -d '{"message": "Hello, what can you help me with?"}'`}/>
+      <Note success>
+        You should get a reply within ~1 second. The response includes a <IC v="sessionId"/> — save it to continue the conversation.
+      </Note>
+      <CodeBlock lang="json" code={`{
+  "reply":     "Hi! I'm your AI assistant. I can help you with product questions, orders, and more.",
   "sessionId": "cm9abc123def456",
   "agentName": "Support Bot"
-}`} />
-            </section>
+}`}/>
+    </>
+  ),
 
-            {/* ─── AUTH ─────────────────────────────────────── */}
-            <section id="auth" className="dsec">
-              <H2 title="Authentication" sub="All 4 public endpoints use the same header." />
-              {p("Include your organisation's API key in the X-Agent-Key HTTP header on every request. The key is validated against your organisation — if it's wrong, expired, or the org is disabled, you'll get a 401 or 403.")}
-              <CodeBlock code={`X-Agent-Key: vela_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`} />
-              <Note warn>
-                <strong>Never expose your key in public client-side code or git repositories.</strong> Use the Embed Widget (which handles key management safely) or call from your own server.  You can rotate your key any time from the API & Embed tab.
-              </Note>
-            </section>
+  auth: () => (
+    <>
+      <H title="Authentication" sub="All endpoints use a single header — no OAuth, no tokens to refresh."/>
+      <P c="Include your organisation's API key in the X-Agent-Key HTTP header on every request. A wrong key, expired key, or disabled org returns 401 or 403."/>
+      <CodeBlock lang="http" code={`X-Agent-Key: vela_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`}/>
+      <Note warn>
+        <strong>Never expose your key in public client-side JS or git repositories.</strong>{" "}
+        Use the Embed Widget (key management handled safely), or proxy calls through your own server. Rotate your key any time in the API &amp; Embed tab.
+      </Note>
+      <H3 t="Key format"/>
+      <P c="Keys start with vela_ followed by 43 URL-safe base64 characters — 256 bits of cryptographic randomness. They cannot be guessed or brute-forced."/>
+      <H3 t="Key rotation"/>
+      <P c="Go to your organisation's API & Embed tab and click Rotate Key. The old key is immediately invalidated."/>
+    </>
+  ),
 
-            {/* ─── CHAT ─────────────────────────────────────── */}
-            <section id="chat" className="dsec">
-              <H2 title="POST /api/agent/chat" sub="Send a message to your agent and get an AI reply." />
-              <EP method="POST" path="/api/agent/chat" desc="The core endpoint — send a user message, get the agent's response." />
-
-              <H3 title="Request body" />
-              <ParamTable rows={[
-                ["message",   "string",  true,  "The user's message. Maximum 2 000 characters."],
-                ["sessionId", "string",  false, "Session ID from a previous response. Re-using the same ID continues the conversation with full history."],
-                ["history",   "array",   false, "Fallback context: array of { role: 'user'|'assistant', content: string }. Used only if sessionId is new or absent."],
-              ]} />
-
-              <H3 title="cURL example" />
-              <CodeBlock code={`curl -X POST https://velamini.com/api/agent/chat \\
+  chat: () => (
+    <>
+      <H title="POST /api/agent/chat" sub="Send a user message to your agent and receive an AI-generated reply."/>
+      <EP method="POST" path="/api/agent/chat" desc="The core endpoint. Send a message, get the agent's response."/>
+      <H3 t="Request body"/>
+      <ParamTable rows={[
+        ["message",   "string", true,  "The user's message. Maximum 2,000 characters."],
+        ["sessionId", "string", false, "Session ID from a previous response. Re-using it continues the conversation."],
+        ["history",   "array",  false, "Fallback context: [{ role: 'user'|'assistant', content: string }]. Used only if sessionId is absent."],
+      ]}/>
+      <H3 t="cURL example"/>
+      <CodeBlock lang="bash" code={`curl -X POST https://velamini.com/api/agent/chat \\
   -H "Content-Type: application/json" \\
   -H "X-Agent-Key: vela_your_key_here" \\
   -d '{
     "message":   "Do you offer free shipping?",
     "sessionId": "cm9abc123def456"
-  }'`} />
-
-              <H3 title="Response" />
-              <CodeBlock code={`{
-  "reply":     "Yes! We offer free standard shipping on orders over $50.",
+  }'`}/>
+      <H3 t="Response"/>
+      <CodeBlock lang="json" code={`{
+  "reply":     "Yes! Free standard shipping on all orders over 50,000 RWF.",
   "sessionId": "cm9abc123def456",
   "agentName": "Support Bot"
-}`} />
-
-              <H3 title="Multi-turn conversation" />
-              {p("The sessionId ties messages together in the database. Re-send it on every follow-up message and the agent will automatically have the full conversation history as context.")}
-              <CodeBlock code={`// Turn 1 — no sessionId yet
+}`}/>
+      <H3 t="Multi-turn conversation"/>
+      <P c="Re-send the same sessionId on every follow-up. The agent automatically has the full conversation history as context."/>
+      <CodeBlock lang="js" code={`// Turn 1 — omit sessionId to start a new conversation
 const r1 = await fetch("https://velamini.com/api/agent/chat", {
-  method: "POST",
+  method:  "POST",
   headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
-  body: JSON.stringify({ message: "What products do you sell?" }),
+  body:    JSON.stringify({ message: "What products do you sell?" }),
 });
-const d1 = await r1.json();
-// d1.sessionId → "cm9abc123def456"
+const { sessionId } = await r1.json();
 
-// Turn 2 — re-use sessionId to continue the conversation
+// Turn 2 — pass the same sessionId to continue
 const r2 = await fetch("https://velamini.com/api/agent/chat", {
-  method: "POST",
+  method:  "POST",
   headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
-  body: JSON.stringify({
-    message:   "Which one is the cheapest?",
-    sessionId: d1.sessionId,   // ← same session
-  }),
-});`} />
-            </section>
+  body:    JSON.stringify({ message: "Which one is cheapest?", sessionId }),
+});`}/>
+    </>
+  ),
 
-            {/* ─── SESSIONS ─────────────────────────────────── */}
-            <section id="sessions" className="dsec">
-              <H2 title="GET /api/agent/sessions" sub="List all conversation sessions for your organisation." />
-              <EP method="GET" path="/api/agent/sessions" desc="Returns a paginated list of sessions, newest first." />
-
-              <H3 title="Query parameters" />
-              <ParamTable rows={[
-                ["limit", "number", false, "Results per page. Default 20, max 100."],
-                ["page",  "number", false, "Page number (1-based). Default 1."],
-              ]} />
-
-              <H3 title="cURL example" />
-              <CodeBlock code={`curl "https://velamini.com/api/agent/sessions?limit=10&page=1" \\
-  -H "X-Agent-Key: vela_your_key_here"`} />
-
-              <H3 title="Response" />
-              <CodeBlock code={`{
+  sessions: () => (
+    <>
+      <H title="GET /api/agent/sessions" sub="List all conversation sessions for your organisation, newest first."/>
+      <EP method="GET" path="/api/agent/sessions" desc="Returns a paginated list of sessions."/>
+      <H3 t="Query parameters"/>
+      <ParamTable rows={[
+        ["limit", "number", false, "Results per page. Default 20, max 100."],
+        ["page",  "number", false, "Page number (1-based). Default 1."],
+      ]}/>
+      <H3 t="cURL example"/>
+      <CodeBlock lang="bash" code={`curl "https://velamini.com/api/agent/sessions?limit=10&page=1" \\
+  -H "X-Agent-Key: vela_your_key_here"`}/>
+      <H3 t="Response"/>
+      <CodeBlock lang="json" code={`{
   "sessions": [
     {
       "sessionId":    "cm9abc123def456",
@@ -405,7 +258,7 @@ const r2 = await fetch("https://velamini.com/api/agent/chat", {
       "updatedAt":    "2026-03-07T10:05:00.000Z",
       "lastMessage": {
         "role":      "assistant",
-        "content":   "Is there anything else I can help with?",
+        "content":   "Is there anything else I can help you with?",
         "createdAt": "2026-03-07T10:05:00.000Z"
       }
     }
@@ -413,269 +266,510 @@ const r2 = await fetch("https://velamini.com/api/agent/chat", {
   "total": 142,
   "page":  1,
   "limit": 10
-}`} />
-            </section>
+}`}/>
+    </>
+  ),
 
-            {/* ─── HISTORY ──────────────────────────────────── */}
-            <section id="history" className="dsec">
-              <H2 title="GET /api/agent/history" sub="Retrieve every message in a specific conversation session." />
-              <EP method="GET" path="/api/agent/history" desc="Returns all messages for a session, in chronological order." />
-
-              <H3 title="Query parameters" />
-              <ParamTable rows={[
-                ["sessionId", "string", true, "The session ID returned by POST /api/agent/chat."],
-              ]} />
-
-              <H3 title="cURL example" />
-              <CodeBlock code={`curl "https://velamini.com/api/agent/history?sessionId=cm9abc123def456" \\
-  -H "X-Agent-Key: vela_your_key_here"`} />
-
-              <H3 title="Response" />
-              <CodeBlock code={`{
+  history: () => (
+    <>
+      <H title="GET /api/agent/history" sub="Retrieve every message in a specific conversation, in chronological order."/>
+      <EP method="GET" path="/api/agent/history" desc="Returns all messages for a given sessionId."/>
+      <H3 t="Query parameters"/>
+      <ParamTable rows={[
+        ["sessionId", "string", true, "The session ID returned by POST /api/agent/chat."],
+      ]}/>
+      <H3 t="cURL example"/>
+      <CodeBlock lang="bash" code={`curl "https://velamini.com/api/agent/history?sessionId=cm9abc123def456" \\
+  -H "X-Agent-Key: vela_your_key_here"`}/>
+      <H3 t="Response"/>
+      <CodeBlock lang="json" code={`{
   "sessionId":    "cm9abc123def456",
-  "createdAt":    "2026-03-07T10:00:00.000Z",
-  "updatedAt":    "2026-03-07T10:05:00.000Z",
   "messageCount": 4,
   "messages": [
-    { "id": "msg_1", "role": "user",      "content": "Do you offer free shipping?", "createdAt": "2026-03-07T10:00:00.000Z" },
-    { "id": "msg_2", "role": "assistant", "content": "Yes! Orders over $50...",      "createdAt": "2026-03-07T10:00:01.000Z" },
-    { "id": "msg_3", "role": "user",      "content": "What about returns?",          "createdAt": "2026-03-07T10:04:00.000Z" },
-    { "id": "msg_4", "role": "assistant", "content": "We accept returns within...",   "createdAt": "2026-03-07T10:04:01.000Z" }
+    { "id": "msg_1", "role": "user",      "content": "Do you offer free shipping?",      "createdAt": "2026-03-07T10:00:00.000Z" },
+    { "id": "msg_2", "role": "assistant", "content": "Yes! Orders over 50,000 RWF…",     "createdAt": "2026-03-07T10:00:01.000Z" },
+    { "id": "msg_3", "role": "user",      "content": "What about returns?",               "createdAt": "2026-03-07T10:04:00.000Z" },
+    { "id": "msg_4", "role": "assistant", "content": "We accept returns within 30 days…", "createdAt": "2026-03-07T10:04:01.000Z" }
   ]
-}`} />
-            </section>
+}`}/>
+    </>
+  ),
 
-            {/* ─── FEEDBACK ─────────────────────────────────── */}
-            <section id="feedback" className="dsec">
-              <H2 title="POST /api/agent/feedback" sub="Submit a thumbs up or thumbs down rating for a conversation." />
-              <EP method="POST" path="/api/agent/feedback" desc="Record user satisfaction feedback, optionally linked to a session." />
-
-              <H3 title="Request body" />
-              <ParamTable rows={[
-                ["rating",    "number", true,  "1 = thumbs up, -1 = thumbs down. Only 1 or -1 is accepted."],
-                ["sessionId", "string", false, "The session ID to attach this feedback to."],
-                ["comment",   "string", false, "Optional free-text comment from the user."],
-              ]} />
-
-              <H3 title="cURL example" />
-              <CodeBlock code={`curl -X POST https://velamini.com/api/agent/feedback \\
+  feedback: () => (
+    <>
+      <H title="POST /api/agent/feedback" sub="Record a thumbs up or thumbs down rating for any conversation."/>
+      <EP method="POST" path="/api/agent/feedback" desc="Submit user satisfaction feedback, optionally linked to a session."/>
+      <H3 t="Request body"/>
+      <ParamTable rows={[
+        ["rating",    "number", true,  "1 = thumbs up, -1 = thumbs down. Only 1 or -1 accepted."],
+        ["sessionId", "string", false, "Session to attach this feedback to."],
+        ["comment",   "string", false, "Optional free-text comment from the user."],
+      ]}/>
+      <H3 t="cURL example"/>
+      <CodeBlock lang="bash" code={`curl -X POST https://velamini.com/api/agent/feedback \\
   -H "Content-Type: application/json" \\
   -H "X-Agent-Key: vela_your_key_here" \\
   -d '{
     "rating":    1,
     "sessionId": "cm9abc123def456",
     "comment":   "Very helpful, answered quickly!"
-  }'`} />
-
-              <H3 title="Response" />
-              <CodeBlock code={`{
-  "ok": true,
-  "id": "feedback_cm9xyz"
-}`} />
-
-              <H3 title="Typical usage — add a feedback row after each reply" />
-              <CodeBlock code={`// After rendering the agent's reply, show thumbs up/down buttons
-async function submitFeedback(rating: 1 | -1, sessionId: string) {
+  }'`}/>
+      <H3 t="Response"/>
+      <CodeBlock lang="json" code={`{ "ok": true, "id": "feedback_cm9xyz" }`}/>
+      <H3 t="Typical usage — show thumbs after each reply"/>
+      <CodeBlock lang="ts" code={`async function submitFeedback(rating: 1 | -1, sessionId: string) {
   await fetch("https://velamini.com/api/agent/feedback", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Agent-Key": YOUR_KEY,
-    },
-    body: JSON.stringify({ rating, sessionId }),
+    method:  "POST",
+    headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
+    body:    JSON.stringify({ rating, sessionId }),
   });
-}`} />
-            </section>
+}`}/>
+    </>
+  ),
 
-            {/* ─── EMBED WIDGET ─────────────────────────────── */}
-            <section id="embed" className="dsec">
-              <H2 title="Embed Widget" sub="One script tag — instant chat bubble on any webpage." />
-              {p("The widget is self-contained vanilla JS. It calls /api/agent/chat automatically, handles session persistence, dark/light theme, and mobile layout. No React, no build step.")}
-
-              <H3 title="Installation" />
-              <CodeBlock code={`<!-- Paste before </body> on any HTML page -->
+  embed: () => (
+    <>
+      <H title="Embed Widget" sub="One script tag — instant chat bubble on any webpage, no build step."/>
+      <P c="The widget is self-contained vanilla JS. It calls /api/agent/chat automatically, persists sessions across page loads, adapts to dark/light mode, and is fully mobile-responsive."/>
+      <H3 t="Installation"/>
+      <CodeBlock lang="html" code={`<!-- Paste before </body> on any HTML page -->
 <script
   src="https://velamini.com/embed/agent.js"
   data-agent-key="vela_your_key_here"
   data-agent-name="Support Bot"
   data-theme="auto"
   defer>
-</script>`} />
+</script>`}/>
+      <H3 t="Configuration attributes"/>
+      <ParamTable rows={[
+        ["data-agent-key",  "string", true,  "Your organisation's API key."],
+        ["data-agent-name", "string", false, "Name shown in the chat header."],
+        ["data-theme",      "string", false, "auto (default) | light | dark."],
+        ["data-position",   "string", false, "bottom-right (default) | bottom-left."],
+        ["data-api-base",   "string", false, "Override the API origin for self-hosted setups."],
+      ]}/>
+      <H3 t="Next.js injection"/>
+      <CodeBlock lang="ts" code={`"use client";
+import { useEffect } from "react";
+export function AgentWidget() {
+  useEffect(() => {
+    if (document.getElementById("vela-widget")) return;
+    const s = Object.assign(document.createElement("script"), {
+      id: "vela-widget", src: "https://velamini.com/embed/agent.js", defer: true,
+    });
+    s.dataset.agentKey = process.env.NEXT_PUBLIC_AGENT_KEY!;
+    s.dataset.theme    = "auto";
+    document.body.appendChild(s);
+  }, []);
+  return null;
+}`}/>
+      <H3 t="Programmatic open / close"/>
+      <CodeBlock lang="js" code={`window.dispatchEvent(new CustomEvent("vela:open"));
+window.dispatchEvent(new CustomEvent("vela:close"));`}/>
+    </>
+  ),
 
-              <H3 title="Configuration attributes" />
-              <ParamTable rows={[
-                ["data-agent-key",  "string", true,  "Your organisation's API key."],
-                ["data-agent-name", "string", false, "Name shown in the chat header."],
-                ["data-theme",      "string", false, "auto (default) | light | dark."],
-                ["data-api-base",   "string", false, "Override the API origin (for self-hosted). Defaults to https://velamini.com."],
-              ]} />
+  react: () => (
+    <>
+      <H title="React / JavaScript" sub="Build a fully custom chat UI using the 4 public endpoints."/>
+      <H3 t="useAgentChat hook"/>
+      <CodeBlock lang="ts" code={`import { useState, useRef } from "react";
 
-              <H3 title="Platform-specific instructions" />
-              <CodeBlock code={`// WordPress / Webflow / Squarespace
-// Paste in: Appearance → Theme Editor → footer.php
-// OR Site Settings → Custom Code → Footer
-
-// Next.js — inject in layout.tsx
-useEffect(() => {
-  if (document.getElementById("vela-root")) return;
-  const s = document.createElement("script");
-  s.src              = "https://velamini.com/embed/agent.js";
-  s.defer            = true;
-  s.dataset.agentKey = process.env.NEXT_PUBLIC_AGENT_KEY!;
-  s.dataset.theme    = "auto";
-  document.body.appendChild(s);
-}, []);`} />
-
-              <H3 title="Headless trigger (custom open button)" />
-              <CodeBlock code={`// Dispatch this event from any button to open/close the widget
-window.dispatchEvent(new CustomEvent("vela:open"));
-window.dispatchEvent(new CustomEvent("vela:close"));\`} />`} />
-            </section>
-
-            {/* ─── REACT ────────────────────────────────────── */}
-            <section id="react" className="dsec">
-              <H2 title="React / JavaScript Integration" sub="Build a fully custom chat UI using the 4 public endpoints." />
-
-              <H3 title="Full chat hook" />
-              <CodeBlock code={`import { useState, useRef } from "react";
-
-const KEY = process.env.NEXT_PUBLIC_AGENT_KEY!;
+const KEY  = process.env.NEXT_PUBLIC_AGENT_KEY!;
 const BASE = "https://velamini.com/api/agent";
 
 export function useAgentChat() {
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+  const [messages, setMessages] = useState<{ role:string; content:string }[]>([]);
   const [loading,  setLoading]  = useState(false);
   const sessionId = useRef<string | undefined>(undefined);
 
   const send = async (text: string) => {
-    setMessages(m => [...m, { role: "user", content: text }]);
+    setMessages(m => [...m, { role:"user", content:text }]);
     setLoading(true);
-
     const res  = await fetch(\`\${BASE}/chat\`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
-      body: JSON.stringify({ message: text, sessionId: sessionId.current }),
+      method:  "POST",
+      headers: { "Content-Type":"application/json", "X-Agent-Key":KEY },
+      body:    JSON.stringify({ message:text, sessionId:sessionId.current }),
     });
     const data = await res.json();
     sessionId.current = data.sessionId;
-    setMessages(m => [...m, { role: "assistant", content: data.reply }]);
+    setMessages(m => [...m, { role:"assistant", content:data.reply }]);
     setLoading(false);
-    return data.sessionId as string;
   };
 
   const submitFeedback = async (rating: 1 | -1) => {
     if (!sessionId.current) return;
     await fetch(\`\${BASE}/feedback\`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Agent-Key": KEY },
-      body: JSON.stringify({ rating, sessionId: sessionId.current }),
+      method:  "POST",
+      headers: { "Content-Type":"application/json", "X-Agent-Key":KEY },
+      body:    JSON.stringify({ rating, sessionId:sessionId.current }),
     });
   };
 
   return { messages, loading, send, submitFeedback };
-}`} />
-
-              <H3 title="Load past sessions" />
-              <CodeBlock code={`async function loadSessions(page = 1) {
-  const res  = await fetch(
-    \`https://velamini.com/api/agent/sessions?page=\${page}&limit=20\`,
-    { headers: { "X-Agent-Key": KEY } }
-  );
-  const { sessions, total } = await res.json();
-  return { sessions, total };
+}`}/>
+      <H3 t="Load sessions + history"/>
+      <CodeBlock lang="ts" code={`async function loadSessions(page = 1) {
+  const res = await fetch(\`\${BASE}/sessions?page=\${page}&limit=20\`,
+    { headers: { "X-Agent-Key": KEY } });
+  return res.json(); // { sessions, total }
 }
 
 async function loadHistory(sessionId: string) {
-  const res  = await fetch(
-    \`https://velamini.com/api/agent/history?sessionId=\${sessionId}\`,
-    { headers: { "X-Agent-Key": KEY } }
-  );
+  const res = await fetch(\`\${BASE}/history?sessionId=\${sessionId}\`,
+    { headers: { "X-Agent-Key": KEY } });
   const { messages } = await res.json();
   return messages;
-}`} />
-            </section>
+}`}/>
+    </>
+  ),
 
-            {/* ─── WIDGET REF ───────────────────────────────── */}
-            <section id="widget-ref" className="dsec">
-              <H2 title="Widget Options Reference" />
-              <ParamTable rows={[
-                ["data-agent-key",  "string", true,  "Organisation API key starting with vela_."],
-                ["data-agent-name", "string", false, "Header title in chat panel. Falls back to org agentName."],
-                ["data-theme",      "string", false, "auto | light | dark. auto follows prefers-color-scheme + page's data-theme."],
-                ["data-api-base",   "string", false, "Full origin override e.g. https://my-instance.com."],
-              ]} />
+  "widget-ref": () => (
+    <>
+      <H title="Widget Options Reference" sub="All configuration attributes for the embed script tag."/>
+      <ParamTable rows={[
+        ["data-agent-key",  "string", true,  "Organisation API key starting with vela_."],
+        ["data-agent-name", "string", false, "Header title in chat panel. Falls back to org agentName."],
+        ["data-theme",      "string", false, "auto | light | dark. auto follows prefers-color-scheme."],
+        ["data-position",   "string", false, "bottom-right | bottom-left. Default bottom-right."],
+        ["data-api-base",   "string", false, "Full origin override e.g. https://my-instance.com."],
+      ]}/>
+      <H3 t="Widget behaviour"/>
+      <div style={{ overflowX:"auto", borderRadius:10, border:"1px solid var(--br)", marginBottom:14 }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem", minWidth:340 }}>
+          <thead><tr>{["Feature","Detail"].map(h => <th key={h} style={{ textAlign:"left", padding:"7px 12px", background:"var(--s2)", color:"var(--mu)", fontSize:".6rem", fontWeight:800, letterSpacing:".08em", textTransform:"uppercase" as const, borderBottom:"1px solid var(--br)" }}>{h}</th>)}</tr></thead>
+          <tbody>
+            {[
+              ["Session persistence", "Stored in localStorage + Velamini DB. Survives page refresh."],
+              ["Mobile layout",       "Full-width bottom drawer on screens narrower than 480 px."],
+              ["Keyboard shortcuts",  "Enter to send · Shift+Enter for newline · Esc to close."],
+              ["Context window",      "Sends last 8 messages as history for coherent multi-turn replies."],
+              ["Typing indicator",    "Animated dots while the agent is thinking."],
+              ["API compatibility",   "sessionId from the widget works with /sessions and /history."],
+            ].map(([f,d]) => (
+              <tr key={f}>
+                <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", color:"var(--fg)", fontWeight:600, whiteSpace:"nowrap" as const }}>{f}</td>
+                <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", color:"var(--mu)" }}>{d}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  ),
 
-              <H3 title="Widget behaviour" />
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: ".79rem", marginBottom: "1.1rem" }}>
-                <thead><tr>{["Feature", "Detail"].map(h => <th key={h} style={{ textAlign: "left", padding: "7px 12px", background: "var(--dc-surface2)", color: "var(--dc-muted)", fontSize: ".61rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", borderBottom: "1px solid var(--dc-border)" }}>{h}</th>)}</tr></thead>
-                <tbody>
-                  {[
-                    ["Session persistence", "Conversation stored in localStorage and the Velamini DB. Survives page refresh."],
-                    ["Mobile layout",       "Full-width bottom drawer on screens < 480 px."],
-                    ["Keyboard",            "Enter to send · Shift+Enter for newline · Esc to close."],
-                    ["Context window",      "Sends last 8 messages as history for coherent multi-turn replies."],
-                    ["Typing indicator",    "Animated dots while the agent is thinking."],
-                    ["Chat + History API",  "sessionId from the widget can be used with /agent/sessions and /agent/history."],
-                  ].map(([f, d]) => (
-                    <tr key={f}>
-                      <td style={{ padding: "8px 12px", borderBottom: "1px solid var(--dc-border)", color: "var(--dc-fg)", whiteSpace: "nowrap" }}>{f}</td>
-                      <td style={{ padding: "8px 12px", borderBottom: "1px solid var(--dc-border)", color: "var(--dc-muted)" }}>{d}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
+  errors: () => (
+    <>
+      <H title="Error Codes" sub="All endpoints return errors in a consistent shape."/>
+      <CodeBlock lang="json" code={`{ "error": "Human-readable error message" }`}/>
+      <div style={{ overflowX:"auto", borderRadius:10, border:"1px solid var(--br)", marginBottom:14 }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem", minWidth:380 }}>
+          <thead><tr>{["Status","Meaning","Cause"].map(h => <th key={h} style={{ textAlign:"left", padding:"7px 12px", background:"var(--s2)", color:"var(--mu)", fontSize:".6rem", fontWeight:800, letterSpacing:".08em", textTransform:"uppercase" as const, borderBottom:"1px solid var(--br)" }}>{h}</th>)}</tr></thead>
+          <tbody>
+            {[
+              ["400","Bad Request",          "Missing or invalid field in request body or query params."],
+              ["401","Unauthorized",          "Missing X-Agent-Key, or the key doesn't match any organisation."],
+              ["403","Forbidden",             "Organisation is disabled (isActive = false)."],
+              ["404","Not Found",             "Session ID not found or belongs to a different organisation."],
+              ["429","Too Many Requests",     "Monthly message limit reached. Upgrade your plan to continue."],
+              ["500","Internal Server Error", "Unexpected error — retry after a moment."],
+              ["502","Bad Gateway",           "The AI service returned an error."],
+              ["503","Service Unavailable",   "AI service temporarily unavailable — retry with backoff."],
+            ].map(([code,name,cause]) => (
+              <tr key={code}>
+                <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)" }}>
+                  <Badge label={code} c={code.startsWith("2")?"#22c55e":code.startsWith("4")?"#f59e0b":"#ef4444"}/>
+                </td>
+                <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", fontWeight:600, color:"var(--fg)" }}>{name}</td>
+                <td style={{ padding:"8px 12px", borderBottom:"1px solid color-mix(in srgb,var(--br) 50%,transparent)", color:"var(--mu)" }}>{cause}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  ),
 
-            {/* ─── ERRORS ───────────────────────────────────── */}
-            <section id="errors" className="dsec">
-              <H2 title="Error Codes" sub="All endpoints return errors in the same shape." />
-              <CodeBlock code={`{ "error": "Human-readable error message" }`} />
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: ".79rem", marginBottom: "1.1rem" }}>
-                <thead><tr>{["Status", "Meaning", "Cause"].map(h => <th key={h} style={{ textAlign: "left", padding: "7px 12px", background: "var(--dc-surface2)", color: "var(--dc-muted)", fontSize: ".61rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", borderBottom: "1px solid var(--dc-border)" }}>{h}</th>)}</tr></thead>
-                <tbody>
-                  {[
-                    ["400", "Bad Request",          "Missing / invalid field in request body or query params."],
-                    ["401", "Unauthorized",          "Missing X-Agent-Key, or the key does not match any organisation."],
-                    ["403", "Forbidden",             "Organisation is disabled (isActive = false)."],
-                    ["404", "Not Found",             "Session ID not found or does not belong to this organisation."],
-                    ["500", "Internal Server Error", "Unexpected error — retry after a moment."],
-                    ["502", "Bad Gateway",           "The AI service returned an error."],
-                    ["503", "Service Unavailable",   "AI service is temporarily unavailable."],
-                  ].map(([code, name, cause]) => (
-                    <tr key={code}>
-                      <td style={{ padding: "8px 12px", borderBottom: "1px solid var(--dc-border)" }}>
-                        <Badge label={code} c={code.startsWith("2") ? "#22c55e" : code.startsWith("4") ? "#f59e0b" : "#ef4444"} />
-                      </td>
-                      <td style={{ padding: "8px 12px", borderBottom: "1px solid var(--dc-border)", color: "var(--dc-fg)", fontWeight: 600 }}>{name}</td>
-                      <td style={{ padding: "8px 12px", borderBottom: "1px solid var(--dc-border)", color: "var(--dc-muted)" }}>{cause}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
+  security: () => (
+    <>
+      <H title="Security" sub="Best practices for protecting your API key and agent."/>
+      {[
+        ["Store keys in environment variables", "Use NEXT_PUBLIC_AGENT_KEY for embed or AGENT_KEY (server-only) for proxied calls. Never hard-code in source files or commit to git."],
+        ["Rotate regularly",                    "Generate a new key any time in the API & Embed tab. The old key is instantly invalidated. Rotate whenever you suspect exposure."],
+        ["Disable unused organisations",        "Set isActive: false from Settings to instantly reject all requests from that org's key."],
+        ["CORS policy",                         "Only /api/agent/* accepts cross-origin requests. Dashboard admin routes require a session cookie."],
+        ["Message length limit",                "Messages over 2,000 characters are rejected to prevent prompt injection and abuse."],
+        ["HTTPS only",                          "Always use https:// — plain HTTP requests are redirected or rejected."],
+      ].map(([title, desc]) => (
+        <div key={title} style={{ padding:"12px 14px", marginBottom:8, border:"1px solid var(--br)", borderRadius:10, background:"var(--s2)" }}>
+          <div style={{ fontSize:".83rem", fontWeight:700, color:"var(--fg)", marginBottom:3 }}>{title}</div>
+          <div style={{ fontSize:".76rem", color:"var(--mu)", lineHeight:1.6 }}>{desc}</div>
+        </div>
+      ))}
+    </>
+  ),
+};
 
-            {/* ─── SECURITY ─────────────────────────────────── */}
-            <section id="security" className="dsec">
-              <H2 title="Security" sub="Best practices for protecting your API key and agent." />
-              {[
-                ["Keep keys in environment variables", "Store your key as NEXT_PUBLIC_AGENT_KEY or server-side AGENT_KEY — never hard-code in source files."],
-                ["Rotate regularly",                   "Use the API & Embed tab in the dashboard to generate a new key instantly. Rotate when you suspect exposure."],
-                ["Disable unused organisations",       "Set isActive: false from the Settings tab to instantly reject all requests from that key."],
-                ["CORS",                               "Only /api/agent/* endpoints accept cross-origin requests (needed for the embed widget). All dashboard admin routes require a session cookie."],
-                ["Message limits",                     "Messages over 2 000 characters are rejected to prevent prompt injection and abuse."],
-                ["HTTPS only",                         "Always use https:// — HTTP requests will be redirected or rejected."],
-              ].map(([title, desc]) => (
-                <div key={title} style={{ padding: "11px 14px", marginBottom: 8, border: "1px solid var(--dc-border)", borderRadius: 10, background: "var(--dc-surface2)" }}>
-                  <div style={{ fontSize: ".83rem", fontWeight: 700, color: "var(--dc-fg)", marginBottom: 3 }}>{title}</div>
-                  <div style={{ fontSize: ".77rem", color: "var(--dc-muted)", lineHeight: 1.6 }}>{desc}</div>
+/* ─────────────────────────────────────────────────────────────
+   PAGE COMPONENT
+───────────────────────────────────────────────────────────── */
+export default function DocsPage() {
+  const [current,  setCurrent]  = useState(0);
+  const [isDark,   setIsDark]   = useState(true);
+  const [sideOpen, setSideOpen] = useState(false);
+  const [visible,  setVisible]  = useState(true);
+  const [dir,      setDir]      = useState<"l"|"r">("r");
+
+  useEffect(() => {
+    try {
+      const d = (localStorage.getItem("theme") || "dark") === "dark";
+      setIsDark(d);
+      document.documentElement.setAttribute("data-mode", d ? "dark" : "light");
+    } catch {}
+  }, []);
+
+  const toggleTheme = () => {
+    const n = !isDark; setIsDark(n);
+    document.documentElement.setAttribute("data-mode", n ? "dark" : "light");
+    try { localStorage.setItem("theme", n ? "dark" : "light"); } catch {}
+  };
+
+  const goTo = (idx: number, direction: "l"|"r") => {
+    if (idx < 0 || idx >= SECTIONS.length || idx === current) return;
+    setDir(direction);
+    setVisible(false);
+    setTimeout(() => {
+      setCurrent(idx);
+      setSideOpen(false);
+      setVisible(true);
+      window.scrollTo({ top:0, behavior:"smooth" });
+    }, 180);
+  };
+
+  const prev     = current > 0                  ? SECTIONS[current - 1] : null;
+  const next     = current < SECTIONS.length - 1 ? SECTIONS[current + 1] : null;
+  const progress = (current / (SECTIONS.length - 1)) * 100;
+  const Content  = PAGES[SECTIONS[current].id];
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+        :root,[data-mode="light"]{
+          --bg:#EFF7FF;--su:#FFFFFF;--s2:#E2F0FC;
+          --br:#C5DCF2;--fg:#0B1E2E;--mu:#6B90AE;
+          --a:#29A9D4;--org:#6366F1;
+          --cb:#060d14;--code:#a5d8f0;
+        }
+        [data-mode="dark"]{
+          --bg:#081420;--su:#0F1E2D;--s2:#162435;
+          --br:#1A3045;--fg:#C8E8F8;--mu:#4A6E88;
+          --a:#38AECC;--org:#818CF8;
+          --cb:#050c16;--code:#93d4f5;
+        }
+
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;min-height:100dvh;transition:background .3s,color .3s}
+
+        /* topbar */
+        .dn{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:color-mix(in srgb,var(--su) 88%,transparent);border-bottom:1px solid var(--br);backdrop-filter:blur(16px);transition:background .3s,border-color .3s}
+        .dn-l{display:flex;align-items:center;gap:10px}
+        .dn-brand{display:flex;align-items:center;gap:7px;text-decoration:none}
+        .dn-logo{width:26px;height:26px;border-radius:7px;overflow:hidden;border:1.5px solid var(--br)}
+        .dn-logo img{width:100%;height:100%;object-fit:cover;display:block}
+        .dn-name{font-family:'DM Serif Display',serif;font-size:.85rem;color:var(--fg)}
+        .dn-sep{color:var(--br);margin:0 2px}
+        .dn-tag{font-size:.7rem;font-weight:700;color:var(--mu)}
+        .dn-r{display:flex;align-items:center;gap:8px}
+        .dib{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--br);background:var(--s2);color:var(--mu);cursor:pointer;transition:all .13s}
+        .dib:hover{border-color:var(--a);color:var(--a);background:color-mix(in srgb,var(--a) 8%,transparent)}
+        .dib svg{width:13px;height:13px}
+        .dmb{display:none}
+        @media(max-width:820px){.dmb{display:flex!important}}
+
+        /* progress */
+        .prog{position:fixed;top:52px;left:0;right:0;z-index:199;height:2px;background:color-mix(in srgb,var(--br) 60%,transparent)}
+        .prog-fill{height:100%;background:linear-gradient(90deg,var(--a),var(--org));transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+        /* sidebar */
+        .ds{position:fixed;top:54px;left:0;bottom:0;width:228px;overflow-y:auto;overflow-x:hidden;padding:18px 0 40px;background:var(--su);border-right:1px solid var(--br);z-index:150;transition:transform .25s cubic-bezier(.4,0,.2,1),background .3s;scrollbar-width:thin;scrollbar-color:var(--br) transparent}
+        .ds::-webkit-scrollbar{width:3px}
+        .ds::-webkit-scrollbar-thumb{background:var(--br);border-radius:3px}
+        .ds-g{font-size:.57rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);padding:0 14px 5px;margin-top:18px}
+        .ds-g:first-child{margin-top:0}
+        .ds-btn{display:flex;align-items:center;gap:8px;width:100%;padding:7px 14px;border:none;border-left:2.5px solid transparent;background:none;text-align:left;font-size:.77rem;color:var(--mu);cursor:pointer;font-family:inherit;transition:all .12s}
+        .ds-btn:hover{color:var(--fg)}
+        .ds-btn.on{color:var(--a)!important;border-left-color:var(--a);background:color-mix(in srgb,var(--a) 8%,transparent);font-weight:600}
+        .ds-btn svg{width:12px;height:12px;flex-shrink:0}
+        .ds-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:149;backdrop-filter:blur(3px)}
+        @media(max-width:820px){
+          .ds{transform:translateX(-100%)}
+          .ds.open{transform:translateX(0)}
+          .ds-ov.open{display:block}
+        }
+
+        /* main layout */
+        .dm{margin-left:228px;padding-top:54px;min-height:100dvh;display:flex;flex-direction:column}
+        @media(max-width:820px){.dm{margin-left:0}}
+
+        /* page content panel */
+        .dp{flex:1;max-width:760px;width:100%;margin:0 auto;padding:36px 28px 28px;transition:opacity .18s ease,transform .18s ease}
+        .dp.hide-l{opacity:0;transform:translateX(-16px)}
+        .dp.hide-r{opacity:0;transform:translateX(16px)}
+        .dp.show  {opacity:1;transform:translateX(0)}
+        @media(max-width:600px){.dp{padding:24px 16px 20px}}
+
+        /* breadcrumb */
+        .bc{display:flex;align-items:center;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+        .bc-g{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--mu)}
+        .bc-s{color:var(--br);font-size:.7rem}
+        .bc-p{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--a)}
+        .bc-n{margin-left:auto;font-size:.65rem;color:var(--mu);font-variant-numeric:tabular-nums;background:var(--s2);border:1px solid var(--br);padding:2px 8px;border-radius:20px}
+
+        /* divider */
+        .div{height:1px;background:var(--br);margin:0 28px}
+        @media(max-width:600px){.div{margin:0 16px}}
+
+        /* prev/next */
+        .pn{max-width:760px;margin:0 auto;padding:20px 28px 44px;display:flex;align-items:stretch;gap:12px}
+        @media(max-width:600px){.pn{padding:16px 16px 36px;flex-direction:column}}
+        .pn-btn{flex:1;display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:14px;border:1px solid var(--br);background:var(--su);cursor:pointer;font-family:inherit;transition:border-color .18s,box-shadow .18s,transform .18s,background .18s;text-align:left;position:relative;overflow:hidden}
+        .pn-btn:hover{border-color:color-mix(in srgb,var(--a) 55%,transparent);background:color-mix(in srgb,var(--a) 5%,var(--su));box-shadow:0 6px 24px color-mix(in srgb,var(--a) 14%,transparent),0 1px 4px rgba(0,0,0,.08);transform:translateY(-2px)}
+        .pn-btn:active{transform:translateY(0)}
+        .pn-r{justify-content:flex-end;text-align:right}
+        .pn-ico-wrap{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;flex-shrink:0;background:color-mix(in srgb,var(--a) 10%,transparent);border:1px solid color-mix(in srgb,var(--a) 18%,transparent);transition:background .16s,border-color .16s}
+        .pn-btn:hover .pn-ico-wrap{background:color-mix(in srgb,var(--a) 18%,transparent);border-color:color-mix(in srgb,var(--a) 36%,transparent)}
+        .pn-sec-ico{color:var(--a);opacity:.9}
+        .pn-arrow{color:var(--mu);flex-shrink:0;transition:color .15s,transform .18s}
+        .pn-btn:hover .pn-arrow{color:var(--a)}
+        .pn-prev:hover .pn-arrow{transform:translateX(-3px)}
+        .pn-next:hover .pn-arrow{transform:translateX(3px)}
+        .pn-lbl{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--mu);margin-bottom:3px}
+        .pn-nm{font-size:.84rem;font-weight:700;color:var(--fg);line-height:1.3}
+        .pn-grp{font-size:.67rem;color:var(--mu);margin-top:3px;opacity:.65}
+        @media(max-width:480px){.pn-nm{font-size:.78rem}}
+
+        /* code block */
+        .cb{position:relative;margin-bottom:14px;border-radius:11px;overflow:hidden;border:1px solid #1a3248}
+        .cb-lang{position:absolute;top:0;left:0;font-size:.56rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#4a7a98;padding:5px 10px;background:rgba(0,0,0,.3);border-bottom-right-radius:7px;z-index:1}
+        .cb-pre{background:var(--cb);padding:12px 44px 12px 12px;margin:0;overflow-x:auto;font-size:.74rem;line-height:1.8;color:var(--code);font-family:ui-monospace,'Cascadia Code',monospace;white-space:pre;scrollbar-width:thin;scrollbar-color:#1a3248 transparent}
+        .cb-pre::-webkit-scrollbar{height:3px}
+        .cb-pre::-webkit-scrollbar-thumb{background:#1a3248}
+        .cb-copy{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.05);border:1px solid #1a3248;border-radius:7px;padding:4px 8px;cursor:pointer;color:#4a7a98;display:flex;align-items:center;gap:4px;font-size:.6rem;font-family:inherit;transition:all .14s}
+        .cb-copy:hover{border-color:#38AECC;color:#38AECC}
+        .cb-copy.done{border-color:#10b981!important;color:#10b981!important}
+      `}</style>
+
+      {/* ── Topbar ── */}
+      <nav className="dn">
+        <div className="dn-l">
+          <button className="dib dmb" style={{ display:"none" }} onClick={() => setSideOpen(v => !v)}>
+            {sideOpen ? <X size={13}/> : <Menu size={13}/>}
+          </button>
+          <a href="/" className="dn-brand">
+            <div className="dn-logo"><img src="/logo.png" alt="Velamini"/></div>
+            <span className="dn-name">Velamini</span>
+            <span className="dn-sep">/</span>
+            <span className="dn-tag">API Docs</span>
+          </a>
+        </div>
+        <div className="dn-r">
+          <button className="dib" onClick={toggleTheme} title="Toggle theme">
+            {isDark ? <Sun size={13}/> : <Moon size={13}/>}
+          </button>
+          <a href="/Dashboard" style={{ display:"flex", alignItems:"center", gap:4, padding:"6px 12px", borderRadius:8, background:"var(--a)", color:"#fff", fontSize:".72rem", fontWeight:700, textDecoration:"none" }}>
+            Dashboard <ChevronRight size={11}/>
+          </a>
+        </div>
+      </nav>
+
+      {/* ── Progress bar ── */}
+      <div className="prog">
+        <div className="prog-fill" style={{ width:`${progress}%` }}/>
+      </div>
+
+      {/* ── Sidebar overlay ── */}
+      <div className={`ds-ov${sideOpen?" open":""}`} onClick={() => setSideOpen(false)}/>
+
+      {/* ── Sidebar ── */}
+      <aside className={`ds${sideOpen?" open":""}`}>
+        {GROUPS.map(group => (
+          <div key={group}>
+            <div className="ds-g">{group}</div>
+            {SECTIONS.filter(s => s.group === group).map(({ id, label, Icon }) => {
+              const idx = SECTIONS.findIndex(s => s.id === id);
+              return (
+                <button key={id} className={`ds-btn${current === idx ? " on" : ""}`}
+                  onClick={() => goTo(idx, idx > current ? "r" : "l")}>
+                  <Icon size={12}/>{label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </aside>
+
+      {/* ── Main ── */}
+      <div className="dm">
+
+        {/* Page content */}
+        <div className={`dp ${visible ? "show" : (dir === "r" ? "hide-r" : "hide-l")}`}>
+          {/* Breadcrumb */}
+          <div className="bc">
+            <span className="bc-g">{SECTIONS[current].group}</span>
+            <ChevronRight size={9} className="bc-s" style={{ color:"var(--br)" }}/>
+            <span className="bc-p">{SECTIONS[current].label}</span>
+            <span className="bc-n">{current + 1} / {SECTIONS.length}</span>
+          </div>
+
+          {/* Section */}
+          <Content/>
+        </div>
+
+        <div className="div"/>
+
+        {/* ── Prev / Next ── */}
+        <div className="pn">
+          {prev ? (
+            <button className="pn-btn pn-prev" onClick={() => goTo(current - 1, "l")}>
+              <ChevronLeft size={15} className="pn-arrow"/>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div className="pn-lbl">Previous</div>
+                <div className="pn-nm">{prev.label}</div>
+                <div className="pn-grp">{prev.group}</div>
+              </div>
+              <div className="pn-ico-wrap">
+                <prev.Icon size={14} className="pn-sec-ico"/>
+              </div>
+            </button>
+          ) : <div style={{ flex:1 }}/>}
+
+          {next ? (
+            <button className="pn-btn pn-next pn-r" onClick={() => goTo(current + 1, "r")}>
+              <div className="pn-ico-wrap">
+                <next.Icon size={14} className="pn-sec-ico"/>
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div className="pn-lbl" style={{ justifyContent:"flex-end" }}>Next</div>
+                <div className="pn-nm">{next.label}</div>
+                <div className="pn-grp">{next.group}</div>
+              </div>
+              <ChevronRight size={15} className="pn-arrow"/>
+            </button>
+          ) : (
+            <div style={{ flex:1, display:"flex", justifyContent:"flex-end" }}>
+              <div style={{ padding:"16px 20px", borderRadius:14, border:"1px solid color-mix(in srgb,var(--a) 30%,var(--br))", background:"color-mix(in srgb,var(--a) 6%,var(--su))", display:"flex", alignItems:"center", gap:12, minWidth:160 }}>
+                <span style={{ fontSize:"1.4rem", lineHeight:1 }}>🎉</span>
+                <div>
+                  <div style={{ fontSize:".82rem", fontWeight:700, color:"var(--fg)" }}>All done!</div>
+                  <div style={{ fontSize:".7rem", color:"var(--mu)", marginTop:2, lineHeight:1.4 }}>You've read the full docs</div>
                 </div>
-              ))}
-            </section>
-
-          </main>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
   );
 }
-

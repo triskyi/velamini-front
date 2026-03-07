@@ -3,28 +3,30 @@
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Users, BarChart2, ShieldAlert, Settings,
-  Menu, X, Moon, Sun, LogOut, ChevronRight, Bell
+  Menu, X, Moon, Sun, LogOut, ChevronRight, Bell, Building2, TrendingUp
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import AdminOverview   from "./overview";
-import AdminUsers      from "./user";
-import AdminAnalytics  from "./analytics";
-import AdminModeration from "./moderation";
-import AdminSettings   from "./settings";
+import AdminOverview       from "./overview";
+import AdminUsers          from "./user";
+import AdminAnalytics      from "./analytics";
+import AdminModeration     from "./moderation";
+import AdminSettings       from "./settings";
+import AdminOrganizations  from "./organizations";
 
-export type AdminView = "overview" | "users" | "analytics" | "moderation" | "settings";
+export type AdminView = "overview" | "users" | "analytics" | "moderation" | "settings" | "organizations";
 
 const navItems: { view: AdminView; label: string; Icon: any; badge?: string }[] = [
-  { view: "overview",   label: "Overview",   Icon: LayoutDashboard              },
-  { view: "users",      label: "Users",      Icon: Users                        },
-  { view: "analytics",  label: "Analytics",  Icon: BarChart2                    },
-  { view: "moderation", label: "Moderation", Icon: ShieldAlert },
-  { view: "settings",   label: "Settings",   Icon: Settings                     },
+  { view: "overview",       label: "Overview",       Icon: LayoutDashboard },
+  { view: "users",          label: "Users",          Icon: Users           },
+  { view: "organizations",  label: "Organizations",  Icon: Building2       },
+  { view: "analytics",      label: "Analytics",      Icon: BarChart2       },
+  { view: "moderation",     label: "Moderation",     Icon: ShieldAlert     },
+  { view: "settings",       label: "Settings",       Icon: Settings        },
 ];
 
 const viewLabel: Record<AdminView, string> = {
-  overview: "Overview", users: "Users", analytics: "Analytics",
-  moderation: "Moderation", settings: "Settings",
+  overview: "Overview", users: "Users", organizations: "Organizations",
+  analytics: "Analytics", moderation: "Moderation", settings: "Settings",
 };
 
 export default function AdminWrapper() {
@@ -63,11 +65,12 @@ export default function AdminWrapper() {
 
   const renderView = () => {
     switch (view) {
-      case "overview":   return <AdminOverview   onNavigate={go} />;
-      case "users":      return <AdminUsers />;
-      case "analytics":  return <AdminAnalytics />;
-      case "moderation": return <AdminModeration />;
-      case "settings":   return <AdminSettings />;
+      case "overview":       return <AdminOverview      onNavigate={go} />;
+      case "users":          return <AdminUsers />;
+      case "organizations":  return <AdminOrganizations />;
+      case "analytics":      return <AdminAnalytics />;
+      case "moderation":     return <AdminModeration />;
+      case "settings":       return <AdminSettings />;
     }
   };
 

@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from "next-auth"
 import Google from "next-auth/providers/google"
 
-export const authConfig = {
+export const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET, // Added this line
   providers: [
     Google({
@@ -86,4 +86,4 @@ export const authConfig = {
       return true
     },
   },
-} satisfies NextAuthConfig
+}

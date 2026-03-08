@@ -54,7 +54,7 @@ const PLANS: Plan[] = [
   {
     id: "plus",
     name: "Plus",
-    price: 50,
+    price: 100,
     messages: 1500,
     accent: "#818CF8",
     badge: "Best for creators",
@@ -489,7 +489,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
             <div className="ub-upgrade-prompt">
               <div className="ub-upgrade-prompt-text">
                 <h4><TrendingUp size={13} style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}/>Upgrade to Plus</h4>
-                <p>Get 1,500 messages/month, resume generation, and priority support for 50 RWF/month.</p>
+                <p>Get 1,500 messages/month, resume generation, and priority support for 100 RWF/month.</p>
               </div>
               <button className="ub-upgrade-btn" onClick={() => { setShowUpgrade(true); setPayResult(null); }}>
                 <Zap size={14}/> Upgrade now
@@ -570,7 +570,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
                   <div className="ub-plan-card-icon"><Star size={16}/></div>
                   <div>
                     <div className="ub-plan-card-name">Plus plan</div>
-                    <div className="ub-plan-card-price"><strong>50 RWF</strong>/month</div>
+                    <div className="ub-plan-card-price"><strong>100 RWF</strong>/month</div>
                   </div>
                 </div>
                 <div className="ub-plan-card-features">
@@ -606,7 +606,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
                 disabled={paying}
               >
                 {paying ? <RefreshCw size={15} className="spin"/> : <CreditCard size={15}/>}
-                {paying ? "Processing…" : "Pay 50 RWF via Mobile Money"}
+                {paying ? "Processing…" : "Pay 100 RWF via Mobile Money"}
               </button>
             </motion.div>
           </motion.div>

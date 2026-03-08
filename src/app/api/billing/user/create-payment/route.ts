@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 const PERSONAL_PLANS: Record<string, { amountRWF: number; label: string; limit: number }> = {
-  plus: { amountRWF: 50, label: "Personal Plus", limit: 1500 },
+  plus: { amountRWF: 100, label: "Personal Plus", limit: 1500 },
 };
 
 /**

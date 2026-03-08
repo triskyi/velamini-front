@@ -45,7 +45,7 @@ const PLANS: Plan[] = [
     features: ["200 messages/month","150K AI tokens/month","Personal virtual self","Chat link sharing","Basic analytics"],
   },
   {
-    id: "plus", name: "Plus", price: 2000, messages: 1500, accent: "#818CF8",
+    id: "plus", name: "Plus", price: 100, messages: 1500, accent: "#818CF8",
     badge: "Most popular",
     features: ["1,500 messages/month","1M AI tokens/month","Personal virtual self","Chat link sharing","Resume generation","Priority support"],
   },
@@ -145,7 +145,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
 
   const getPeriodPrice = (key: typeof period) => {
     const o = BILLING_OPTS.find(b => b.key === key)!;
-    return Math.round(2000 * o.months * (1 - o.discount));
+    return Math.round(100 * o.months * (1 - o.discount));
   };
 
   /* ── Loading ────────────────────────────────────────────────────── */
@@ -604,7 +604,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
               <div className="ub-modal-section-lbl">Billing period</div>
               <div className="ub-period-grid">
                 {BILLING_OPTS.map(o => {
-                  const total = Math.round(2000 * o.months * (1 - o.discount));
+                  const total = Math.round(100 * o.months * (1 - o.discount));
                   const perMo = Math.round(total / o.months);
                   return (
                     <button key={o.key}
@@ -637,7 +637,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
               {(() => {
                 const o    = BILLING_OPTS.find(b => b.key === period)!;
                 const tot  = getPeriodPrice(period);
-                const saved= Math.round(2000 * o.months) - tot;
+                const saved= Math.round(100 * o.months) - tot;
                 return (
                   <div className="ub-amount-row">
                     <div className="ub-amount-big">{tot.toLocaleString()}</div>

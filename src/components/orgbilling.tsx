@@ -30,7 +30,7 @@ const PLANS: Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    price: 4000,
+    price: 100,
     messages: 2000,
     accent: "#38AECC",
     features: ["2,000 messages/mo", "2M AI tokens/mo", "1 AI agent", "API + Embed", "Priority support"],

@@ -19,7 +19,7 @@ const PLANS = [
   {
     id: "starter",
     label: "Starter",
-    price: 100,
+    price: 4000,
     msgs: 2000,
     color: "#38AECC",
     Icon: TrendingUp,

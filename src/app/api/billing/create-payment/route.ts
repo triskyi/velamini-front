@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // Using 900 RWF/M as cost with overhead buffer. Target ≥ 65 % gross margin.
 // Token limits calculated as: price × 0.35 / (900/1_000_000)
 const PLANS: Record<string, { amountRWF: number; label: string; limit: number }> = {
-  starter: { amountRWF: 100,    label: "Starter", limit: 2_000  },
+  starter: { amountRWF: 4_000,  label: "Starter", limit: 2_000  },
   pro:     { amountRWF: 12_000, label: "Pro",     limit: 8_000  },
   scale:   { amountRWF: 28_000, label: "Scale",   limit: 25_000 },
 };

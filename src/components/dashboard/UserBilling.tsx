@@ -54,7 +54,7 @@ const PLANS: Plan[] = [
   {
     id: "plus",
     name: "Plus",
-    price: 3000,
+    price: 2000,
     messages: 1500,
     accent: "#818CF8",
     badge: "Best for creators",
@@ -108,6 +108,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
   const [loading,      setLoading]      = useState(true);
 
   const [showUpgrade,  setShowUpgrade]  = useState(false);
+  const [period,       setPeriod]       = useState<"monthly" | "6months" | "yearly">("monthly");
   const [paying,       setPaying]       = useState(false);
   const [phoneNumber,  setPhoneNumber]  = useState("");
   const [phoneError,   setPhoneError]   = useState("");
@@ -155,7 +156,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
       const data = await fetch("/api/billing/user/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "plus", phoneNumber: phoneNumber.replace(/\s/g, "") }),
+        body: JSON.stringify({ plan: "plus", period, phoneNumber: phoneNumber.replace(/\s/g, "") }),
       }).then(r => r.json());
 
       if (data.error) {
@@ -362,8 +363,11 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
         }
         .ub-plan-card-icon svg{ color:#818CF8; width:16px; height:16px; }
         .ub-plan-card-name{ font-size:.9rem; font-weight:700; color:var(--c-text); }
-        .ub-plan-card-price{ font-size:.78rem; color:var(--c-muted); }
-        .ub-plan-card-price strong{ color:var(--c-text); }
+        .ub-period-tabs{display:flex;gap:6px;margin-bottom:14px}
+        .ub-period-tab{flex:1;padding:8px 6px;border-radius:9px;border:1.5px solid var(--c-border);background:var(--c-surface-2);color:var(--c-muted);font-size:.74rem;font-weight:600;cursor:pointer;transition:all .13s;font-family:inherit;text-align:center}
+        .ub-period-tab:hover{border-color:var(--c-accent);color:var(--c-accent)}
+        .ub-period-tab--on{border-color:var(--c-accent);background:var(--c-accent-soft);color:var(--c-accent)}
+        .ub-period-badge{display:inline-block;margin-left:4px;padding:1px 5px;border-radius:4px;font-size:.58rem;font-weight:700;background:var(--c-success-soft);color:var(--c-success)}
         .ub-plan-card-features{ display:flex; flex-direction:column; gap:5px; }
         .ub-plan-card-feat{ display:flex; align-items:center; gap:7px; font-size:.76rem; color:var(--c-muted); }
         .ub-plan-card-feat svg{ width:12px; height:12px; color:var(--c-success); flex-shrink:0; }
@@ -490,7 +494,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
             <div className="ub-upgrade-prompt">
               <div className="ub-upgrade-prompt-text">
                 <h4><TrendingUp size={13} style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}/>Upgrade to Plus</h4>
-                <p>Get 1,500 messages/month, resume generation, and priority support for 100 RWF/month.</p>
+                <p>Get 1,500 messages/month, resume generation, and priority support for 2,000 RWF/month.</p>
               </div>
               <button className="ub-upgrade-btn" onClick={() => { setShowUpgrade(true); setPayResult(null); }}>
                 <Zap size={14}/> Upgrade now
@@ -565,13 +569,55 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
                 </button>
               </div>
 
+              {/* Period selector */}
+              {(() => {
+                const BASE = 2000;
+                const opts = [
+                  { key: "monthly",  label: "Monthly",    months: 1,  discount: 0    },
+                  { key: "6months",  label: "6 Months",   months: 6,  discount: 0.10 },
+                  { key: "yearly",   label: "Yearly",     months: 12, discount: 0.20 },
+                ] as const;
+                return (
+                  <div>
+                    <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".07em", textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 8 }}>Billing Period</div>
+                    <div className="ub-period-tabs">
+                      {opts.map(o => {
+                        const total = Math.round(BASE * o.months * (1 - o.discount));
+                        return (
+                          <button key={o.key}
+                            className={`ub-period-tab${period === o.key ? " ub-period-tab--on" : ""}`}
+                            onClick={() => setPeriod(o.key)}
+                            disabled={paying}>
+                            {o.label}
+                            {o.discount > 0 && <span className="ub-period-badge">-{o.discount * 100}%</span>}
+                            <div style={{ fontSize: ".68rem", color: period === o.key ? "var(--c-accent)" : "var(--c-muted)", marginTop: 2, fontWeight: 500 }}>
+                              {total.toLocaleString()} RWF
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Plan summary */}
               <div className="ub-plan-card">
                 <div className="ub-plan-card-top">
                   <div className="ub-plan-card-icon"><Star size={16}/></div>
                   <div>
                     <div className="ub-plan-card-name">Plus plan</div>
-                    <div className="ub-plan-card-price"><strong>100 RWF</strong>/month</div>
+                    <div style={{ fontSize: ".78rem", color: "var(--c-muted)" }}>
+                      {(() => {
+                        const months = period === "yearly" ? 12 : period === "6months" ? 6 : 1;
+                        const discount = period === "yearly" ? 0.20 : period === "6months" ? 0.10 : 0;
+                        const total = Math.round(2000 * months * (1 - discount));
+                        const perMonth = Math.round(total / months);
+                        return (<><strong style={{ color: "var(--c-text)" }}>{total.toLocaleString()} RWF</strong>
+                          {period !== "monthly" && <span> · {perMonth.toLocaleString()} RWF/mo</span>}
+                        </>);
+                      })()}
+                    </div>
                   </div>
                 </div>
                 <div className="ub-plan-card-features">
@@ -607,7 +653,7 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
                 disabled={paying}
               >
                 {paying ? <RefreshCw size={15} className="spin"/> : <CreditCard size={15}/>}
-                {paying ? "Processing…" : "Pay 100 RWF via Mobile Money"}
+                {paying ? "Processing…" : `Pay ${Math.round(2000 * (period === "yearly" ? 12 * 0.8 : period === "6months" ? 6 * 0.9 : 1)).toLocaleString()} RWF via Mobile Money`}
               </button>
             </motion.div>
           </motion.div>

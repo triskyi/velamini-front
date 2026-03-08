@@ -19,7 +19,7 @@ const PLANS = [
   {
     id: "starter",
     label: "Starter",
-    price: 5000,
+    price: 4000,
     msgs: 2000,
     color: "#38AECC",
     Icon: TrendingUp,
@@ -29,7 +29,7 @@ const PLANS = [
   {
     id: "pro",
     label: "Pro",
-    price: 15000,
+    price: 12000,
     msgs: 8000,
     color: "#818CF8",
     Icon: CreditCard,
@@ -39,7 +39,7 @@ const PLANS = [
   {
     id: "scale",
     label: "Scale",
-    price: 35000,
+    price: 28000,
     msgs: 25000,
     color: "#FCD34D",
     Icon: Crown,
@@ -66,12 +66,13 @@ interface Props {
 }
 
 export default function OrgBilling({ org }: Props) {
-  const [invoices,    setInvoices]    = useState<Invoice[]>([]);
-  const [loadingInv,  setLoadingInv]  = useState(true);
-  const [upgrading,   setUpgrading]   = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [paySuccess,  setPaySuccess]  = useState(false);
-  const [payError,    setPayError]    = useState("");
+  const [invoices,       setInvoices]       = useState<Invoice[]>([]);
+  const [loadingInv,     setLoadingInv]     = useState(true);
+  const [upgrading,      setUpgrading]      = useState(false);
+  const [selectedPlan,   setSelectedPlan]   = useState<string | null>(null);
+  const [paySuccess,     setPaySuccess]     = useState(false);
+  const [payError,       setPayError]       = useState("");
+  const [billingPeriod,  setBillingPeriod]  = useState<"monthly" | "6months" | "yearly">("monthly");
 
   const usagePct = org.monthlyMessageLimit > 0
     ? Math.min(100, Math.round((org.monthlyMessageCount / org.monthlyMessageLimit) * 100))
@@ -93,6 +94,13 @@ export default function OrgBilling({ org }: Props) {
 
   useEffect(() => { loadInvoices(); }, [loadInvoices]);
 
+  const PERIOD_OPTS = [
+    { key: "monthly"  as const, label: "Monthly",  months: 1,  discount: 0    },
+    { key: "6months"  as const, label: "6 Months", months: 6,  discount: 0.10 },
+    { key: "yearly"   as const, label: "Yearly",   months: 12, discount: 0.20 },
+  ];
+  const activePeriod = PERIOD_OPTS.find(p => p.key === billingPeriod)!;
+
   /* ── Launch Flutterwave checkout ───────────────────────────── */
   const handleUpgrade = async (planId: string) => {
     if (planId === org.planType) return;
@@ -104,7 +112,7 @@ export default function OrgBilling({ org }: Props) {
       const res  = await fetch("/api/billing/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orgId: org.id, plan: planId }),
+        body: JSON.stringify({ orgId: org.id, plan: planId, period: billingPeriod }),
       });
       const data = await res.json();
       if (!res.ok) { setPayError(data.error || "Failed to initiate payment."); setUpgrading(false); return; }
@@ -214,11 +222,39 @@ export default function OrgBilling({ org }: Props) {
 
       {/* ── Plan cards ── */}
       <div>
-        <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 12 }}>Available Plans</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+          <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--c-muted)" }}>Available Plans</div>
+          {/* Period toggle */}
+          <div style={{ display: "flex", gap: 4, background: "var(--c-surface-2)", borderRadius: 10, padding: 3, border: "1px solid var(--c-border)" }}>
+            {PERIOD_OPTS.map(opt => (
+              <button key={opt.key}
+                onClick={() => setBillingPeriod(opt.key)}
+                style={{
+                  padding: "5px 10px", borderRadius: 7, border: "none", cursor: "pointer",
+                  fontSize: ".7rem", fontWeight: 700, fontFamily: "inherit",
+                  background: billingPeriod === opt.key ? "var(--c-accent)" : "transparent",
+                  color: billingPeriod === opt.key ? "#fff" : "var(--c-muted)",
+                  transition: "all .13s", position: "relative",
+                }}>
+                {opt.label}
+                {opt.discount > 0 && (
+                  <span style={{
+                    position: "absolute", top: -6, right: -4,
+                    background: "var(--c-success)", color: "#fff",
+                    fontSize: ".52rem", fontWeight: 800, padding: "1px 4px",
+                    borderRadius: 4, letterSpacing: ".02em",
+                  }}>-{opt.discount * 100}%</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
           {PLANS.map(plan => {
             const isCurrent = plan.id === (org.planType ?? "free");
             const isLoading = upgrading && selectedPlan === plan.id;
+            const periodPrice = plan.price === 0 ? 0 : Math.round(plan.price * activePeriod.months * (1 - activePeriod.discount));
+            const perMonth    = plan.price === 0 ? 0 : Math.round(periodPrice / activePeriod.months);
             return (
               <div key={plan.id} style={{
                 background: "var(--c-surface)", border: `1.5px solid ${isCurrent ? plan.color : "var(--c-border)"}`,
@@ -232,7 +268,15 @@ export default function OrgBilling({ org }: Props) {
                   </div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: ".88rem", color: "var(--c-text)" }}>{plan.label}</div>
-                    <div style={{ fontSize: ".72rem", color: "var(--c-muted)" }}>{plan.price === 0 ? "Free" : formatRWF(plan.price) + "/mo"}</div>
+                    <div style={{ fontSize: ".72rem", color: "var(--c-muted)" }}>
+                      {plan.price === 0 ? "Free" : (
+                        <>
+                          <strong style={{ color: "var(--c-text)" }}>{formatRWF(periodPrice)}</strong>
+                          {billingPeriod !== "monthly" && <span> · {formatRWF(perMonth)}/mo</span>}
+                          {billingPeriod === "monthly" && <span>/mo</span>}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 5 }}>
@@ -258,7 +302,7 @@ export default function OrgBilling({ org }: Props) {
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                     }}
                   >
-                    {isLoading ? <><Loader2 size={11} style={{ animation: "spin 1s linear infinite" }} /> Processing…</> : `Upgrade — ${formatRWF(plan.price)}`}
+                    {isLoading ? <><Loader2 size={11} style={{ animation: "spin 1s linear infinite" }} /> Processing…</> : `Upgrade — ${formatRWF(periodPrice)}`}
                   </button>
                 ) : null}
               </div>

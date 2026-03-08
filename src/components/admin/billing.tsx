@@ -602,10 +602,10 @@ export default function AdminBilling() {
                     <div className="ab-plan-opt-name">{p}</div>
                     <div className="ab-plan-opt-desc">
                       {p === "free"    ? (planModal.row.kind === "org" ? "500 msg/mo · 0 RWF" : "200 msg/mo · 0 RWF") :
-                       p === "plus"    ? "1,500 msg/mo · 3,000 RWF" :
-                       p === "starter" ? "2,000 msg/mo · 5,000 RWF" :
-                       p === "pro"     ? "8,000 msg/mo · 15,000 RWF" :
-                                         "25,000 msg/mo · 35,000 RWF"}
+                       p === "plus"    ? "1,500 msg/mo · 2,000 RWF" :
+                       p === "starter" ? "2,000 msg/mo · 4,000 RWF" :
+                       p === "pro"     ? "8,000 msg/mo · 12,000 RWF" :
+                                         "25,000 msg/mo · 28,000 RWF"}
                     </div>
                   </div>
                   {newPlan === p && <Check size={14} style={{ marginLeft: "auto", color: "var(--c-accent)" }}/>}

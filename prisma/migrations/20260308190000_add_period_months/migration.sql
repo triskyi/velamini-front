@@ -1,0 +1,2 @@
+ALTER TABLE "BillingRecord" ADD COLUMN "periodMonths" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "UserBillingRecord" ADD COLUMN "periodMonths" INTEGER NOT NULL DEFAULT 1;

@@ -172,6 +172,7 @@ async function handleUserBilling(
 
   const newLimit      = USER_PLAN_LIMITS[record.plan] ?? 200;
   const newTokenLimit = USER_TOKEN_LIMITS[record.plan] ?? 400_000;
+  const renewalMs     = (record.periodMonths ?? 1) * 30 * 24 * 60 * 60 * 1000;
 
   await prisma.$transaction([
     prisma.user.update({
@@ -180,8 +181,8 @@ async function handleUserBilling(
         personalPlanType:          record.plan,
         personalMonthlyMsgLimit:   newLimit,
         personalMonthlyTokenLimit: newTokenLimit,
-        personalPlanRenewalDate:   new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        creditsExhaustedAt:        null, // Clear grace period on payment
+        personalPlanRenewalDate:   new Date(Date.now() + renewalMs),
+        creditsExhaustedAt:        null,
       },
     }),
     prisma.userBillingRecord.update({
@@ -192,13 +193,14 @@ async function handleUserBilling(
 
   // Welcome payment notification
   const planLabel = record.plan.charAt(0).toUpperCase() + record.plan.slice(1);
+  const periodLabel = record.periodMonths === 12 ? "1 Year" : record.periodMonths === 6 ? "6 Months" : "1 Month";
   await prisma.notification.create({
     data: {
       userId: record.userId,
       type:   "billing",
       scope:  "personal",
       title:  `Plan upgraded to ${planLabel}`,
-      body:   `Your payment of ${record.amountRWF.toLocaleString()} RWF was successful. Your ${planLabel} plan is now active — ${newLimit.toLocaleString()} messages/month.`,
+      body:   `Your payment of ${record.amountRWF.toLocaleString()} RWF was successful. Your ${planLabel} plan is now active for ${periodLabel} — ${newLimit.toLocaleString()} messages/month.`,
     },
   }).catch(() => {});
 
@@ -238,6 +240,7 @@ async function handleOrgBilling(
   // Upgrade organisation + mark billing record successful
   const newLimit      = ORG_PLAN_LIMITS[record.plan] ?? 500;
   const newTokenLimit = ORG_TOKEN_LIMITS[record.plan] ?? 1_000_000;
+  const renewalMs     = (record.periodMonths ?? 1) * 30 * 24 * 60 * 60 * 1000;
 
   await prisma.$transaction([
     prisma.organization.update({
@@ -246,8 +249,8 @@ async function handleOrgBilling(
         planType:            record.plan,
         monthlyMessageLimit: newLimit,
         monthlyTokenLimit:   newTokenLimit,
-        planRenewalDate:     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        tokensExhaustedAt:   null, // Clear grace period on payment
+        planRenewalDate:     new Date(Date.now() + renewalMs),
+        tokensExhaustedAt:   null,
       },
     }),
     prisma.billingRecord.update({
@@ -261,6 +264,7 @@ async function handleOrgBilling(
 
   // Payment success notification to the org owner
   const planLabel = record.plan.charAt(0).toUpperCase() + record.plan.slice(1);
+  const periodLabel = record.periodMonths === 12 ? "1 Year" : record.periodMonths === 6 ? "6 Months" : "1 Month";
   await prisma.notification.create({
     data: {
       userId:         record.organization.ownerId,
@@ -268,7 +272,7 @@ async function handleOrgBilling(
       type:   "billing",
       scope:  "org",
       title:  `Organisation upgraded to ${planLabel}`,
-      body:   `Payment of ${record.amountRWF.toLocaleString()} RWF received. Your organisation is now on the ${planLabel} plan — ${newLimit.toLocaleString()} messages/month.`,
+      body:   `Payment of ${record.amountRWF.toLocaleString()} RWF received. Your organisation is now on the ${planLabel} plan for ${periodLabel} — ${newLimit.toLocaleString()} messages/month.`,
     },
   }).catch(() => {});
 

@@ -9,9 +9,15 @@ export const dynamic = "force-dynamic";
 // Using 900 RWF/M as cost with overhead buffer. Target ≥ 65 % gross margin.
 // Token limits calculated as: price × 0.35 / (900/1_000_000)
 const PLANS: Record<string, { amountRWF: number; label: string; limit: number }> = {
-  starter: { amountRWF: 5_000,  label: "Starter", limit: 2_000  },
-  pro:     { amountRWF: 15_000, label: "Pro",     limit: 8_000  },
-  scale:   { amountRWF: 35_000, label: "Scale",   limit: 25_000 },
+  starter: { amountRWF: 4_000,  label: "Starter", limit: 2_000  },
+  pro:     { amountRWF: 12_000, label: "Pro",     limit: 8_000  },
+  scale:   { amountRWF: 28_000, label: "Scale",   limit: 25_000 },
+};
+
+const PERIODS: Record<string, { months: number; discount: number; label: string }> = {
+  monthly:  { months: 1,  discount: 0,    label: "1 Month"  },
+  "6months": { months: 6,  discount: 0.10, label: "6 Months" },
+  yearly:   { months: 12, discount: 0.20, label: "1 Year"   },
 };
 
 /**
@@ -38,6 +44,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
 
+  const periodKey = (body.period as string) ?? "monthly";
+  const period = PERIODS[periodKey] ?? PERIODS.monthly;
+  const totalAmount = Math.round(plan.amountRWF * period.months * (1 - period.discount));
+
   // Validate phone number format if provided (Rwanda MTN: +2507XXXXXXXX)
   const phoneNumber: string | undefined = body.phoneNumber ?? undefined;
   if (phoneNumber !== undefined) {
@@ -63,7 +73,8 @@ export async function POST(req: Request) {
     data: {
       organizationId: org.id,
       plan:           body.plan,
-      amountRWF:      plan.amountRWF,
+      amountRWF:      totalAmount,
+      periodMonths:   period.months,
       txRef,
       status:         "pending",
     },
@@ -93,7 +104,7 @@ export async function POST(req: Request) {
     },
     customizations: {
       title:       `Velamini ${plan.label} Plan`,
-      description: `${plan.limit.toLocaleString()} messages / month`,
+      description: `${plan.limit.toLocaleString()} messages / month · ${period.label}`,
       logo:        `${appUrl}/logo.png`,
     },
     meta: {

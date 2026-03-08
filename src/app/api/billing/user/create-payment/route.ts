@@ -7,7 +7,13 @@ export const dynamic = "force-dynamic";
 // ── Cost basis: blended DeepSeek cost ≈ 900 RWF/M tokens; target ≥ 65 % margin
 // Plus: 3,000 RWF × 35 % = 1,050 RWF → 1,050/900 × 1M = ~1.17M → 1M tokens (buffer kept)
 const PERSONAL_PLANS: Record<string, { amountRWF: number; label: string; limit: number }> = {
-  plus: { amountRWF: 3_000, label: "Personal Plus", limit: 1_500 },
+  plus: { amountRWF: 2_000, label: "Personal Plus", limit: 1_500 },
+};
+
+const PERIODS: Record<string, { months: number; discount: number; label: string }> = {
+  monthly:  { months: 1,  discount: 0,    label: "1 Month"  },
+  "6months": { months: 6,  discount: 0.10, label: "6 Months" },
+  yearly:   { months: 12, discount: 0.20, label: "1 Year"   },
 };
 
 /**
@@ -32,6 +38,10 @@ export async function POST(req: Request) {
   if (!plan) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
+
+  const periodKey = (body.period as string) ?? "monthly";
+  const period = PERIODS[periodKey] ?? PERIODS.monthly;
+  const totalAmount = Math.round(plan.amountRWF * period.months * (1 - period.discount));
 
   // Validate phone number if provided
   let phoneNumber: string | undefined = body.phoneNumber ?? undefined;
@@ -61,11 +71,12 @@ export async function POST(req: Request) {
 
   await prisma.userBillingRecord.create({
     data: {
-      userId:    user.id,
-      plan:      body.plan,
-      amountRWF: plan.amountRWF,
+      userId:      user.id,
+      plan:        body.plan,
+      amountRWF:   totalAmount,
+      periodMonths: period.months,
       txRef,
-      status:    "pending",
+      status:      "pending",
     },
   });
 
@@ -81,7 +92,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     txRef,
     publicKey,
-    amount:      plan.amountRWF,
+    amount:      totalAmount,
     currency:    "RWF",
     redirectUrl,
     customer: {
@@ -91,9 +102,9 @@ export async function POST(req: Request) {
     },
     customizations: {
       title:       `Velamini ${plan.label}`,
-      description: `${plan.limit.toLocaleString()} messages / month`,
+      description: `${plan.limit.toLocaleString()} messages / month · ${period.label}`,
       logo:        `${appUrl}/logo.png`,
     },
-    meta: { userId: user.id, plan: body.plan },
+    meta: { userId: user.id, plan: body.plan, period: periodKey },
   });
 }

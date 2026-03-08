@@ -390,6 +390,16 @@ export default function AdminBilling() {
         .ab-pbtn:disabled { opacity: .35; cursor: not-allowed; }
         .ab-pbtn svg { width: 13px; height: 13px; }
         .ab-pnum { font-size: .78rem; color: var(--c-muted); padding: 0 6px; }
+        .ab-pnum-page {
+          display: flex; align-items: center; justify-content: center;
+          min-width: 32px; height: 32px; border-radius: 8px; padding: 0 4px;
+          border: 1px solid var(--c-border); background: var(--c-surface);
+          color: var(--c-muted); cursor: pointer; font-size: .78rem; font-weight: 600;
+          transition: all .13s;
+        }
+        .ab-pnum-page:hover { border-color: var(--c-accent); color: var(--c-accent); background: color-mix(in srgb,var(--c-accent) 8%,transparent); }
+        .ab-pnum-page.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); cursor: default; }
+        .ab-pnum-ellipsis { font-size: .78rem; color: var(--c-muted); padding: 0 2px; line-height: 32px; }
 
         /* ─── Empty / loading ─── */
         .ab-empty {
@@ -677,7 +687,28 @@ export default function AdminBilling() {
                 <button className="ab-pbtn" disabled={page<=1} onClick={() => setPage(p => p-1)}>
                   <ChevronLeft size={13}/>
                 </button>
-                <span className="ab-pnum">{page} / {pages}</span>
+
+                {/* Numbered page buttons with ellipsis */}
+                {(() => {
+                  const delta = 1; // pages shown on each side of current
+                  const range: (number | "…")[] = [];
+                  const add = (n: number) => range.push(n);
+                  // always show first
+                  add(1);
+                  if (page - delta > 2) range.push("…");
+                  for (let i = Math.max(2, page - delta); i <= Math.min(pages - 1, page + delta); i++) add(i);
+                  if (page + delta < pages - 1) range.push("…");
+                  if (pages > 1) add(pages);
+                  return range.map((item, i) =>
+                    item === "…"
+                      ? <span key={`e${i}`} className="ab-pnum-ellipsis">…</span>
+                      : <button key={item} className={`ab-pnum-page${page === item ? " active" : ""}`}
+                          onClick={() => page !== item && setPage(item as number)}>
+                          {item}
+                        </button>
+                  );
+                })()}
+
                 <button className="ab-pbtn" disabled={page>=pages} onClick={() => setPage(p => p+1)}>
                   <ChevronRight size={13}/>
                 </button>

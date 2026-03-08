@@ -174,6 +174,7 @@ model Organization {
   // Relations
   chats          Chat[]
   billingRecords BillingRecord[]
+  notifications  Notification[]
 
   @@index([ownerId])
   @@index([whatsappNumber])
@@ -251,6 +252,7 @@ model User {
   swag               Swag[]         // Swag items created by this user
   generatedResumes   GeneratedResume[]
   userBillingRecords UserBillingRecord[]
+  notifications      Notification[]
 }
 
 model UserBillingRecord {
@@ -304,4 +306,29 @@ model GeneratedResume {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// Admin-sent notifications to users and/or organizations
+model Notification {
+  id      String  @id @default(cuid())
+  // Targeting: null = broadcast to all personal users; string = specific userId
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Targeting: null = not org-specific; string = specific orgId
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // "system" | "billing" | "info" | "warning"
+  type    String  @default("info")
+  // "personal" | "org" | "all" — describes the broadcast scope used at send time
+  scope   String  @default("all")
+  title   String
+  body    String  @db.Text
+  // Whether this was read by the recipient (for 1-1 notifications)
+  isRead  Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([scope])
 }

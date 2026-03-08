@@ -35,7 +35,7 @@ export const PERSONAL_PLANS = [
   {
     id: "personal-plus",
     label: "Personal Plus",
-    price: 3000,
+    price: 50,
     msgs: 1500,
     Icon: Sparkles,
     color: "#38AECC",
@@ -82,7 +82,7 @@ export const ORG_PLANS = [
   {
     id: "starter",
     label: "Starter",
-    price: 5000,
+    price: 50,
     msgs: 2000,
     Icon: TrendingUp,
     color: "#38AECC",
@@ -104,7 +104,7 @@ export const ORG_PLANS = [
   {
     id: "pro",
     label: "Pro",
-    price: 15000,
+    price: 50,
     msgs: 8000,
     Icon: CreditCard,
     color: "#818CF8",
@@ -126,7 +126,7 @@ export const ORG_PLANS = [
   {
     id: "scale",
     label: "Scale",
-    price: 35000,
+    price: 50,
     msgs: 25000,
     Icon: Crown,
     color: "#FCD34D",

@@ -18,11 +18,19 @@ import { ORG_CSS }  from "@/types/organization/org-type";
 import type { Organization, Stats, OrgTab } from "@/types/organization/org-type";
 
 /* ── Notifications ───────────────────────────────────────────────── */
-type NotifType = "info" | "success" | "warning";
+type NotifType = "info" | "success" | "warning" | "system" | "billing";
 interface Notif { id: string; type: NotifType; title: string; body: string; time: string; read: boolean }
 
-const notifIcon:  Record<NotifType, any>    = { info: Info, success: Sparkles, warning: AlertTriangle };
-const notifColor: Record<NotifType, string> = { info: "#29A9D4", success: "#10B981", warning: "#F59E0B" };
+const notifIcon:  Record<string, any>    = { info: Info, success: Sparkles, warning: AlertTriangle, system: Bell, billing: Info };
+const notifColor: Record<string, string> = { info: "#29A9D4", success: "#10B981", warning: "#F59E0B", system: "#8B5CF6", billing: "#0EA5E9" };
+
+function fmtTimeAgo(ts: number, now: number): string {
+  const diff = Math.floor((now - ts) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
 
 /* ── CSS ─────────────────────────────────────────────────────────── */
 const OW_CSS = `
@@ -201,7 +209,23 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
       setIsDark(stored === "dark");
       document.documentElement.setAttribute("data-mode", stored);
     } catch {}
-  }, []);
+    // Load org notifications
+    fetch(`/api/notifications/org/${orgId}?pageSize=30`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.ok && Array.isArray(d.notifications)) {
+          const now = Date.now();
+          setNotifs(d.notifications.map((n: any) => ({
+            id: n.id,
+            type: n.type as NotifType,
+            title: n.title,
+            body: n.body,
+            time: fmtTimeAgo(new Date(n.createdAt).getTime(), now),
+            read: n.isRead,
+          })));
+        }
+      }).catch(() => {});
+  }, [orgId]);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -264,8 +288,14 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
     }
   };
 
-  const markAllRead = () => setNotifs(p => p.map(n => ({ ...n, read: true })));
-  const markRead    = (id: string) => setNotifs(p => p.map(n => n.id === id ? { ...n, read: true } : n));
+  const markAllRead = () => {
+    fetch(`/api/notifications/org/${orgId}`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ all:true }) }).catch(()=>{});
+    setNotifs(p => p.map(n => ({ ...n, read: true })));
+  };
+  const markRead    = (id: string) => {
+    fetch(`/api/notifications/org/${orgId}`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ids:[id] }) }).catch(()=>{});
+    setNotifs(p => p.map(n => n.id === id ? { ...n, read: true } : n));
+  };
 
   const sharedAsideProps = {
     orgName:       org.displayName ?? org.name,

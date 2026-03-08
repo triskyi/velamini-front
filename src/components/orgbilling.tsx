@@ -30,7 +30,7 @@ const PLANS: Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    price: 5000,
+    price: 50,
     messages: 2000,
     accent: "#38AECC",
     features: ["2,000 messages/mo", "1 AI agent", "API + Embed", "Priority support"],
@@ -38,7 +38,7 @@ const PLANS: Plan[] = [
   {
     id: "pro",
     name: "Pro",
-    price: 15000,
+    price: 50,
     messages: 8000,
     accent: "#818CF8",
     badge: "Most popular",
@@ -47,7 +47,7 @@ const PLANS: Plan[] = [
   {
     id: "scale",
     name: "Scale",
-    price: 35000,
+    price: 50,
     messages: 25000,
     accent: "#FCD34D",
     badge: "Best value",

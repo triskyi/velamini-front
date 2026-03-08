@@ -13,14 +13,16 @@ import AdminModeration     from "./moderation";
 import AdminSettings       from "./settings";
 import AdminOrganizations  from "./organizations";
 import AdminBilling        from "./billing";
+import AdminNotifications  from "./notifications";
 
-export type AdminView = "overview" | "users" | "analytics" | "moderation" | "settings" | "organizations" | "billing";
+export type AdminView = "overview" | "users" | "analytics" | "moderation" | "settings" | "organizations" | "billing" | "notifications";
 
 const navItems: { view: AdminView; label: string; Icon: any; badge?: string }[] = [
   { view: "overview",       label: "Overview",       Icon: LayoutDashboard },
   { view: "users",          label: "Users",          Icon: Users           },
   { view: "organizations",  label: "Organizations",  Icon: Building2       },
   { view: "billing",        label: "Billing",        Icon: CreditCard      },
+  { view: "notifications",  label: "Notifications",  Icon: Bell            },
   { view: "analytics",      label: "Analytics",      Icon: BarChart2       },
   { view: "moderation",     label: "Moderation",     Icon: ShieldAlert     },
   { view: "settings",       label: "Settings",       Icon: Settings        },
@@ -28,7 +30,7 @@ const navItems: { view: AdminView; label: string; Icon: any; badge?: string }[] 
 
 const viewLabel: Record<AdminView, string> = {
   overview: "Overview", users: "Users", organizations: "Organizations",
-  analytics: "Analytics", moderation: "Moderation", settings: "Settings", billing: "Billing",
+  analytics: "Analytics", moderation: "Moderation", settings: "Settings", billing: "Billing", notifications: "Notifications",
 };
 
 export default function AdminWrapper() {
@@ -71,6 +73,7 @@ export default function AdminWrapper() {
       case "users":          return <AdminUsers />;
       case "organizations":  return <AdminOrganizations />;
       case "billing":        return <AdminBilling />;
+      case "notifications":  return <AdminNotifications />;
       case "analytics":      return <AdminAnalytics />;
       case "moderation":     return <AdminModeration />;
       case "settings":       return <AdminSettings />;

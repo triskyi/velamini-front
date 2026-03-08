@@ -29,19 +29,19 @@ interface DashboardWrapperProps {
   slug?: string;
 }
 
-type NotifType = "info" | "success" | "warning";
+type NotifType = "info" | "success" | "warning" | "system" | "billing";
 interface Notif { id: string; type: NotifType; title: string; body: string; time: string; read: boolean }
 
-const MOCK_NOTIFS: Notif[] = [
-  { id:"1", type:"success", title:"Training complete",  body:"Your virtual self processed 12 new Q&A pairs.",       time:"2m ago", read:false },
-  { id:"2", type:"info",    title:"New feature",        body:"Resume generation is now available in your dashboard.", time:"1h ago", read:false },
-  { id:"3", type:"warning", title:"Account flagged",    body:"A moderation review has been opened on your account.", time:"3h ago", read:false },
-  { id:"4", type:"info",    title:"Chat activity",      body:"Someone chatted with your virtual self today.",        time:"1d ago", read:true  },
-  { id:"5", type:"success", title:"Profile updated",    body:"Your profile changes have been saved.",                time:"2d ago", read:true  },
-];
+const notifIcon: Record<string, any>    = { info: Info, success: Sparkles, warning: AlertTriangle, system: Bell, billing: CreditCard };
+const notifColor: Record<string, string> = { info:"#29A9D4", success:"#10B981", warning:"#F59E0B", system:"#8B5CF6", billing:"#0EA5E9" };
 
-const notifIcon: Record<NotifType, any>    = { info: Info, success: Sparkles, warning: AlertTriangle };
-const notifColor: Record<NotifType, string> = { info:"#29A9D4", success:"#10B981", warning:"#F59E0B" };
+function fmtTimeAgo(ts: number, now: number): string {
+  const diff = Math.floor((now - ts) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
 
 const navItems: { view: DashboardViewType; label: string; Icon: any }[] = [
   { view:"dashboard", label:"Dashboard", Icon:LayoutDashboard },
@@ -69,7 +69,7 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
   const [copiedId,     setCopiedId]     = useState<string | null>(null);
   const [liveSwagList, setLiveSwagList] = useState<{ id:string; content:string }[]>(swagList);
   const [liveSlug,     setLiveSlug]     = useState<string | null>(slug ?? null);
-  const [notifs,       setNotifs]       = useState<Notif[]>(MOCK_NOTIFS);
+  const [notifs,       setNotifs]       = useState<Notif[]>([]);
   const [notifOpen,    setNotifOpen]    = useState(false);
 
   const notifRef = useRef<HTMLDivElement>(null);
@@ -102,6 +102,22 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
       .then(d => { if (d && Array.isArray(d.swag)) setLiveSwagList(d.swag); }).catch(()=>{});
     fetch("/api/share").then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.ok && d.shareSlug) setLiveSlug(d.shareSlug); }).catch(()=>{});
+    // Load notifications from server
+    fetch("/api/notifications?pageSize=30")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.ok && Array.isArray(d.notifications)) {
+          const now = Date.now();
+          setNotifs(d.notifications.map((n: any) => ({
+            id: n.id,
+            type: n.type as NotifType,
+            title: n.title,
+            body: n.body,
+            time: fmtTimeAgo(new Date(n.createdAt).getTime(), now),
+            read: n.isRead,
+          })));
+        }
+      }).catch(()=>{});
   }, []);
 
   useEffect(() => {
@@ -131,8 +147,14 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
     setActiveView(view); setMobileOpen(false); setMobileShare(false);
   };
 
-  const markAllRead = () => setNotifs(p => p.map(n => ({ ...n, read:true })));
-  const markRead    = (id: string) => setNotifs(p => p.map(n => n.id===id ? {...n, read:true} : n));
+  const markAllRead = () => {
+    fetch("/api/notifications", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ all:true }) }).catch(()=>{});
+    setNotifs(p => p.map(n => ({ ...n, read:true })));
+  };
+  const markRead    = (id: string) => {
+    fetch("/api/notifications", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ids:[id] }) }).catch(()=>{});
+    setNotifs(p => p.map(n => n.id===id ? {...n, read:true} : n));
+  };
 
   const origin     = typeof window !== "undefined" ? window.location.origin : "https://velamini.com";
   const getSwagUrl = (c: string) => `${origin}/chat/${encodeURIComponent(c.replace(/\s+/g,"-").toLowerCase())}`;

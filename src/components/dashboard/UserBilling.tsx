@@ -114,8 +114,15 @@ export default function UserBilling({ userId, paymentStatus }: UserBillingProps)
       if (data.error) { setPaying(false); return; }
       await loadFlwScript();
       window.FlutterwaveCheckout({
-        ...data,
-        currency:"RWF", payment_options:"mobilemoneyrwanda",
+        public_key:      data.publicKey,
+        tx_ref:          data.txRef,
+        amount:          data.amount,
+        currency:        "RWF",
+        payment_options: "mobilemoneyrwanda",
+        redirect_url:    data.redirectUrl,
+        customer:        data.customer,
+        customizations:  data.customizations,
+        meta:            data.meta,
         callback: (res) => {
           if (res.status === "successful") { setPayResult("success"); fetchBilling(); setShowUpgrade(false); }
           else { setPayResult("failed"); setPaying(false); }

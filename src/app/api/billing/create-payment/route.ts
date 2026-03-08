@@ -93,7 +93,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     txRef,
     publicKey,
-    amount:      plan.amountRWF,
+    amount:      totalAmount,
     currency:    "RWF",
     redirectUrl,
     phoneNumber: phoneNumber ?? null,

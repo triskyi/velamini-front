@@ -29,12 +29,12 @@ export default async function OrganizationDetailPage({
 
   const [conversationCount, messageCount, recentChats] = await Promise.all([
     prisma.chat.count({ where: { organizationId: id } }),
-    prisma.message.count({ where: { chat: { organizationId: id } } }),
+    prisma.message.count({ where: { chat: { organizationId: id }, role: "user" } }),
     prisma.chat.findMany({
       where: { organizationId: id },
       include: {
-        messages: { orderBy: { createdAt: "desc" }, take: 1 },
-        _count: { select: { messages: true } },
+        messages: { where: { role: "user" }, orderBy: { createdAt: "desc" }, take: 1 },
+        _count: { select: { messages: { where: { role: "user" } } } },
       },
       orderBy: { updatedAt: "desc" },
       take: 10,

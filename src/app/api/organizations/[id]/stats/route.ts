@@ -34,12 +34,11 @@ export async function GET(
       where: { organizationId: id },
     });
 
-    // Get message count
+    // Get message count (user-sent messages only, excluding AI responses)
     const messageCount = await prisma.message.count({
       where: {
-        chat: {
-          organizationId: id,
-        },
+        chat: { organizationId: id },
+        role: "user",
       },
     });
 
@@ -47,8 +46,8 @@ export async function GET(
     const recentConversations = await prisma.chat.findMany({
       where: { organizationId: id },
       include: {
-        messages: { orderBy: { createdAt: "desc" }, take: 1 },
-        _count: { select: { messages: true } },
+        messages: { where: { role: "user" }, orderBy: { createdAt: "desc" }, take: 1 },
+        _count: { select: { messages: { where: { role: "user" } } } },
       },
       orderBy: { updatedAt: "desc" },
       take: 10,

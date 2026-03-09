@@ -36,6 +36,7 @@ export async function GET(
       where: {
         createdAt: { gte: sevenDaysAgo },
         chat: { organizationId: id },
+        role: "user",
       },
       select: { createdAt: true },
     });

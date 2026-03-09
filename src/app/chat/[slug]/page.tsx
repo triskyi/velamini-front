@@ -217,18 +217,36 @@ export default function SharedChatPage({ params }: PageProps) {
     setIsTyping(true); setRetryMessage(null);
 
     try {
-      const recentHistory = messages.slice(-6).map(m => ({ role: m.role, content: m.content }));
+      // Filter out failed messages so error text never leaks into the AI conversation history
+      const recentHistory = messages
+        .filter(m => m.status !== "failed")
+        .slice(-6)
+        .map(m => ({ role: m.role, content: m.content }));
+
+      // Guard: abort if content is somehow empty (prevents the "missing message" 400 loop)
+      if (!userMessage.content) {
+        setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: "failed" } : m));
+        return;
+      }
+
       const res  = await fetch("/api/chat/shared", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage.content, history: recentHistory, virtualSelfId: currentVirtualSelfId }),
       });
       const data = await res.json();
-      setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: "sent" } : m));
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1, role: "assistant",
-        content: data.text ?? data.error ?? "Sorry, something went wrong.",
-        timestamp: new Date(),
-      }]);
+
+      if (!res.ok) {
+        // API returned an error — mark the message failed so user can retry; never add error text as an assistant turn
+        setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: "failed" } : m));
+        setRetryMessage(userMessage);
+      } else {
+        setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: "sent" } : m));
+        setMessages(prev => [...prev, {
+          id: Date.now() + 1, role: "assistant",
+          content: data.text ?? "Sorry, something went wrong.",
+          timestamp: new Date(),
+        }]);
+      }
     } catch {
       setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: "failed" } : m));
       setRetryMessage(userMessage);
@@ -521,6 +539,16 @@ export default function SharedChatPage({ params }: PageProps) {
         .msg-bub--user{background:var(--c-user-bg);color:var(--c-user-text);-webkit-text-fill-color:var(--c-user-text);border-bottom-right-radius:4px}
         .msg-bub--bot{background:var(--c-bot-bg);color:var(--c-bot-text);-webkit-text-fill-color:var(--c-bot-text);border:1px solid var(--c-border);border-bottom-left-radius:4px}
         .msg-bub--failed{opacity:.5}
+        .msg-retry{
+          display:inline-flex;align-items:center;gap:4px;
+          margin-top:5px;padding:4px 10px;border-radius:7px;
+          border:1px solid color-mix(in srgb,var(--c-danger) 40%,transparent);
+          background:var(--c-danger-soft,#fee2e2);color:var(--c-danger,#ef4444);
+          font-size:.68rem;font-family:var(--font-body);font-weight:600;
+          cursor:pointer;transition:all .14s;
+        }
+        .msg-retry:hover{background:var(--c-danger,#ef4444);color:#fff}
+        .msg-retry svg{width:9px;height:9px}
 
         /* Typing */
         .t-row{display:flex;align-items:flex-end;gap:7px}
@@ -728,6 +756,11 @@ export default function SharedChatPage({ params }: PageProps) {
                               <div className={`msg-bub ${isUser ? 'msg-bub--user' : 'msg-bub--bot'} ${msg.status === 'failed' ? 'msg-bub--failed' : ''}`}>
                                 {msg.content}
                               </div>
+                              {msg.status === 'failed' && isUser && (
+                                <button className="msg-retry" onClick={() => sendMessage(msg)}>
+                                  <RefreshCw size={9} /> Retry
+                                </button>
+                              )}
                             </div>
                           </motion.div>
                         );

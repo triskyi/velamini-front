@@ -25,7 +25,7 @@ const PLANS: Plan[] = [
     price: 0,
     messages: 500,
     accent: "#34D399",
-    features: ["500 messages/mo", "200K AI tokens/mo", "1 AI agent", "API access", "Embed widget"],
+    features: ["500 messages/mo", "1 AI agent", "API access", "Embed widget"],
   },
   {
     id: "starter",
@@ -33,7 +33,7 @@ const PLANS: Plan[] = [
     price: 4000,
     messages: 2000,
     accent: "#38AECC",
-    features: ["2,000 messages/mo", "2M AI tokens/mo", "1 AI agent", "API + Embed", "Priority support"],
+    features: ["2,000 messages/mo", "1 AI agent", "API + Embed", "Priority support"],
   },
   {
     id: "pro",
@@ -42,7 +42,7 @@ const PLANS: Plan[] = [
     messages: 8000,
     accent: "#818CF8",
     badge: "Most popular",
-    features: ["8,000 messages/mo", "6M AI tokens/mo", "1 AI agent", "API + Embed + React SDK", "Analytics", "Priority support"],
+    features: ["8,000 messages/mo", "1 AI agent", "API + Embed + React SDK", "Analytics", "Priority support"],
   },
   {
     id: "scale",
@@ -51,7 +51,7 @@ const PLANS: Plan[] = [
     messages: 25000,
     accent: "#FCD34D",
     badge: "Best value",
-    features: ["25,000 messages/mo", "14M AI tokens/mo", "1 AI agent", "API + Embed + React SDK", "Advanced analytics", "Dedicated support + SLA"],
+    features: ["25,000 messages/mo", "1 AI agent", "API + Embed + React SDK", "Advanced analytics", "Dedicated support + SLA"],
   },
 ];
 

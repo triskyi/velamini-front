@@ -13,7 +13,7 @@ const PLANS = [
     msgs: 500,
     color: "#34D399",
     Icon: Zap,
-    features: ["500 messages/mo", "1 AI agent", "API access", "Embed widget"],
+      features: ["500 messages/mo", "1 AI agent", "API access", "Embed widget"],
     paid: false,
   },
   {
@@ -23,7 +23,7 @@ const PLANS = [
     msgs: 2000,
     color: "#38AECC",
     Icon: TrendingUp,
-    features: ["2,000 messages/mo", "2M AI tokens/mo", "1 AI agent", "API + Embed", "Data Insights", "Priority support"],
+      features: ["2,000 messages/mo", "1 AI agent", "API + Embed", "Data Insights", "Priority support"],
     paid: true,
   },
   {
@@ -33,7 +33,7 @@ const PLANS = [
     msgs: 8000,
     color: "#818CF8",
     Icon: CreditCard,
-    features: ["8,000 messages/mo", "6M AI tokens/mo", "1 AI agent", "API + Embed", "Analytics", "Data Insights", "Priority support"],
+      features: ["8,000 messages/mo", "1 AI agent", "API + Embed", "Analytics", "Data Insights", "Priority support"],
     paid: true,
   },
   {
@@ -43,7 +43,7 @@ const PLANS = [
     msgs: 25000,
     color: "#FCD34D",
     Icon: Crown,
-    features: ["25,000 messages/mo", "14M AI tokens/mo", "1 AI agent", "API + Embed", "Analytics", "Data Insights", "Dedicated support", "SLA guarantee"],
+      features: ["25,000 messages/mo", "1 AI agent", "API + Embed", "Analytics", "Data Insights", "Dedicated support", "SLA guarantee"],
     paid: true,
   },
 ] as const;
@@ -77,16 +77,6 @@ export default function OrgBilling({ org }: Props) {
   const usagePct = org.monthlyMessageLimit > 0
     ? Math.min(100, Math.round((org.monthlyMessageCount / org.monthlyMessageLimit) * 100))
     : 0;
-
-  const tokenPct = org.monthlyTokenLimit > 0
-    ? Math.min(100, Math.round((org.monthlyTokenCount / org.monthlyTokenLimit) * 100))
-    : 0;
-
-  function fmtTokens(n: number) {
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
-    if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
-    return n.toString();
-  }
 
   const currentPlan = PLANS.find(p => p.id === (org.planType ?? "free")) ?? PLANS[0];
 
@@ -228,30 +218,6 @@ export default function OrgBilling({ org }: Props) {
             </div>
           )}
         </div>
-
-        {/* Token usage bar */}
-        {org.monthlyTokenLimit > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".74rem", color: "var(--c-muted)", marginBottom: 6 }}>
-              <span>AI tokens this month <span style={{ fontSize: ".66rem", opacity: .75 }}>(chat + data insights)</span></span>
-              <span style={{ color: tokenPct >= 90 ? "var(--c-danger)" : tokenPct >= 70 ? "var(--c-warn)" : "var(--c-text)", fontWeight: 600 }}>
-                {fmtTokens(org.monthlyTokenCount)} / {fmtTokens(org.monthlyTokenLimit)}
-              </span>
-            </div>
-            <div style={{ height: 8, background: "var(--c-surface-2)", borderRadius: 8, overflow: "hidden" }}>
-              <div style={{
-                height: "100%", borderRadius: 8, transition: "width .4s ease",
-                width: `${tokenPct}%`,
-                background: tokenPct >= 90 ? "var(--c-danger)" : tokenPct >= 70 ? "var(--c-warn)" : "#818CF8",
-              }} />
-            </div>
-            {tokenPct >= 90 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: ".74rem", color: "var(--c-danger)" }}>
-                <AlertTriangle size={12} /> You're near your token limit. Upgrade to avoid interruptions.
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* ── Plan cards ── */}

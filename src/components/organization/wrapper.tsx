@@ -34,49 +34,22 @@ function fmtTimeAgo(ts: number, now: number): string {
 }
 
 /* ── CSS ─────────────────────────────────────────────────────────── */
-const OW_CSS = `
-  .ow-shell{min-height:100dvh;background:var(--c-bg)}
-  .ow-right{display:flex;flex-direction:column;min-width:0;overflow:hidden}
-  @media(min-width:1024px){.ow-right{margin-left:230px}}
-
-  /* fixed sidebar (desktop) */
-  .ow-sidebar{display:none}
-  @media(min-width:1024px){
-    .ow-sidebar{
-      display:flex;flex-direction:column;
-      position:fixed;top:0;left:0;width:230px;height:100vh;z-index:40;
-      background:var(--c-sidebar,var(--c-surface));border-right:1px solid var(--c-border);
-      overflow:hidden;transition:background .3s,border-color .3s;
-    }
-  }
-
-  /* desktop navbar */
-  .ow-navbar{display:none}
-  @media(min-width:1024px){
-    .ow-navbar{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:0 24px;height:56px;
-      position:fixed;top:0;left:230px;right:0;z-index:30;
-      background:var(--c-surface);border-bottom:1px solid var(--c-border);
-      transition:background .3s,border-color .3s;
-    }
-  }
-  .ow-nb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--c-muted)}
-  .ow-nb-sep{opacity:.4}
-  .ow-nb-active{font-weight:600;color:var(--c-text)}
-  .ow-nb-right{display:flex;align-items:center;gap:7px}
-  /* ── Usage pills ── */
-  .ow-usage-pill{display:flex;align-items:center;gap:4px;padding:0 8px;height:28px;border-radius:7px;border:1px solid var(--c-border);background:var(--c-surface-2);color:var(--c-muted);font-size:.68rem;font-weight:600;white-space:nowrap;cursor:default;letter-spacing:.01em}
-  .ow-usage-pill--warn{border-color:color-mix(in srgb,#F59E0B 40%,transparent);background:color-mix(in srgb,#F59E0B 10%,transparent);color:#B45309}
-  .ow-usage-pill--danger{border-color:color-mix(in srgb,var(--c-danger) 40%,transparent);background:var(--c-danger-soft,#fee2e2);color:var(--c-danger)}
-  .ow-usage-pill svg{width:10px;height:10px;flex-shrink:0}
-  .ow-usage-pill--clickable{cursor:pointer}
-  .ow-usage-pill--clickable:hover{opacity:.85}
-  .ow-usage-free-badge{font-size:.52rem;font-weight:900;letter-spacing:.08em;padding:1px 5px;border-radius:4px;background:color-mix(in srgb,var(--c-accent,#29A9D4) 15%,transparent);color:var(--c-accent,#29A9D4);margin-right:1px}
-  @media(max-width:900px){.ow-usage-pill{display:none}}
-
-  /* mobile bar */
-  .ow-bar{
+              {(() => {
+                const msgRemaining = Math.max(0, org.monthlyMessageLimit - org.monthlyMessageCount);
+                const msgPct = (org.monthlyMessageCount / Math.max(org.monthlyMessageLimit, 1)) * 100;
+                const msgCls = msgPct >= 90 ? "ow-usage-pill--danger" : msgPct >= 70 ? "ow-usage-pill--warn" : "";
+                const isFreeOrg = org.planType === "free" || org.planType === "trial";
+                return (
+                  <div className={`ow-usage-pill ow-usage-pill--clickable ${msgCls}`}
+                    title={`${msgRemaining.toLocaleString()} of ${org.monthlyMessageLimit.toLocaleString()} messages remaining this month`}
+                    onClick={() => setTab("billing")}
+                  >
+                    <MessageSquare size={10}/>
+                    {isFreeOrg && <span className="ow-usage-free-badge">FREE</span>}
+                    {msgRemaining.toLocaleString()} msgs left
+                  </div>
+                );
+              })()}
     display:flex;align-items:center;justify-content:space-between;
     padding:0 14px;height:52px;flex-shrink:0;
     position:fixed;top:0;left:0;right:0;z-index:30;

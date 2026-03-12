@@ -253,11 +253,11 @@ export function useAgentChat() {
           <div className="od-card-sub">Your agent&apos;s unique endpoint for this organisation.</div>
           <div className="oapi-key-row">
             <div className="oapi-key-ic"><Globe size={12}/></div>
-            <span className="oapi-key-val">{API_BASE_URL}/api/agent</span>
+            <span className="oapi-key-val">{API_BASE_URL}</span>
             <div className="oapi-key-actions">
               <button className={`oapi-icon-btn ${copied === "url" ? "oapi-icon-btn--done" : ""}`}
-                onClick={() => copy(`${API_BASE_URL}/api/agent`, "url")}>
-                {copied === "url" ? <Check size={11}/> : <Copy size={11}/>}
+                onClick={() => copy(API_BASE_URL, "url")}> 
+                {copied === "url" ? <Check size={11}/> : <Copy size={11}/>} 
               </button>
             </div>
           </div>

@@ -65,12 +65,14 @@ export const authConfig: NextAuthConfig = {
     // Map custom JWT fields into session.user so the middleware's authorized callback
     // can read them. No DB calls here — just pass-through from token.
     async session({ session, token }) {
-      if (token.id) session.user.id = token.id;
-      if (token.isAdminAuth) session.user.isAdminAuth = token.isAdminAuth;
-      if (token.status) session.user.status = token.status;
-      session.user.emailVerified = token.emailVerified ?? null;
-      session.user.accountType = token.accountType;
-      session.user.onboardingComplete = token.onboardingComplete;
+      const sessionUser = session.user as any;
+
+      if (token.id) sessionUser.id = token.id as string;
+      if (token.isAdminAuth) sessionUser.isAdminAuth = token.isAdminAuth as boolean;
+      if (token.status) sessionUser.status = token.status as string;
+      sessionUser.emailVerified = token.emailVerified ? String(token.emailVerified) : null;
+      sessionUser.accountType = token.accountType as string | undefined;
+      sessionUser.onboardingComplete = token.onboardingComplete as boolean | undefined;
       return session;
     },
 
@@ -102,7 +104,8 @@ export const authConfig: NextAuthConfig = {
           return Response.redirect(new URL("/auth/signin?callbackUrl=/verify-email", nextUrl))
         }
         if (isVerified) {
-          return Response.redirect(new URL("/Dashboard", nextUrl))
+          const nextPath = getSafeCallbackPath(nextUrl.searchParams.get("next"), "/Dashboard")
+          return Response.redirect(new URL(nextPath, nextUrl))
         }
         return true
       }

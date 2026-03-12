@@ -23,12 +23,10 @@ async function sendEmail({
   to,
   subject,
   html,
-  idempotencyKey,
 }: {
   to: string | string[];
   subject: string;
   html: string;
-  idempotencyKey: string;
 }) {
   const resend = getResendClient();
   const { data, error } = await resend.emails.send({
@@ -36,7 +34,6 @@ async function sendEmail({
     to,
     subject,
     html,
-    idempotencyKey,
   });
 
   if (error) {
@@ -111,7 +108,6 @@ export async function sendOtpEmail({
     to,
     subject: `${code} is your Velamini verification code`,
     html: otpTemplate({ name, code, expiresMinutes }),
-    idempotencyKey: `verify-otp/${userId}`,
   });
 }
 
@@ -136,6 +132,5 @@ export async function sendWelcomeEmail({
     to,
     subject: `Welcome to Velamini, ${name}`,
     html,
-    idempotencyKey: `welcome-email/${userId}`,
   });
 }

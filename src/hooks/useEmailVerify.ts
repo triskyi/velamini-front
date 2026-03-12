@@ -89,8 +89,11 @@ export function useEmailVerifyDebounced(email: string, isOrg = false) {
       return;
     }
 
-    setState("checking");
-    setMessage("Checking email...");
+    setResult({
+      email: trimmedEmail,
+      state: "idle",
+      message: "Checking email...",
+    });
 
     debounceRef.current = setTimeout(async () => {
       try {
@@ -100,6 +103,7 @@ export function useEmailVerifyDebounced(email: string, isOrg = false) {
           body: JSON.stringify({ email: trimmedEmail.toLowerCase(), isOrg }),
         });
         const data = await res.json();
+
         if (data.accept) {
           setResult({
             email: trimmedEmail,

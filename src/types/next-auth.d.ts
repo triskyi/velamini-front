@@ -6,7 +6,7 @@ declare module "next-auth" {
       id: string;
       isAdminAuth?: boolean;
       status?: string;
-      emailVerified?: string | null;
+      emailVerified?: Date | null;
       accountType?: string;
       onboardingComplete?: boolean;
     } & DefaultSession["user"];
@@ -22,7 +22,7 @@ declare module "next-auth/jwt" {
     id: string;
     isAdminAuth?: boolean;
     status?: string;
-    emailVerified?: string | null;
+    emailVerified?: Date | null;
     accountType?: string;
     onboardingComplete?: boolean;
   }

@@ -20,6 +20,7 @@ const features = [
 ];
 
 export default function OrgSignupPage() {
+  const verifyCallbackUrl = "/verify-email?next=%2Fonboarding%3Fcreate%3Dorg";
   const [isDark,    setIsDark]    = useState(() => {
     if (typeof window === "undefined") return true;
     try {
@@ -78,7 +79,7 @@ export default function OrgSignupPage() {
       const signInRes = await signIn("org-credentials", {
         email: email.toLowerCase().trim(),
         password,
-        callbackUrl: "/onboarding?create=org",
+        callbackUrl: verifyCallbackUrl,
         redirect: false,
       });
       if (signInRes?.error) {
@@ -86,7 +87,7 @@ export default function OrgSignupPage() {
         setLoading(false);
         return;
       }
-      window.location.href = signInRes?.url || "/onboarding?create=org";
+      window.location.href = signInRes?.url || verifyCallbackUrl;
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

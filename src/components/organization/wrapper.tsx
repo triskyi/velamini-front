@@ -362,7 +362,7 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
                   {isDark ? <Sun size={13}/> : <Moon size={13}/>}
                 </button>
               )}
-              <button className="ow-ibtn" onClick={() => signOut({ callbackUrl: "/auth/signin?loggedOut=1" })} title="Sign out">
+              <button className="ow-ibtn" onClick={() => signOut({ callbackUrl: "/auth/org/login?loggedOut=1" })} title="Sign out">
                 <LogOut size={13}/>
               </button>
             </div>
@@ -429,7 +429,7 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
                   {isDark ? <Sun size={13}/> : <Moon size={13}/>}
                 </button>
               )}
-              <button className="ow-ibtn" onClick={() => signOut({ callbackUrl: "/auth/signin?loggedOut=1" })} title="Sign out">
+              <button className="ow-ibtn" onClick={() => signOut({ callbackUrl: "/auth/org/login?loggedOut=1" })} title="Sign out">
                 <LogOut size={13}/>
               </button>
               <div className="ow-drop-wrap ow-bell-wrap" ref={notifRef}>

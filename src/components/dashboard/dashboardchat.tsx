@@ -6,7 +6,7 @@ import { Send, Plus, Bot, User as UserIcon } from "lucide-react";
 type Message = { id: number; role: "user" | "assistant"; content: string };
 
 interface DashboardChatProps {
-  user?: { name?: string | null; email?: string | null; image?: string | null };
+  user?: { id?: string; name?: string | null; email?: string | null; image?: string | null };
   knowledgeBase?: any;
 }
 
@@ -16,20 +16,22 @@ export default function DashboardChat({ user, knowledgeBase }: DashboardChatProp
   const [isTyping, setIsTyping] = useState(false);
   const bottomRef               = useRef<HTMLDivElement>(null);
   const textareaRef             = useRef<HTMLTextAreaElement>(null);
+  const storageKey = `v_dash_chat:${user?.id || user?.email || "anon"}`;
 
   // Persist chat
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("v_dash_chat");
+      const saved = localStorage.getItem(storageKey);
       if (saved) setMessages(JSON.parse(saved));
+      else setMessages([]);
     } catch {}
-  }, []);
+  }, [storageKey]);
   useEffect(() => {
     try {
-      if (messages.length > 0) localStorage.setItem("v_dash_chat", JSON.stringify(messages));
-      else localStorage.removeItem("v_dash_chat");
+      if (messages.length > 0) localStorage.setItem(storageKey, JSON.stringify(messages));
+      else localStorage.removeItem(storageKey);
     } catch {}
-  }, [messages]);
+  }, [messages, storageKey]);
 
   // Auto scroll
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, isTyping]);
@@ -61,8 +63,9 @@ export default function DashboardChat({ user, knowledgeBase }: DashboardChatProp
       }).catch(() => {});
     }
 
-    const systemPrompt = `You are a digital twin being trained by ${user?.name || "the user"}. 
-Always refer to them as your trainer/creator. You are their virtual self and are here to learn from them. 
+    const systemPrompt = `You are ${user?.name || "this user"}'s personal digital twin.
+Speak naturally in first person as them, using their knowledge when available.
+If something about them is unknown, say so naturally and do not invent details.
 Respond concisely and helpfully.`;
 
     try {

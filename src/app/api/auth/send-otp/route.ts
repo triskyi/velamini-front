@@ -34,7 +34,7 @@ export async function POST() {
     }
 
     if (user.emailVerified) {
-      return NextResponse.json({ error: "Email already verified." }, { status: 400 });
+      return NextResponse.json({ ok: true, alreadyVerified: true });
     }
 
     const recentToken = await prisma.verifyToken.findFirst({

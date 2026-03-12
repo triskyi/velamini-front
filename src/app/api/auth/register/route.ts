@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+
 import { quickReject, verifyEmail } from "@/lib/email-verify";
+import { prisma } from "@/lib/prisma";
 import { areSignupsAllowed } from "@/lib/signup-settings";
 
 const registerSchema = z.object({
@@ -15,12 +16,18 @@ export async function POST(req: Request) {
   try {
     const signupsAllowed = await areSignupsAllowed();
     if (!signupsAllowed) {
-      return NextResponse.json({ error: "New signups are currently disabled." }, { status: 403 });
+      return NextResponse.json(
+        { error: "New signups are currently disabled." },
+        { status: 403 }
+      );
     }
 
     const parsed = registerSchema.safeParse(await req.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: "Name, email and password are required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Name, email and password are required." },
+        { status: 400 }
+      );
     }
 
     const normalizedEmail = parsed.data.email.toLowerCase().trim();
@@ -36,7 +43,10 @@ export async function POST(req: Request) {
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
-      return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
+      return NextResponse.json(
+        { error: "An account with this email already exists." },
+        { status: 409 }
+      );
     }
 
     const passwordHash = await bcrypt.hash(parsed.data.password, 12);
@@ -46,14 +56,17 @@ export async function POST(req: Request) {
         name: parsed.data.name.trim(),
         email: normalizedEmail,
         passwordHash,
-        accountType: "organization",
+        accountType: "personal",
         onboardingComplete: false,
       },
     });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Org register error:", error);
-    return NextResponse.json({ error: "Registration failed. Please try again." }, { status: 500 });
+    console.error("Personal register error:", error);
+    return NextResponse.json(
+      { error: "Registration failed. Please try again." },
+      { status: 500 }
+    );
   }
 }

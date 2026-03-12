@@ -51,6 +51,25 @@ const orgCredentialsProvider = Credentials({
   },
 });
 
+const userCredentialsProvider = Credentials({
+  id: "user-credentials",
+  name: "Personal Login",
+  credentials: {
+    email: { label: "Email", type: "email" },
+    password: { label: "Password", type: "password" },
+  },
+  async authorize(credentials) {
+    const email = (credentials?.email as string)?.toLowerCase().trim();
+    const password = credentials?.password as string;
+    if (!email || !password) return null;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || user.accountType !== "personal" || !user.passwordHash) return null;
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) return null;
+    return { id: user.id, email: user.email, name: user.name, image: user.image };
+  },
+});
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
@@ -59,6 +78,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig.providers,
     adminCredentialsProvider,
     orgCredentialsProvider,
+    userCredentialsProvider,
   ],
   callbacks: {
     // Block banned users from signing in at all
@@ -110,7 +130,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (dbUser) {
             token.id = dbUser.id;
             token.status = dbUser.status;
-            token.emailVerified = dbUser.emailVerified?.toISOString() ?? null;
+            token.emailVerified = dbUser.emailVerified ? String(dbUser.emailVerified) : null;
             token.accountType = dbUser.accountType;
             token.onboardingComplete = dbUser.onboardingComplete;
             jwtToken.statusCheckedAt = now;
@@ -137,7 +157,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.onboardingComplete = undefined;
           } else {
             token.status = dbUser.status;
-            token.emailVerified = dbUser.emailVerified?.toISOString() ?? null;
+            token.emailVerified = dbUser.emailVerified ? String(dbUser.emailVerified) : null;
             token.accountType = dbUser.accountType;
             token.onboardingComplete = dbUser.onboardingComplete;
           }
@@ -157,7 +177,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.isAdminAuth = true;
       }
       session.user.status = token.status as string | undefined;
-      session.user.emailVerified = token.emailVerified as string | null | undefined;
+      if (token.emailVerified instanceof Date) {
+        session.user.emailVerified = token.emailVerified;
+      } else if (typeof token.emailVerified === "string") {
+        session.user.emailVerified = new Date(token.emailVerified);
+      } else {
+        session.user.emailVerified = null;
+      }
       session.user.accountType = token.accountType as string | undefined;
       session.user.onboardingComplete = token.onboardingComplete as boolean | undefined;
       return session;

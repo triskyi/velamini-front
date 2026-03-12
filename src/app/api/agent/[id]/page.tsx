@@ -57,7 +57,7 @@ function Bubble({ msg, agentName, onFeedback }: { msg: Msg; agentName: string; o
       }}>
         {isUser ? <User size={14} /> : <Bot size={14} />}
       </div>
-      {/* Bubble + feedback */}
+      {/* Bubble only, no feedback */}
       <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", gap: 4, alignItems: isUser ? "flex-end" : "flex-start" }}>
         <div style={{
           padding: "10px 14px", borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
@@ -69,17 +69,6 @@ function Bubble({ msg, agentName, onFeedback }: { msg: Msg; agentName: string; o
         }}>
           {msg.content}
         </div>
-        {/* Feedback row for assistant messages */}
-        {!isUser && onFeedback && (
-          <div style={{ display: "flex", gap: 4, paddingLeft: 4 }}>
-            <button onClick={() => onFeedback(1)} title="Helpful" style={feedBtn}>
-              <ThumbsUp size={11} />
-            </button>
-            <button onClick={() => onFeedback(-1)} title="Not helpful" style={feedBtn}>
-              <ThumbsDown size={11} />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -174,14 +163,7 @@ export default function AgentChatPage({ params }: { params: Promise<{ id: string
   }, [input, loading, orgId, sessionId]);
 
   /* ── Feedback ────────────────────────────────────────────────── */
-  const submitFeedback = useCallback(async (rating: 1 | -1) => {
-    if (!sessionId || !orgId) return;
-    fetch(`/api/agent/${orgId}/feedback`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rating, sessionId }),
-    }).catch(() => {});
-  }, [orgId, sessionId]);
+  // Feedback logic removed
 
   /* ── Keyboard handler ────────────────────────────────────────── */
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -272,7 +254,6 @@ export default function AgentChatPage({ params }: { params: Promise<{ id: string
               key={msg.id}
               msg={msg}
               agentName={agentName}
-              onFeedback={msg.role === "assistant" ? submitFeedback : undefined}
             />
           ))}
           {loading && (

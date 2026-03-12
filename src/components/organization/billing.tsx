@@ -282,7 +282,10 @@ export default function OrgBilling({ org }: Props) {
                 <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 5 }}>
                   {plan.features.map(f => (
                     <li key={f} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: ".74rem", color: "var(--c-muted)" }}>
-                      <CheckCircle2 size={11} style={{ color: plan.color, flexShrink: 0 }} /> {f}
+                      <CheckCircle2 size={11} style={{ color: plan.color, flexShrink: 0 }} />
+                      {plan.id === "free" && f === "500 messages/mo"
+                        ? `${org.monthlyMessageLimit.toLocaleString()} messages/mo`
+                        : f}
                     </li>
                   ))}
                 </ul>

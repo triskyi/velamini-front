@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, Menu, Bell, CheckCheck, Info, AlertTriangle, Sparkles, LogOut, MessageSquare, Cpu } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { Sun, Moon, Menu, Bell, CheckCheck, Info, AlertTriangle, Sparkles, LogOut, MessageSquare } from "lucide-react";
+import { signOut } from "@/lib/auth-client";
 
 import OrgAside, { ORG_ASIDE_CSS } from "./aside";
 import OrgOverview  from "./overview";
@@ -65,14 +65,35 @@ const OW_CSS = `
   .ow-nb-sep{opacity:.4}
   .ow-nb-active{font-weight:600;color:var(--c-text)}
   .ow-nb-right{display:flex;align-items:center;gap:7px}
-  /* ── Usage pills ── */
-  .ow-usage-pill{display:flex;align-items:center;gap:4px;padding:0 8px;height:28px;border-radius:7px;border:1px solid var(--c-border);background:var(--c-surface-2);color:var(--c-muted);font-size:.68rem;font-weight:600;white-space:nowrap;cursor:default;letter-spacing:.01em}
-  .ow-usage-pill--warn{border-color:color-mix(in srgb,#F59E0B 40%,transparent);background:color-mix(in srgb,#F59E0B 10%,transparent);color:#B45309}
-  .ow-usage-pill--danger{border-color:color-mix(in srgb,var(--c-danger) 40%,transparent);background:var(--c-danger-soft,#fee2e2);color:var(--c-danger)}
+
+  /* ── Usage pill ── */
+  .ow-usage-pill{
+    display:flex;align-items:center;gap:4px;
+    padding:0 10px;height:28px;border-radius:7px;
+    border:1px solid var(--c-border);
+    background:var(--c-surface-2);
+    color:var(--c-muted);font-size:.68rem;font-weight:600;
+    white-space:nowrap;cursor:pointer;letter-spacing:.01em;
+    transition:opacity .14s;
+  }
+  .ow-usage-pill:hover{opacity:.8}
+  .ow-usage-pill--warn{
+    border-color:color-mix(in srgb,#F59E0B 40%,transparent);
+    background:color-mix(in srgb,#F59E0B 10%,transparent);
+    color:#B45309;
+  }
+  .ow-usage-pill--danger{
+    border-color:color-mix(in srgb,var(--c-danger) 40%,transparent);
+    background:var(--c-danger-soft,#fee2e2);
+    color:var(--c-danger);
+  }
   .ow-usage-pill svg{width:10px;height:10px;flex-shrink:0}
-  .ow-usage-pill--clickable{cursor:pointer}
-  .ow-usage-pill--clickable:hover{opacity:.85}
-  .ow-usage-free-badge{font-size:.52rem;font-weight:900;letter-spacing:.08em;padding:1px 5px;border-radius:4px;background:color-mix(in srgb,var(--c-accent,#29A9D4) 15%,transparent);color:var(--c-accent,#29A9D4);margin-right:1px}
+  .ow-usage-free-badge{
+    font-size:.52rem;font-weight:900;letter-spacing:.08em;
+    padding:1px 5px;border-radius:4px;
+    background:color-mix(in srgb,var(--c-accent,#29A9D4) 15%,transparent);
+    color:var(--c-accent,#29A9D4);margin-right:1px;
+  }
   @media(max-width:900px){.ow-usage-pill{display:none}}
 
   /* mobile bar */
@@ -84,7 +105,6 @@ const OW_CSS = `
     transition:background .3s,border-color .3s;
   }
   @media(min-width:1024px){.ow-bar{display:none}}
-  /* spacer so content doesn't hide behind fixed bar on mobile */
   .ow-bar-spacer{height:52px;flex-shrink:0;display:block}
   @media(min-width:1024px){.ow-bar-spacer{display:none}}
   .ow-bar-left{display:flex;align-items:center;gap:8px}
@@ -182,8 +202,8 @@ interface OrgWrapperProps {
 
 /* ── Component ───────────────────────────────────────────────────── */
 export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapperProps) {
-  const router        = useRouter();
-  const searchParams  = useSearchParams();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
 
   const [org,        setOrg]        = useState<Organization>(initialOrg);
   const [stats,      setStats]      = useState<Stats | null>(initialStats);
@@ -220,17 +240,14 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
       setIsDark(stored === "dark");
       document.documentElement.setAttribute("data-mode", stored);
     } catch {}
-    // Load org notifications
     fetch(`/api/notifications/org/${orgId}?pageSize=30`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d?.ok && Array.isArray(d.notifications)) {
           const now = Date.now();
           setNotifs(d.notifications.map((n: any) => ({
-            id: n.id,
-            type: n.type as NotifType,
-            title: n.title,
-            body: n.body,
+            id: n.id, type: n.type as NotifType,
+            title: n.title, body: n.body,
             time: fmtTimeAgo(new Date(n.createdAt).getTime(), now),
             read: n.isRead,
           })));
@@ -300,13 +317,35 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
   };
 
   const markAllRead = () => {
-    fetch(`/api/notifications/org/${orgId}`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ all:true }) }).catch(()=>{});
+    fetch(`/api/notifications/org/${orgId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    }).catch(() => {});
     setNotifs(p => p.map(n => ({ ...n, read: true })));
   };
-  const markRead    = (id: string) => {
-    fetch(`/api/notifications/org/${orgId}`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ids:[id] }) }).catch(()=>{});
+
+  const markRead = (id: string) => {
+    fetch(`/api/notifications/org/${orgId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [id] }),
+    }).catch(() => {});
     setNotifs(p => p.map(n => n.id === id ? { ...n, read: true } : n));
   };
+
+  /* ── Message usage pill values ───────────────────────────────── */
+  const msgUsed      = org.monthlyMessageCount ?? 0;
+  const msgLimit     = org.monthlyMessageLimit ?? 0;
+  const msgRemaining = Math.max(0, msgLimit - msgUsed);
+  const msgPct       = msgLimit > 0 ? (msgUsed / msgLimit) * 100 : 0;
+  const msgPillCls   = msgPct >= 90
+    ? "ow-usage-pill--danger"
+    : msgPct >= 70
+    ? "ow-usage-pill--warn"
+    : "";
+  const isFreeOrg    = org.planType === "free" || org.planType === "trial";
+  const msgTitle     = `${msgRemaining.toLocaleString()} of ${msgLimit.toLocaleString()} messages remaining this month (${msgUsed.toLocaleString()} used)`;
 
   const sharedAsideProps = {
     orgName:       org.displayName ?? org.name,
@@ -362,7 +401,9 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
                   {isDark ? <Sun size={13}/> : <Moon size={13}/>}
                 </button>
               )}
-              <button className="ow-ibtn" onClick={() => signOut({ callbackUrl: "/" })} title="Sign out">
+              <button className="ow-ibtn"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                title="Sign out">
                 <LogOut size={13}/>
               </button>
             </div>
@@ -378,60 +419,32 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
               <span className="ow-nb-sep">/</span>
               <span className="ow-nb-active">{TAB_LABELS[tab]}</span>
             </nav>
+
             <div className="ow-nb-right">
-              {(() => {
-                const GRACE_MS   = 3 * 24 * 60 * 60 * 1000;
-                const exhausted  = org.tokensExhaustedAt ? new Date(org.tokensExhaustedAt).getTime() : null;
-                const graceEnd   = exhausted ? exhausted + GRACE_MS : null;
-                const now        = Date.now();
-                const hardBlocked = graceEnd !== null && now > graceEnd;
-                const graceRemaining = graceEnd && !hardBlocked
-                  ? Math.ceil((graceEnd - now) / (24 * 60 * 60 * 1000))
-                  : null;
-                const fmtTk = (n: number) => n >= 1_000_000 ? (n/1_000_000).toFixed(1)+"M" : n >= 1_000 ? Math.round(n/1_000)+"K" : String(n);
-                const tkPct = ((org.monthlyTokenCount ?? 0) / Math.max(org.monthlyTokenLimit ?? 1_000_000, 1)) * 100;
-                const tkCls = hardBlocked
-                  ? "ow-usage-pill--danger"
-                  : graceRemaining !== null
-                    ? "ow-usage-pill--warn"
-                    : tkPct >= 90 ? "ow-usage-pill--danger" : tkPct >= 70 ? "ow-usage-pill--warn" : "";
-                const tkRemaining = Math.max(0, (org.monthlyTokenLimit ?? 1_000_000) - (org.monthlyTokenCount ?? 0));
-                const tkLabel = hardBlocked
-                  ? "Tokens blocked"
-                  : graceRemaining !== null
-                    ? `⚠ ${graceRemaining}d grace left`
-                    : `${fmtTk(tkRemaining)} tokens left`;
-                const tkTitle = hardBlocked
-                  ? "Token quota exhausted for 3+ days. Upgrade your plan to resume service."
-                  : graceRemaining !== null
-                    ? `Tokens exhausted — ${graceRemaining} day(s) of grace remaining. Top up now.`
-                    : `${tkRemaining.toLocaleString()} of ${(org.monthlyTokenLimit??1000000).toLocaleString()} tokens remaining this month (${(org.monthlyTokenCount??0).toLocaleString()} used)`;
-                const msgRemaining = Math.max(0, org.monthlyMessageLimit - org.monthlyMessageCount);
-                const msgPct = (org.monthlyMessageCount / Math.max(org.monthlyMessageLimit, 1)) * 100;
-                const msgCls = msgPct >= 90 ? "ow-usage-pill--danger" : msgPct >= 70 ? "ow-usage-pill--warn" : "";
-                const isFreeOrg = org.planType === "free" || org.planType === "trial";
-                return (<>
-                  <div className={`ow-usage-pill ow-usage-pill--clickable ${msgCls}`}
-                    title={`${msgRemaining.toLocaleString()} of ${org.monthlyMessageLimit.toLocaleString()} messages remaining this month`}
-                    onClick={() => setTab("billing")}>
-                    <MessageSquare size={10}/>
-                    {isFreeOrg && <span className="ow-usage-free-badge">FREE</span>}
-                    {msgRemaining.toLocaleString()} msgs left
-                  </div>
-                  <div className={`ow-usage-pill ow-usage-pill--clickable ${tkCls}`} title={tkTitle}
-                    onClick={() => setTab("billing")}>
-                    <Cpu size={10}/> {tkLabel}
-                  </div>
-                </>);
-              })()}
+
+              {/* ── Single message usage pill ── */}
+              <div
+                className={`ow-usage-pill ${msgPillCls}`}
+                title={msgTitle}
+                onClick={() => setTab("billing")}
+              >
+                <MessageSquare size={10}/>
+                {isFreeOrg && <span className="ow-usage-free-badge">FREE</span>}
+                {msgRemaining.toLocaleString()} msgs left
+              </div>
+
               {mounted && (
                 <button className="ow-ibtn" onClick={toggleTheme} title="Toggle theme">
                   {isDark ? <Sun size={13}/> : <Moon size={13}/>}
                 </button>
               )}
-              <button className="ow-ibtn" onClick={() => signOut({ callbackUrl: "/" })} title="Sign out">
+              <button className="ow-ibtn"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                title="Sign out">
                 <LogOut size={13}/>
               </button>
+
+              {/* ── Notifications ── */}
               <div className="ow-drop-wrap ow-bell-wrap" ref={notifRef}>
                 <button className={`ow-ibtn ${notifOpen ? "ow-ibtn--active" : ""}`}
                   onClick={() => setNotifOpen(v => !v)} title="Notifications">
@@ -452,29 +465,30 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
                       {notifs.length === 0
                         ? <div className="ow-notif-empty">No notifications yet</div>
                         : notifs.map(n => {
-                          const Icon = notifIcon[n.type];
-                          return (
-                            <div key={n.id}
-                              className={`ow-notif-item ${!n.read ? "ow-notif-item--unread" : ""}`}
-                              onClick={() => markRead(n.id)}>
-                              <div className="ow-notif-ic"
-                                style={{ background:`color-mix(in srgb,${notifColor[n.type]} 14%,transparent)`, color:notifColor[n.type] }}>
-                                <Icon/>
+                            const Icon = notifIcon[n.type];
+                            return (
+                              <div key={n.id}
+                                className={`ow-notif-item ${!n.read ? "ow-notif-item--unread" : ""}`}
+                                onClick={() => markRead(n.id)}>
+                                <div className="ow-notif-ic"
+                                  style={{ background:`color-mix(in srgb,${notifColor[n.type]} 14%,transparent)`, color:notifColor[n.type] }}>
+                                  <Icon/>
+                                </div>
+                                <div className="ow-notif-body">
+                                  <div className="ow-notif-title">{n.title}</div>
+                                  <div className="ow-notif-text">{n.body}</div>
+                                  <div className="ow-notif-time">{n.time}</div>
+                                </div>
+                                {!n.read && <div className="ow-notif-dot"/>}
                               </div>
-                              <div className="ow-notif-body">
-                                <div className="ow-notif-title">{n.title}</div>
-                                <div className="ow-notif-text">{n.body}</div>
-                                <div className="ow-notif-time">{n.time}</div>
-                              </div>
-                              {!n.read && <div className="ow-notif-dot"/>}
-                            </div>
-                          );
-                        })
+                            );
+                          })
                       }
                     </div>
                   </div>
                 )}
               </div>
+
             </div>
           </div>
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
-import Footer from "@/components/footer";
+
 import {
   MessageSquare, List, History, ThumbsUp,
   Puzzle, Code2, Key, Zap, BookOpen,
@@ -82,7 +84,7 @@ function P({ c }: { c: string }) {
 }
 
 function Method({ m }: { m: "POST"|"GET" }) {
-  const col: Record<string,string> = { POST:"#0ea5e9", GET:"#22c55e" };
+  const col: Record<string,string> = { POST:"#0b84c6", GET:"#22c55e" };
   return <span style={{ background:`${col[m]}1a`, color:col[m], fontWeight:800, fontSize:".58rem", letterSpacing:".06em", padding:"3px 8px", borderRadius:5, textTransform:"uppercase" as const, flexShrink:0 }}>{m}</span>;
 }
 
@@ -374,9 +376,12 @@ window.dispatchEvent(new CustomEvent("vela:close"));`}/>
 
   react: () => (
     <>
-      <H title="React / JavaScript" sub="Build a fully custom chat UI using the 4 public endpoints."/>
-      <H3 t="useAgentChat hook"/>
-      <CodeBlock lang="ts" code={`import { useState, useRef } from "react";
+      <H title="React / JavaScript" sub="Build the same widget-style UX in React with the public endpoints."/>
+      <H3 t="Reusable useAgentChat hook"/>
+      <CodeBlock lang="ts" code={`// src/hooks/useAgentChat.ts
+"use client";
+
+import { useCallback, useMemo, useRef, useState } from "react";
 
 const KEY  = process.env.NEXT_PUBLIC_AGENT_KEY!;
 const BASE = "${API_BASE_URL}/api/agent";
@@ -385,44 +390,78 @@ export function useAgentChat() {
   const [messages, setMessages] = useState<{ role:string; content:string }[]>([]);
   const [loading,  setLoading]  = useState(false);
   const sessionId = useRef<string | undefined>(undefined);
+  const headers = useMemo(
+    () => ({ "Content-Type":"application/json", "X-Agent-Key": KEY }),
+    [],
+  );
 
-  const send = async (text: string) => {
-    setMessages(m => [...m, { role:"user", content:text }]);
+  const send = useCallback(async (text: string) => {
+    const message = text.trim();
+    if (!message || loading) return;
+
+    setMessages(m => [...m, { role:"user", content: message }]);
     setLoading(true);
-    const res  = await fetch(\`\${BASE}/chat\`, {
-      method:  "POST",
-      headers: { "Content-Type":"application/json", "X-Agent-Key":KEY },
-      body:    JSON.stringify({ message:text, sessionId:sessionId.current }),
-    });
-    const data = await res.json();
-    sessionId.current = data.sessionId;
-    setMessages(m => [...m, { role:"assistant", content:data.reply }]);
-    setLoading(false);
-  };
 
-  const submitFeedback = async (rating: 1 | -1) => {
+    try {
+      const res = await fetch(\`\${BASE}/chat\`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ message, sessionId: sessionId.current }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Request failed");
+      sessionId.current = data.sessionId;
+      setMessages(m => [...m, { role:"assistant", content:data.reply }]);
+    } catch (error) {
+      const fallback = error instanceof Error ? error.message : "Network error. Please try again.";
+      setMessages(m => [...m, { role:"assistant", content: fallback }]);
+    } finally {
+      setLoading(false);
+    }
+  }, [headers, loading]);
+
+  const submitFeedback = useCallback(async (rating: 1 | -1) => {
     if (!sessionId.current) return;
     await fetch(\`\${BASE}/feedback\`, {
-      method:  "POST",
-      headers: { "Content-Type":"application/json", "X-Agent-Key":KEY },
+      method: "POST",
+      headers,
       body:    JSON.stringify({ rating, sessionId:sessionId.current }),
     });
-  };
+  }, [headers]);
 
-  return { messages, loading, send, submitFeedback };
+  const loadSessions = useCallback(async (page = 1, limit = 20) => {
+    const res = await fetch(\`\${BASE}/sessions?page=\${page}&limit=\${limit}\`, {
+      headers: { "X-Agent-Key": KEY },
+    });
+    return res.json();
+  }, []);
+
+  const loadHistory = useCallback(async (id: string) => {
+    const res = await fetch(\`\${BASE}/history?sessionId=\${encodeURIComponent(id)}\`, {
+      headers: { "X-Agent-Key": KEY },
+    });
+    const data = await res.json();
+    sessionId.current = id;
+    setMessages(data.messages || []);
+    return data.messages || [];
+  }, []);
+
+  return { messages, loading, send, submitFeedback, loadSessions, loadHistory };
 }`}/>
-      <H3 t="Load sessions + history"/>
-      <CodeBlock lang="ts" code={`async function loadSessions(page = 1) {
-  const res = await fetch(\`\${BASE}/sessions?page=\${page}&limit=20\`,
-    { headers: { "X-Agent-Key": KEY } });
-  return res.json(); // { sessions, total }
-}
+      <H3 t="Widget-style component usage"/>
+      <CodeBlock lang="tsx" code={`"use client";
 
-async function loadHistory(sessionId: string) {
-  const res = await fetch(\`\${BASE}/history?sessionId=\${sessionId}\`,
-    { headers: { "X-Agent-Key": KEY } });
-  const { messages } = await res.json();
-  return messages;
+import AgentChatWidget from "@/components/chat-ui/AgentChatWidget";
+
+export default function SupportPage() {
+  return (
+    <AgentChatWidget
+      agentKey={process.env.NEXT_PUBLIC_AGENT_KEY!}
+      agentName="Support Bot"
+      baseUrl="/api/agent"
+      theme="auto"
+    />
+  );
 }`}/>
     </>
   ),
@@ -518,18 +557,21 @@ async function loadHistory(sessionId: string) {
 ───────────────────────────────────────────────────────────── */
 export default function DocsPage() {
   const [current,  setCurrent]  = useState(0);
-  const [isDark,   setIsDark]   = useState(true);
+  const [isDark,   setIsDark]   = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return (localStorage.getItem("theme") || "light") === "dark";
+    } catch {
+      return false;
+    }
+  });
   const [sideOpen, setSideOpen] = useState(false);
   const [visible,  setVisible]  = useState(true);
   const [dir,      setDir]      = useState<"l"|"r">("r");
 
   useEffect(() => {
-    try {
-        const d = (localStorage.getItem("theme") || "light") === "dark";
-      setIsDark(d);
-      document.documentElement.setAttribute("data-mode", d ? "dark" : "light");
-    } catch {}
-  }, []);
+    document.documentElement.setAttribute("data-mode", isDark ? "dark" : "light");
+  }, [isDark]);
 
   const toggleTheme = () => {
     const n = !isDark; setIsDark(n);
@@ -560,16 +602,16 @@ export default function DocsPage() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
 
         :root,[data-mode="light"]{
-          --bg:#EFF7FF;--su:#FFFFFF;--s2:#E2F0FC;
-          --br:#C5DCF2;--fg:#0B1E2E;--mu:#6B90AE;
-          --a:#29A9D4;--org:#6366F1;
-          --cb:#060d14;--code:#a5d8f0;
+          --bg:#f2f7fc;--su:#ffffff;--s2:#eaf2fb;
+          --br:#c8dae9;--fg:#0b1e2e;--mu:#5d7c94;
+          --a:#0b84c6;--org:#3d5afe;
+          --cb:#081724;--code:#b1def5;
         }
         [data-mode="dark"]{
-          --bg:#081420;--su:#0F1E2D;--s2:#162435;
-          --br:#1A3045;--fg:#C8E8F8;--mu:#4A6E88;
-          --a:#38AECC;--org:#818CF8;
-          --cb:#050c16;--code:#93d4f5;
+          --bg:#0a1420;--su:#101e2c;--s2:#162838;
+          --br:#23384b;--fg:#d9ecf8;--mu:#88a7bf;
+          --a:#14a7ff;--org:#8b9cff;
+          --cb:#0b1926;--code:#c2e8fb;
         }
 
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -647,13 +689,13 @@ export default function DocsPage() {
         .pn-nm{font-size:1rem;font-weight:700;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
         /* code block */
-        .cb{position:relative;margin-bottom:14px;border-radius:11px;overflow:hidden;border:1px solid #1a3248}
-        .cb-lang{position:absolute;top:0;left:0;font-size:.56rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#4a7a98;padding:5px 10px;background:rgba(0,0,0,.3);border-bottom-right-radius:7px;z-index:1}
+        .cb{position:relative;margin-bottom:14px;border-radius:11px;overflow:hidden;border:1px solid color-mix(in srgb,var(--a) 25%,var(--br))}
+        .cb-lang{position:absolute;top:0;left:0;font-size:.56rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#9ecbe4;padding:5px 10px;background:rgba(0,0,0,.32);border-bottom-right-radius:7px;z-index:1}
         .cb-pre{background:var(--cb);padding:12px 44px 12px 12px;margin:0;overflow-x:auto;font-size:.74rem;line-height:1.8;color:var(--code);font-family:ui-monospace,'Cascadia Code',monospace;white-space:pre;scrollbar-width:thin;scrollbar-color:#1a3248 transparent}
         .cb-pre::-webkit-scrollbar{height:3px}
         .cb-pre::-webkit-scrollbar-thumb{background:#1a3248}
-        .cb-copy{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.05);border:1px solid #1a3248;border-radius:7px;padding:4px 8px;cursor:pointer;color:#4a7a98;display:flex;align-items:center;gap:4px;font-size:.6rem;font-family:inherit;transition:all .14s}
-        .cb-copy:hover{border-color:#38AECC;color:#38AECC}
+        .cb-copy{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.06);border:1px solid #2a4760;border-radius:7px;padding:4px 8px;cursor:pointer;color:#9ecbe4;display:flex;align-items:center;gap:4px;font-size:.6rem;font-family:inherit;transition:all .14s}
+        .cb-copy:hover{border-color:#14a7ff;color:#14a7ff}
         .cb-copy.done{border-color:#10b981!important;color:#10b981!important}
       `}</style>
 
@@ -663,20 +705,20 @@ export default function DocsPage() {
           <button className="dib dmb" style={{ display:"none" }} onClick={() => setSideOpen(v => !v)}>
             {sideOpen ? <X size={13}/> : <Menu size={13}/>}
           </button>
-          <a href="/" className="dn-brand">
-            <div className="dn-logo"><img src="/logo.png" alt="Velamini"/></div>
+          <Link href="/" className="dn-brand">
+            <div className="dn-logo"><Image src="/logo.png" alt="Velamini" width={26} height={26} /></div>
             <span className="dn-name">Velamini</span>
             <span className="dn-sep">/</span>
             <span className="dn-tag">API Docs</span>
-          </a>
+          </Link>
         </div>
         <div className="dn-r">
           <button className="dib" onClick={toggleTheme} title="Toggle theme">
             {isDark ? <Sun size={13}/> : <Moon size={13}/>}
           </button>
-          <a href="/Dashboard" style={{ display:"flex", alignItems:"center", gap:4, padding:"6px 12px", borderRadius:8, background:"var(--a)", color:"#fff", fontSize:".72rem", fontWeight:700, textDecoration:"none" }}>
+          <Link href="/Dashboard" style={{ display:"flex", alignItems:"center", gap:4, padding:"6px 12px", borderRadius:8, background:"var(--a)", color:"#fff", fontSize:".72rem", fontWeight:700, textDecoration:"none" }}>
             Dashboard <ChevronRight size={11}/>
-          </a>
+          </Link>
         </div>
       </nav>
 
@@ -745,13 +787,13 @@ export default function DocsPage() {
                 <span style={{ fontSize:"1.4rem", lineHeight:1 }}>🎉</span>
                 <div>
                   <div style={{ fontSize:".82rem", fontWeight:700, color:"var(--fg)" }}>All done!</div>
-                  <div style={{ fontSize:".7rem", color:"var(--mu)", marginTop:2, lineHeight:1.4 }}>You've read the full docs</div>
+                  <div style={{ fontSize:".7rem", color:"var(--mu)", marginTop:2, lineHeight:1.4 }}>You&apos;ve read the full docs</div>
                 </div>
               </div>
             </div>
           )}
         </div>
-        <Footer />
+     
       </div>
     </>
   );

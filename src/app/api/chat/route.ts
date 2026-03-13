@@ -67,12 +67,16 @@ export async function POST(req: Request) {
 
     // Get user's trained knowledge if authenticated + check quota
     let userKnowledge = "";
-    let userName = "Tresor"; // Default name
+    let userName = "the person";
     let useLocal = useLocalKnowledge;
     let authenticatedUserId: string | undefined;
     try {
       const session = await auth();
       if (session?.user?.email) {
+        userName =
+          session.user.name?.trim() ||
+          session.user.email.split("@")[0] ||
+          userName;
         let userId: string | undefined = session.user.id;
         const GRACE_MS = 3 * 24 * 60 * 60 * 1000;
         if (!userId && session.user.email) {

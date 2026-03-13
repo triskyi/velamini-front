@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import {
+  getLastMaintenanceCacheValue,
+  getMaintenanceCache,
+  setMaintenanceCache,
+} from "@/lib/maintenance-cache";
 
 // Public endpoint — no auth required.
 // Called by the middleware on every page request to check maintenance mode.
 const MAINTENANCE_CACHE_TTL_MS = 30_000;
-let cachedMaintenance: { on: boolean; expiresAt: number } | null = null;
 
 export async function GET() {
   const now = Date.now();
-  if (cachedMaintenance && cachedMaintenance.expiresAt > now) {
-    return NextResponse.json({ on: cachedMaintenance.on });
+  const cachedOn = getMaintenanceCache(now);
+  if (cachedOn !== null) {
+    return NextResponse.json({ on: cachedOn });
   }
 
   try {
@@ -17,12 +22,13 @@ export async function GET() {
       where: { key: "maintenanceMode" },
     });
     const on = setting?.value === "true";
-    cachedMaintenance = { on, expiresAt: now + MAINTENANCE_CACHE_TTL_MS };
+    setMaintenanceCache(on, MAINTENANCE_CACHE_TTL_MS);
     return NextResponse.json({ on });
   } catch {
-    // If DB is unreachable, don't block the site
-    if (cachedMaintenance) {
-      return NextResponse.json({ on: cachedMaintenance.on });
+    // If DB is unreachable, use the most recent known value from process memory.
+    const fallbackOn = getLastMaintenanceCacheValue();
+    if (fallbackOn !== null) {
+      return NextResponse.json({ on: fallbackOn });
     }
     return NextResponse.json({ on: false });
   }

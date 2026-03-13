@@ -1,6 +1,7 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth-client";
+import { useEmailVerify } from "@/hooks/useEmailVerify";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -19,7 +20,15 @@ const features = [
 ];
 
 export default function OrgSignupPage() {
-  const [isDark,    setIsDark]    = useState(true);
+  const verifyCallbackUrl = "/verify-email?next=%2Fonboarding%3Fcreate%3Dorg";
+  const [isDark,    setIsDark]    = useState(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      return (localStorage.getItem("theme") || "dark") === "dark";
+    } catch {
+      return true;
+    }
+  });
   const [name,      setName]      = useState("");
   const [email,     setEmail]     = useState("");
   const [password,  setPassword]  = useState("");
@@ -28,15 +37,13 @@ export default function OrgSignupPage() {
   const [showConf,  setShowConf]  = useState(false);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState("");
+  const { state: emailState, message: emailMessage, check: checkEmail, reset: resetEmailCheck } = useEmailVerify();
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("theme") || "dark";
-      const dark   = stored === "dark";
-      setIsDark(dark);
-      document.documentElement.setAttribute("data-mode", dark ? "dark" : "light");
+      document.documentElement.setAttribute("data-mode", isDark ? "dark" : "light");
     } catch {}
-  }, []);
+  }, [isDark]);
 
   const toggleTheme = () => {
     const next = !isDark;
@@ -52,6 +59,10 @@ export default function OrgSignupPage() {
     if (!email.trim())      { setError("Work email is required.");         return; }
     if (password.length < 8){ setError("Password must be at least 8 characters."); return; }
     if (password !== confirm){ setError("Passwords do not match.");        return; }
+
+    const emailOk = await checkEmail(email, true);
+    if (!emailOk) return;
+
     setLoading(true);
     try {
       const regRes = await fetch("/api/auth/org/register", {
@@ -68,7 +79,7 @@ export default function OrgSignupPage() {
       const signInRes = await signIn("org-credentials", {
         email: email.toLowerCase().trim(),
         password,
-        callbackUrl: "/onboarding?create=org",
+        callbackUrl: verifyCallbackUrl,
         redirect: false,
       });
       if (signInRes?.error) {
@@ -76,7 +87,7 @@ export default function OrgSignupPage() {
         setLoading(false);
         return;
       }
-      window.location.href = signInRes?.url || "/onboarding?create=org";
+      window.location.href = signInRes?.url || verifyCallbackUrl;
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -133,9 +144,15 @@ export default function OrgSignupPage() {
         .os-input-wrap{position:relative}
         .os-input{width:100%;padding:10px 14px;border-radius:11px;border:1.5px solid var(--os-border);background:var(--os-surface);color:var(--os-text);font-size:.88rem;font-family:inherit;outline:none;transition:border-color .2s}
         .os-input:focus{border-color:var(--os-accent)}
+        .os-input.os-input--error{border-color:var(--os-danger)}
+        .os-input.os-input--ok{border-color:var(--os-accent)}
         .os-input.has-toggle{padding-right:42px}
         .os-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--os-muted);cursor:pointer;display:flex;align-items:center;padding:2px}
         .os-error{display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:9px;background:var(--os-danger-soft);border:1px solid color-mix(in srgb,var(--os-danger) 28%,transparent);color:var(--os-danger);font-size:.78rem;font-weight:500;margin-bottom:12px}
+        .os-field-msg{margin-top:6px;font-size:.74rem;line-height:1.45;color:var(--os-muted)}
+        .os-field-msg--error{color:var(--os-danger)}
+        .os-field-msg--checking{color:var(--os-muted)}
+        .os-field-msg--ok{color:var(--os-accent)}
         .os-submit{width:100%;padding:12px;border-radius:12px;background:var(--os-accent);border:none;color:#fff;font-size:.9rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px}
         .os-submit:hover{filter:brightness(1.1);transform:translateY(-1px)}
         .os-submit:active{transform:translateY(0) scale(.98)}
@@ -212,15 +229,34 @@ export default function OrgSignupPage() {
                 <label className="os-label">Work email</label>
                 <div className="os-input-wrap">
                   <input
-                    className="os-input"
+                    className={`os-input ${emailState === "error" ? "os-input--error" : emailState === "ok" ? "os-input--ok" : ""}`}
                     type="email"
                     placeholder="you@yourcompany.com"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      if (emailState !== "idle") resetEmailCheck();
+                    }}
+                    onBlur={() => {
+                      if (email.trim()) void checkEmail(email, true);
+                    }}
                     autoComplete="email"
                     required
                   />
                 </div>
+                {emailMessage && (
+                  <p
+                    className={`os-field-msg ${
+                      emailState === "error"
+                        ? "os-field-msg--error"
+                        : emailState === "checking"
+                          ? "os-field-msg--checking"
+                          : "os-field-msg--ok"
+                    }`}
+                  >
+                    {emailMessage}
+                  </p>
+                )}
               </div>
 
               <div className="os-field">

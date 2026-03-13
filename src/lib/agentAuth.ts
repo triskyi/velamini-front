@@ -91,7 +91,7 @@ export async function authenticateAgent(
     return { ok: false, status: 403, error: "This organisation is currently disabled." };
   }
 
-  // 4. Optional quota check
+  // 4. Optional quota check (message only)
   if (opts.checkQuota && org.monthlyMessageCount >= org.monthlyMessageLimit) {
     return {
       ok: false, status: 429,

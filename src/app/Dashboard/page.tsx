@@ -36,64 +36,49 @@ export default async function DashboardPage() {
   const usageData = await prisma.user.findUnique({
     where: { id: userId },
     select: {
-      personalPlanType: true,
+      personalPlanType:        true,
       personalMonthlyMsgCount: true,
       personalMonthlyMsgLimit: true,
-      personalMonthlyTokenCount: true,
-      personalMonthlyTokenLimit: true,
-      creditsExhaustedAt: true,
     },
   });
 
-  const GRACE_MS = 3 * 24 * 60 * 60 * 1000;
-  const exhaustedMs = usageData?.creditsExhaustedAt?.getTime() ?? null;
-  const graceEndsMs = exhaustedMs ? exhaustedMs + GRACE_MS : null;
-  const nowMs = Date.now();
-  const hardBlocked = graceEndsMs !== null && nowMs > graceEndsMs;
-  const graceRemaining =
-    graceEndsMs && !hardBlocked
-      ? Math.ceil((graceEndsMs - nowMs) / (24 * 60 * 60 * 1000))
-      : null;
-
   const initialUsage = {
-    planType: usageData?.personalPlanType ?? "free",
+    planType: usageData?.personalPlanType        ?? "free",
     msgCount: usageData?.personalMonthlyMsgCount ?? 0,
     msgLimit: usageData?.personalMonthlyMsgLimit ?? 200,
-    tokenCount: usageData?.personalMonthlyTokenCount ?? 0,
-    tokenLimit: usageData?.personalMonthlyTokenLimit ?? 150_000,
-    hardBlocked,
-    graceRemaining,
   };
 
   const knowledgeBase = await prisma.knowledgeBase.findUnique({
     where: { userId },
   });
 
-  const hasIdentity = !!(knowledgeBase?.fullName || knowledgeBase?.birthDate || knowledgeBase?.bio);
-  const hasEducation = !!knowledgeBase?.education;
+  const hasIdentity   = !!(knowledgeBase?.fullName || knowledgeBase?.birthDate || knowledgeBase?.bio);
+  const hasEducation  = !!knowledgeBase?.education;
   const hasExperience = !!knowledgeBase?.experience;
-  const hasSkills = !!knowledgeBase?.skills;
-  const hasProjects = !!knowledgeBase?.projects;
+  const hasSkills     = !!knowledgeBase?.skills;
+  const hasProjects   = !!knowledgeBase?.projects;
 
-  const completedSections = [hasIdentity, hasEducation, hasExperience, hasSkills, hasProjects].filter(Boolean).length;
+  const completedSections = [hasIdentity, hasEducation, hasExperience, hasSkills, hasProjects]
+    .filter(Boolean).length;
 
   const stats = {
-    trainingEntries: knowledgeBase ? 1 : 0,
-    qaPairs: 0,
+    trainingEntries:   knowledgeBase ? 1 : 0,
+    qaPairs:           0,
     personalityTraits: hasIdentity ? 1 : 0,
-    knowledgeItems: completedSections,
+    knowledgeItems:    completedSections,
   };
 
   const serializedKnowledgeBase = knowledgeBase
     ? {
         ...knowledgeBase,
-        createdAt: knowledgeBase.createdAt.toISOString(),
-        updatedAt: knowledgeBase.updatedAt.toISOString(),
+        createdAt:     knowledgeBase.createdAt.toISOString(),
+        updatedAt:     knowledgeBase.updatedAt.toISOString(),
         lastTrainedAt: knowledgeBase.lastTrainedAt?.toISOString() || null,
       }
     : null;
 
   const userWithStatus = { ...session.user, status: user.status ?? "active" };
+
   return (
     <DashboardWrapper
       user={userWithStatus}

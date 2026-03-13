@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth-client";
 import {
   Menu, X, Moon, Sun, LogOut, Share2, Copy, Check,
-  ChevronDown, ChevronRight, Link, Bell, Cpu,
+  ChevronDown, ChevronRight, Link, Bell,
   LayoutDashboard, Brain, MessageSquare, User, Settings, FileText, CreditCard,
   CheckCheck, Info, AlertTriangle, Sparkles,
 } from "lucide-react";
@@ -27,13 +27,13 @@ interface DashboardWrapperProps {
   knowledgeBase: any;
   swagList?: { id: string; content: string }[];
   slug?: string;
-  initialUsage?: { planType: string; msgCount: number; msgLimit: number; tokenCount: number; tokenLimit: number; hardBlocked: boolean; graceRemaining: number | null };
+  initialUsage?: { planType: string; msgCount: number; msgLimit: number };
 }
 
 type NotifType = "info" | "success" | "warning" | "system" | "billing";
 interface Notif { id: string; type: NotifType; title: string; body: string; time: string; read: boolean }
 
-const notifIcon: Record<string, any>    = { info: Info, success: Sparkles, warning: AlertTriangle, system: Bell, billing: CreditCard };
+const notifIcon:  Record<string, any>    = { info: Info, success: Sparkles, warning: AlertTriangle, system: Bell, billing: CreditCard };
 const notifColor: Record<string, string> = { info:"#29A9D4", success:"#10B981", warning:"#F59E0B", system:"#8B5CF6", billing:"#0EA5E9" };
 
 function fmtTimeAgo(ts: number, now: number): string {
@@ -61,18 +61,18 @@ const viewLabels: Record<DashboardViewType, string> = {
 
 export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=[], slug, initialUsage }: DashboardWrapperProps) {
   const searchParams  = useSearchParams();
-  const [activeView,   setActiveView]   = useState<DashboardViewType>("dashboard");
+  const [activeView,    setActiveView]    = useState<DashboardViewType>("dashboard");
   const [paymentStatus, setPaymentStatus] = useState<"success" | "pending" | "failed" | null>(null);
-  const [mobileOpen,   setMobileOpen]   = useState(false);
-  const [shareOpen,    setShareOpen]    = useState(false);
-  const [mobileShare,  setMobileShare]  = useState(false);
-  const [isDark,       setIsDark]       = useState(false);
-  const [copiedId,     setCopiedId]     = useState<string | null>(null);
-  const [liveSwagList, setLiveSwagList] = useState<{ id:string; content:string }[]>(swagList);
-  const [liveSlug,     setLiveSlug]     = useState<string | null>(slug ?? null);
-  const [notifs,       setNotifs]       = useState<Notif[]>([]);
-  const [notifOpen,    setNotifOpen]    = useState(false);
-  const [usage,        setUsage]        = useState<{ planType?: string; msgCount:number; msgLimit:number; tokenCount:number; tokenLimit:number; hardBlocked:boolean; graceRemaining:number|null } | null>(initialUsage ?? null);
+  const [mobileOpen,    setMobileOpen]    = useState(false);
+  const [shareOpen,     setShareOpen]     = useState(false);
+  const [mobileShare,   setMobileShare]   = useState(false);
+  const [isDark,        setIsDark]        = useState(false);
+  const [copiedId,      setCopiedId]      = useState<string | null>(null);
+  const [liveSwagList,  setLiveSwagList]  = useState<{ id:string; content:string }[]>(swagList);
+  const [liveSlug,      setLiveSlug]      = useState<string | null>(slug ?? null);
+  const [notifs,        setNotifs]        = useState<Notif[]>([]);
+  const [notifOpen,     setNotifOpen]     = useState(false);
+  const [usage,         setUsage]         = useState<{ planType?: string; msgCount: number; msgLimit: number } | null>(initialUsage ?? null);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const shareRef = useRef<HTMLDivElement>(null);
@@ -104,25 +104,25 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
       .then(d => { if (d && Array.isArray(d.swag)) setLiveSwagList(d.swag); }).catch(()=>{});
     fetch("/api/share").then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.ok && d.shareSlug) setLiveSlug(d.shareSlug); }).catch(()=>{});
-    // Load notifications from server
+    // Load notifications
     fetch("/api/notifications?pageSize=30")
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d?.ok && Array.isArray(d.notifications)) {
           const now = Date.now();
           setNotifs(d.notifications.map((n: any) => ({
-            id: n.id,
-            type: n.type as NotifType,
-            title: n.title,
-            body: n.body,
+            id: n.id, type: n.type as NotifType,
+            title: n.title, body: n.body,
             time: fmtTimeAgo(new Date(n.createdAt).getTime(), now),
             read: n.isRead,
           })));
         }
       }).catch(()=>{});
-    // Load personal usage stats for navbar pill (refreshes the server-side initial data)
+    // Load personal usage stats
     fetch("/api/user/usage").then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.ok) setUsage({ planType: d.planType ?? "free", msgCount: d.msgCount, msgLimit: d.msgLimit, tokenCount: d.tokenCount, tokenLimit: d.tokenLimit, hardBlocked: d.hardBlocked ?? false, graceRemaining: d.graceRemaining ?? null }); }).catch(()=>{});
+      .then(d => {
+        if (d?.ok) setUsage({ planType: d.planType ?? "free", msgCount: d.msgCount, msgLimit: d.msgLimit });
+      }).catch(()=>{});
   }, []);
 
   useEffect(() => {
@@ -130,7 +130,6 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const fn = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
@@ -156,7 +155,7 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
     fetch("/api/notifications", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ all:true }) }).catch(()=>{});
     setNotifs(p => p.map(n => ({ ...n, read:true })));
   };
-  const markRead    = (id: string) => {
+  const markRead = (id: string) => {
     fetch("/api/notifications", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ids:[id] }) }).catch(()=>{});
     setNotifs(p => p.map(n => n.id===id ? {...n, read:true} : n));
   };
@@ -176,7 +175,7 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
       case "chat":      return <DashboardChat user={user} knowledgeBase={knowledgeBase}/>;
       case "profile":   return <ProfileView   user={user} knowledgeBase={knowledgeBase}/>;
       case "resume":    return <ResumeView    user={user} knowledgeItems={stats.knowledgeItems}/>;
-      case "billing":   return <UserBilling    userId={user.id!} paymentStatus={paymentStatus}/>;
+      case "billing":   return <UserBilling   userId={user.id!} paymentStatus={paymentStatus}/>;
       case "settings":  return <SettingsView/>;
       default:          return <DashboardView stats={stats} onNavigate={handleViewChange}/>;
     }
@@ -216,6 +215,15 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
       )}
     </>
   );
+
+  /* ── Message pill values ── */
+  const msgUsed      = usage?.msgCount ?? 0;
+  const msgLimit     = Math.max(usage?.msgLimit ?? 200, 1);
+  const msgRemaining = Math.max(0, msgLimit - msgUsed);
+  const msgPct       = (msgUsed / msgLimit) * 100;
+  const isFree       = !usage || (usage.planType ?? "free") === "free";
+  const msgPillCls   = msgPct >= 90 ? "dw-usage-pill--danger" : msgPct >= 70 ? "dw-usage-pill--warn" : "";
+  const msgTitle     = `${msgRemaining.toLocaleString()} of ${msgLimit.toLocaleString()} messages remaining this month (${msgUsed.toLocaleString()} used)`;
 
   return (
     <>
@@ -268,8 +276,10 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
         .dw-nb-active{font-weight:600;color:var(--c-text)}
         .dw-nb-right{display:flex;align-items:center;gap:7px}
         .dw-nb-divider{width:1px;height:18px;background:var(--c-border)}
-        /* ── Usage pills ── */
-        .dw-usage-pill{display:flex;align-items:center;gap:4px;padding:0 8px;height:28px;border-radius:7px;border:1px solid var(--c-border);background:var(--c-surface-2);color:var(--c-muted);font-size:.68rem;font-weight:600;white-space:nowrap;cursor:default;letter-spacing:.01em}
+
+        /* ── Usage pill ── */
+        .dw-usage-pill{display:flex;align-items:center;gap:4px;padding:0 10px;height:28px;border-radius:7px;border:1px solid var(--c-border);background:var(--c-surface-2);color:var(--c-muted);font-size:.68rem;font-weight:600;white-space:nowrap;cursor:pointer;letter-spacing:.01em;transition:opacity .14s}
+        .dw-usage-pill:hover{opacity:.8}
         .dw-usage-pill--warn{border-color:color-mix(in srgb,#F59E0B 40%,transparent);background:color-mix(in srgb,#F59E0B 10%,transparent);color:#B45309}
         .dw-usage-pill--danger{border-color:color-mix(in srgb,var(--c-danger) 40%,transparent);background:var(--c-danger-soft,#fee2e2);color:var(--c-danger)}
         .dw-usage-pill svg{width:10px;height:10px;flex-shrink:0}
@@ -351,29 +361,17 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
 
         /* ── Notification panel ── */
         .dw-notif-panel{min-width:310px;max-width:330px}
-        .dw-notif-mark-btn{
-          display:flex;align-items:center;gap:4px;padding:3px 9px;
-          border-radius:7px;border:none;font-size:.68rem;font-weight:600;
-          font-family:inherit;background:var(--c-accent-soft);color:var(--c-accent);
-          cursor:pointer;transition:all .13s;
-        }
+        .dw-notif-mark-btn{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;border:none;font-size:.68rem;font-weight:600;font-family:inherit;background:var(--c-accent-soft);color:var(--c-accent);cursor:pointer;transition:all .13s}
         .dw-notif-mark-btn:hover{background:var(--c-accent);color:#fff}
         .dw-notif-mark-btn svg{width:11px;height:11px}
-
         .dw-notif-list{max-height:336px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c-border) transparent}
         .dw-notif-list::-webkit-scrollbar{width:3px}
         .dw-notif-list::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:3px}
-
-        .dw-notif-item{
-          display:flex;align-items:flex-start;gap:10px;
-          padding:11px 14px;border-bottom:1px solid var(--c-border);
-          cursor:pointer;transition:background .12s;
-        }
+        .dw-notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:1px solid var(--c-border);cursor:pointer;transition:background .12s}
         .dw-notif-item:last-child{border-bottom:none}
         .dw-notif-item:hover{background:var(--c-surface-2)}
         .dw-notif-item--unread{background:color-mix(in srgb,var(--c-accent) 5%,transparent)}
         .dw-notif-item--unread:hover{background:color-mix(in srgb,var(--c-accent) 9%,transparent)}
-
         .dw-notif-ic{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
         .dw-notif-ic svg{width:13px;height:13px}
         .dw-notif-body{flex:1;min-width:0}
@@ -485,7 +483,7 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
                   <button className="dw-dact" onClick={toggleTheme}>
                     {isDark?<Sun size={13}/>:<Moon size={13}/>} {isDark?"Light":"Dark"}
                   </button>
-                  <button className="dw-dact dw-dact--danger" onClick={()=>signOut({callbackUrl:"/"})}>
+                  <button className="dw-dact dw-dact--danger" onClick={()=>signOut({callbackUrl:"/auth/signin?loggedOut=1"})}>
                     <LogOut size={13}/> Sign out
                   </button>
                 </div>
@@ -524,51 +522,30 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
               <span className="dw-nb-active">{viewLabels[activeView]}</span>
             </nav>
             <div className="dw-nb-right">
-              {(() => {
-                const used   = usage?.msgCount ?? 0;
-                const total  = Math.max(usage?.msgLimit ?? 200, 1);
-                const pct    = (used / total) * 100;
-                const isFree = !usage || (usage.planType ?? "free") === "free";
-                const cls    = (usage?.hardBlocked)
-                  ? "dw-usage-pill--danger"
-                  : (usage?.graceRemaining ?? null) !== null
-                    ? "dw-usage-pill--warn"
-                    : pct >= 90 ? "dw-usage-pill--danger" : pct >= 70 ? "dw-usage-pill--warn" : "";
-                const remaining = total - used;
-                const label  = (usage?.hardBlocked)
-                  ? "Credits blocked"
-                  : (usage?.graceRemaining ?? null) !== null
-                    ? `⚠ ${usage!.graceRemaining}d grace left`
-                    : `${remaining.toLocaleString()} credits left`;
-                const titleTip = (usage?.hardBlocked)
-                  ? "Your credits ran out over 3 days ago. Top up to re-enable chat and training."
-                  : (usage?.graceRemaining ?? null) !== null
-                    ? `Credits exhausted — ${usage!.graceRemaining} day(s) of grace remaining. Top up now to avoid losing access.`
-                    : `${remaining.toLocaleString()} of ${total.toLocaleString()} credits remaining this month (${used.toLocaleString()} used)`;
-                return (
-                  <div className={`dw-usage-pill ${cls}`} title={titleTip}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setActiveView("billing")}>
-                    <CreditCard size={10}/>
-                    {isFree && <span className="dw-usage-free-badge">FREE</span>}
-                    {label}
-                  </div>
-                );
-              })()}
+
+              {/* ── Message usage pill ── */}
+              <div
+                className={`dw-usage-pill ${msgPillCls}`}
+                title={msgTitle}
+                onClick={() => setActiveView("billing")}
+              >
+                <MessageSquare size={10}/>
+                {isFree && <span className="dw-usage-free-badge">FREE</span>}
+                {msgRemaining.toLocaleString()} msgs left
+              </div>
+
               <button className="dw-ibtn" onClick={toggleTheme} title="Toggle theme">
                 {isDark?<Sun size={13}/>:<Moon size={13}/>}
               </button>
 
               {/* ── Bell + notification dropdown ── */}
               <div className="dw-drop-wrap dw-bell-wrap" ref={notifRef}>
-                <button
-                  className={`dw-ibtn ${notifOpen?"dw-ibtn--active":""}`}
+                <button className={`dw-ibtn ${notifOpen?"dw-ibtn--active":""}`}
                   onClick={()=>{ setNotifOpen(v=>!v); setShareOpen(false); }}
                   title="Notifications">
                   <Bell size={13}/>
                 </button>
                 {unread > 0 && <span className="dw-bell-badge">{unread}</span>}
-
                 {notifOpen && (
                   <div className="dw-dropdown dw-notif-panel">
                     <div className="dw-drop-head">
@@ -626,7 +603,7 @@ export default function DashboardWrapper({ user, stats, knowledgeBase, swagList=
               </div>
 
               <div className="dw-nb-divider"/>
-              <button className="dw-logout" onClick={()=>signOut({callbackUrl:"/"})}>
+              <button className="dw-logout" onClick={()=>signOut({callbackUrl:"/auth/signin?loggedOut=1"})}>
                 <LogOut size={12}/> Sign out
               </button>
             </div>

@@ -14,11 +14,12 @@ export default function OrgChat({ org }: OrgChatProps) {
   const [input,    setInput]    = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [chatId,   setChatId]   = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const bottomRef               = useRef<HTMLDivElement>(null);
   const textareaRef             = useRef<HTMLTextAreaElement>(null);
 
   const agentName = org.agentName || org.displayName || org.name;
+  const hasApiKey = Boolean(org.apiKey);
 
   useEffect(() => {
     try {
@@ -26,7 +27,7 @@ export default function OrgChat({ org }: OrgChatProps) {
       if (raw) {
         const stored = JSON.parse(raw);
         if (stored.messages) setMessages(stored.messages);
-        if (stored.chatId)   setChatId(stored.chatId);
+        if (stored.sessionId) setSessionId(stored.sessionId);
       }
     } catch {}
   }, [org.id]);
@@ -34,12 +35,12 @@ export default function OrgChat({ org }: OrgChatProps) {
   useEffect(() => {
     try {
       if (messages.length > 0) {
-        localStorage.setItem(`oc_chat_${org.id}`, JSON.stringify({ messages, chatId }));
+        localStorage.setItem(`oc_chat_${org.id}`, JSON.stringify({ messages, sessionId }));
       } else {
         localStorage.removeItem(`oc_chat_${org.id}`);
       }
     } catch {}
-  }, [messages, chatId, org.id]);
+  }, [messages, sessionId, org.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,7 +52,7 @@ export default function OrgChat({ org }: OrgChatProps) {
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
   };
 
-  const handleNew = () => { setMessages([]); setInput(""); setChatId(null); };
+  const handleNew = () => { setMessages([]); setInput(""); setSessionId(null); };
 
   const sendMessage = async () => {
     if (!input.trim() || isTyping) return;
@@ -62,27 +63,33 @@ export default function OrgChat({ org }: OrgChatProps) {
     setIsTyping(true);
 
     try {
-      const res = await fetch(`/api/organizations/${org.id}/chat`, {
+      const res = await fetch("/api/agent/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Agent-Key": org.apiKey || "",
+        },
         body: JSON.stringify({
           message: userMsg.content,
-          history: messages.slice(-8).map(m => ({ role: m.role, content: m.content })),
-          chatId,
+          sessionId,
         }),
       });
       const data = await res.json();
-      if (data.chatId) setChatId(data.chatId);
+      if (!res.ok) {
+        throw new Error(data?.error || "Unable to send message");
+      }
+      if (data.sessionId) setSessionId(data.sessionId);
       setMessages(p => [...p, {
         id: Date.now() + 1,
         role: "assistant",
         content: data.reply ?? "Sorry, I couldn't respond.",
       }]);
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Connection issue. Please try again.";
       setMessages(p => [...p, {
         id: Date.now() + 1,
         role: "assistant",
-        content: "Connection issue. Please try again.",
+        content: message,
       }]);
     } finally {
       setIsTyping(false);
@@ -178,7 +185,7 @@ export default function OrgChat({ org }: OrgChatProps) {
         {/* Test banner */}
         <div className="oc-test-banner">
           <FlaskConical />
-          This is a private test session. Conversations here are not saved to your analytics.
+          This is a private test session using your public agent endpoint.
         </div>
 
         {/* Messages */}
@@ -231,6 +238,19 @@ export default function OrgChat({ org }: OrgChatProps) {
 
         {/* Input */}
         <div className="oc-input-wrap">
+          {!hasApiKey && (
+            <div style={{
+              marginBottom: 10,
+              fontSize: ".75rem",
+              color: "var(--c-danger)",
+              background: "var(--c-danger-soft)",
+              border: "1px solid color-mix(in srgb,var(--c-danger) 30%,transparent)",
+              borderRadius: 10,
+              padding: "8px 10px"
+            }}>
+              Missing API key for this organization. Generate one from API & Embed tab.
+            </div>
+          )}
           <div className="oc-input-row">
             <textarea
               ref={textareaRef}
@@ -241,7 +261,7 @@ export default function OrgChat({ org }: OrgChatProps) {
               placeholder={`Message ${agentName}…`}
               rows={1}
             />
-            <button className="oc-send" onClick={sendMessage} disabled={!input.trim() || isTyping}>
+            <button className="oc-send" onClick={sendMessage} disabled={!input.trim() || isTyping || !hasApiKey}>
               <Send size={14} />
             </button>
           </div>

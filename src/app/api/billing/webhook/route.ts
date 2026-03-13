@@ -3,33 +3,15 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-// ── Token limits derived from cost model ─────────────────────────────────────
-// DeepSeek-V3 blended ≈ 900 RWF/M tokens (inc. overhead).
-// Budget = price × 0.35; tokens = budget / (900/1_000_000).
-// Org   : Starter 5k→2M, Pro 15k→6M, Scale 35k→14M   (≥64 % margin)
-// User  : Plus  3k→1M                                   (70 % margin)
 const ORG_PLAN_LIMITS: Record<string, number> = {
   free:    500,
   starter: 2_000,
   pro:     8_000,
   scale:   25_000,
 };
-
-const ORG_TOKEN_LIMITS: Record<string, number> = {
-  free:    200_000,
-  starter: 2_000_000,
-  pro:     6_000_000,
-  scale:   14_000_000,
-};
-
 const USER_PLAN_LIMITS: Record<string, number> = {
   free: 200,
   plus: 1_500,
-};
-
-const USER_TOKEN_LIMITS: Record<string, number> = {
-  free: 150_000,
-  plus: 1_000_000,
 };
 
 /**
@@ -46,7 +28,6 @@ export async function POST(req: Request) {
   // ── 1. Verify webhook signature ────────────────────────────────────────
   const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
   if (!secretHash) {
-    // Misconfigured: do not process
     return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
   }
 
@@ -55,7 +36,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
-  // Constant-time comparison to prevent timing attacks
   if (!timingSafeEqual(signature, secretHash)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
@@ -77,23 +57,16 @@ export async function POST(req: Request) {
 
   // Only process successful payments
   if (data.status !== "successful") {
-    // Mark billing record as failed if we have a tx_ref
     if (data.tx_ref) {
       const isUserTx = data.tx_ref.startsWith("vela-user-");
       if (isUserTx) {
         await prisma.userBillingRecord
-          .updateMany({
-            where: { txRef: data.tx_ref, status: "pending" },
-            data:  { status: "failed" },
-          })
+          .updateMany({ where: { txRef: data.tx_ref, status: "pending" }, data: { status: "failed" } })
           .catch(() => {});
       } else {
         await prisma.billingRecord
-          .updateMany({
-            where: { txRef: data.tx_ref, status: "pending" },
-            data:  { status: "failed" },
-          })
-          .catch(() => {/* ignore if record not found */});
+          .updateMany({ where: { txRef: data.tx_ref, status: "pending" }, data: { status: "failed" } })
+          .catch(() => {});
       }
     }
     return NextResponse.json({ received: true });
@@ -111,7 +84,6 @@ export async function POST(req: Request) {
   );
 
   if (!flwRes.ok) {
-    // Cannot verify — do not upgrade plan; Flutterwave will retry the webhook
     return NextResponse.json({ error: "Verification failed" }, { status: 502 });
   }
 
@@ -119,24 +91,18 @@ export async function POST(req: Request) {
   const verified = flwData.data;
 
   if (
-    verified.status   !== "successful"  ||
-    verified.tx_ref   !== data.tx_ref   ||
+    verified.status   !== "successful" ||
+    verified.tx_ref   !== data.tx_ref  ||
     verified.currency !== "RWF"
   ) {
     const isUserTx = data.tx_ref.startsWith("vela-user-");
     if (isUserTx) {
       await prisma.userBillingRecord
-        .updateMany({
-          where: { txRef: data.tx_ref, status: "pending" },
-          data:  { status: "failed" },
-        })
+        .updateMany({ where: { txRef: data.tx_ref, status: "pending" }, data: { status: "failed" } })
         .catch(() => {});
     } else {
       await prisma.billingRecord
-        .updateMany({
-          where: { txRef: data.tx_ref, status: "pending" },
-          data:  { status: "failed" },
-        })
+        .updateMany({ where: { txRef: data.tx_ref, status: "pending" }, data: { status: "failed" } })
         .catch(() => {});
     }
     return NextResponse.json({ received: true });
@@ -155,44 +121,35 @@ async function handleUserBilling(
   txRef: string,
   verified: FlutterwaveTransactionData,
 ): Promise<Response> {
-  const record = await prisma.userBillingRecord.findUnique({
-    where: { txRef },
-  });
+  const record = await prisma.userBillingRecord.findUnique({ where: { txRef } });
 
   if (!record) return NextResponse.json({ received: true });
   if (record.status === "success") return NextResponse.json({ received: true });
 
   if (verified.amount < record.amountRWF) {
-    await prisma.userBillingRecord.update({
-      where: { txRef },
-      data:  { status: "failed" },
-    });
+    await prisma.userBillingRecord.update({ where: { txRef }, data: { status: "failed" } });
     return NextResponse.json({ received: true });
   }
 
-  const newLimit      = USER_PLAN_LIMITS[record.plan] ?? 200;
-  const newTokenLimit = USER_TOKEN_LIMITS[record.plan] ?? 400_000;
-  const renewalMs     = (record.periodMonths ?? 1) * 30 * 24 * 60 * 60 * 1000;
+  const newLimit  = USER_PLAN_LIMITS[record.plan] ?? 200;
+  const renewalMs = (record.periodMonths ?? 1) * 30 * 24 * 60 * 60 * 1000;
 
   await prisma.$transaction([
     prisma.user.update({
       where: { id: record.userId },
       data: {
-        personalPlanType:          record.plan,
-        personalMonthlyMsgLimit:   newLimit,
-        personalMonthlyTokenLimit: newTokenLimit,
-        personalPlanRenewalDate:   new Date(Date.now() + renewalMs),
-        creditsExhaustedAt:        null,
+        personalPlanType:        record.plan,
+        personalMonthlyMsgLimit: newLimit,
+        personalPlanRenewalDate: new Date(Date.now() + renewalMs),
       },
     }),
     prisma.userBillingRecord.update({
       where: { txRef },
-      data: { status: "success", flwRef: verified.flw_ref ?? null },
+      data:  { status: "success", flwRef: verified.flw_ref ?? null },
     }),
   ]);
 
-  // Welcome payment notification
-  const planLabel = record.plan.charAt(0).toUpperCase() + record.plan.slice(1);
+  const planLabel   = record.plan.charAt(0).toUpperCase() + record.plan.slice(1);
   const periodLabel = record.periodMonths === 12 ? "1 Year" : record.periodMonths === 6 ? "6 Months" : "1 Month";
   await prisma.notification.create({
     data: {
@@ -218,29 +175,16 @@ async function handleOrgBilling(
     include: { organization: { select: { id: true, ownerId: true } } },
   });
 
-  if (!record) {
-    // Unknown tx_ref — still return 200 so Flutterwave doesn't retry
-    return NextResponse.json({ received: true });
-  }
+  if (!record) return NextResponse.json({ received: true });
+  if (record.status === "success") return NextResponse.json({ received: true });
 
-  if (record.status === "success") {
-    // Already processed (idempotency guard)
-    return NextResponse.json({ received: true });
-  }
-
-  // Verify the charged amount covers the expected amount
   if (verified.amount < record.amountRWF) {
-    await prisma.billingRecord.update({
-      where: { txRef },
-      data:  { status: "failed" },
-    });
+    await prisma.billingRecord.update({ where: { txRef }, data: { status: "failed" } });
     return NextResponse.json({ received: true });
   }
 
-  // Upgrade organisation + mark billing record successful
-  const newLimit      = ORG_PLAN_LIMITS[record.plan] ?? 500;
-  const newTokenLimit = ORG_TOKEN_LIMITS[record.plan] ?? 1_000_000;
-  const renewalMs     = (record.periodMonths ?? 1) * 30 * 24 * 60 * 60 * 1000;
+  const newLimit  = ORG_PLAN_LIMITS[record.plan] ?? 500;
+  const renewalMs = (record.periodMonths ?? 1) * 30 * 24 * 60 * 60 * 1000;
 
   await prisma.$transaction([
     prisma.organization.update({
@@ -248,22 +192,16 @@ async function handleOrgBilling(
       data: {
         planType:            record.plan,
         monthlyMessageLimit: newLimit,
-        monthlyTokenLimit:   newTokenLimit,
         planRenewalDate:     new Date(Date.now() + renewalMs),
-        tokensExhaustedAt:   null,
       },
     }),
     prisma.billingRecord.update({
       where: { txRef },
-      data: {
-        status: "success",
-        flwRef: verified.flw_ref ?? null,
-      },
+      data:  { status: "success", flwRef: verified.flw_ref ?? null },
     }),
   ]);
 
-  // Payment success notification to the org owner
-  const planLabel = record.plan.charAt(0).toUpperCase() + record.plan.slice(1);
+  const planLabel   = record.plan.charAt(0).toUpperCase() + record.plan.slice(1);
   const periodLabel = record.periodMonths === 12 ? "1 Year" : record.periodMonths === 6 ? "6 Months" : "1 Month";
   await prisma.notification.create({
     data: {
@@ -291,12 +229,8 @@ interface FlutterwaveWebhookPayload {
     currency: string;
     charged_amount: number;
     status: string;
-    payment_type: string; // e.g. "mobilemoneyrwanda"
-    customer: {
-      email: string;
-      phone_number: string;
-      name: string;
-    };
+    payment_type: string;
+    customer: { email: string; phone_number: string; name: string };
   };
 }
 
@@ -312,9 +246,6 @@ interface FlutterwaveTransactionData {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-/**
- * Constant-time string comparison to prevent timing side-channel attacks.
- */
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let result = 0;

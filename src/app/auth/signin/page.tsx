@@ -1,11 +1,11 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth-client";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
-import { Shield, Zap, Users, ArrowRight, Moon, Sun } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Moon, Sun } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 /* ─── Animated mesh background ─────────────────────────────────── */
@@ -61,10 +61,20 @@ function SignInContent() {
   const callbackUrl =
     rawCallbackUrl && rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
       ? rawCallbackUrl
-      : "/onboarding";
+      : "/Dashboard";
   const isBanned = searchParams?.get("error") === "banned";
+  const personalSignupUrl = `/auth/signup?callbackUrl=${encodeURIComponent(
+    rawCallbackUrl && rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+      ? rawCallbackUrl
+      : "/onboarding"
+  )}`;
   const [isDark, setIsDark] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [credentialsError, setCredentialsError] = useState("");
+  const [credentialsLoading, setCredentialsLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -88,6 +98,33 @@ function SignInContent() {
   const handleGoogleSignIn = () => {
     setIsSigningIn(true);
     signIn("google", { callbackUrl });
+  };
+
+  const handleCredentialsSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCredentialsError("");
+    if (!email.trim() || !password) {
+      setCredentialsError("Email and password are required.");
+      return;
+    }
+
+    setCredentialsLoading(true);
+    const result = await signIn("user-credentials", {
+      email: email.toLowerCase().trim(),
+      password,
+      callbackUrl:
+        rawCallbackUrl && rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+          ? rawCallbackUrl
+          : "/onboarding",
+      redirect: false,
+    });
+    setCredentialsLoading(false);
+
+    if (result?.error) {
+      setCredentialsError("Invalid email or password.");
+    } else if (result?.url) {
+      window.location.href = result.url;
+    }
   };
 
   const handleOrgSignIn = () => {
@@ -336,7 +373,19 @@ function SignInContent() {
           font-size:1.6rem;color:var(--si-text);letter-spacing:-.015em;margin-bottom:6px;
         }
         .si-card-sub{font-size:.8rem;color:var(--si-muted);line-height:1.5}
-
+        .si-form{display:flex;flex-direction:column;gap:12px}
+        .si-field{display:flex;flex-direction:column;gap:5px}
+        .si-label{font-size:.76rem;font-weight:600;color:var(--si-muted);letter-spacing:.02em}
+        .si-input-wrap{position:relative}
+        .si-input{width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid var(--si-border);background:var(--si-surface);color:var(--si-text);font-size:.88rem;font-family:'DM Sans',system-ui,sans-serif;outline:none;transition:border-color .2s}
+        .si-input:focus{border-color:var(--si-accent)}
+        .si-input.has-toggle{padding-right:42px}
+        .si-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--si-muted);cursor:pointer;display:flex;align-items:center;padding:2px}
+        .si-error{display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:9px;background:color-mix(in srgb,#EF4444 10%,transparent);border:1px solid color-mix(in srgb,#EF4444 30%,transparent);color:#EF4444;font-size:.78rem;font-weight:500}
+        .si-primary-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 20px;border-radius:13px;background:var(--si-accent);border:none;color:#fff;font-size:.88rem;font-weight:700;font-family:'DM Sans',system-ui,sans-serif;cursor:pointer;transition:all .2s;min-height:48px}
+        .si-primary-btn:disabled{opacity:.65;cursor:not-allowed}
+        .si-secondary-link{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 20px;border-radius:13px;background:transparent;border:1.5px solid var(--si-border);color:var(--si-text);font-size:.84rem;font-weight:600;font-family:'DM Sans',system-ui,sans-serif;text-decoration:none;transition:all .2s;min-height:46px}
+        .si-secondary-link:hover{border-color:var(--si-accent);color:var(--si-accent);background:color-mix(in srgb,var(--si-accent) 6%,transparent)}
         /* Google button */
         .si-google-btn{
           width:100%;display:flex;align-items:center;justify-content:center;gap:11px;
@@ -375,18 +424,6 @@ function SignInContent() {
         }
         .si-google-btn:hover .si-btn-arrow{transform:translateX(3px)}
         .si-btn-arrow svg{width:12px;height:12px}
-
-        /* Trust row */
-        .si-trust{
-          display:flex;align-items:center;justify-content:center;gap:16px;
-          margin-top:18px;margin-bottom:0;
-        }
-        .si-trust-item{
-          display:flex;align-items:center;gap:5px;
-          font-size:.72rem;color:var(--si-muted);font-weight:500;
-        }
-        .si-trust-item svg{width:12px;height:12px;color:var(--si-accent)}
-        .si-trust-dot{width:3px;height:3px;border-radius:50%;background:var(--si-border)}
 
         /* Divider */
         .si-divider{
@@ -530,7 +567,6 @@ function SignInContent() {
                 <div className="si-card-header">
                   <p className="si-card-eyebrow">Welcome</p>
                   <h2 className="si-card-title">Get started free</h2>
-                  <p className="si-card-sub">Sign in to create your virtual self and share it with the world.</p>
                 </div>
 
                 {isBanned && (
@@ -543,6 +579,49 @@ function SignInContent() {
                     <strong>Account suspended.</strong> Your account has been banned. Contact support if you believe this is a mistake.
                   </div>
                 )}
+
+                <form className="si-form" onSubmit={handleCredentialsSignIn} noValidate>
+                  <div className="si-field">
+                    <label className="si-label">Email</label>
+                    <div className="si-input-wrap">
+                      <input
+                        className="si-input"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        autoComplete="email"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="si-field">
+                    <label className="si-label">Password</label>
+                    <div className="si-input-wrap">
+                      <input
+                        className="si-input has-toggle"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        autoComplete="current-password"
+                      />
+                      <button type="button" className="si-eye" onClick={() => setShowPassword(p => !p)} tabIndex={-1}>
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {credentialsError && <div className="si-error">{credentialsError}</div>}
+
+                  <button className="si-primary-btn" type="submit" disabled={credentialsLoading || isSigningIn}>
+                    {credentialsLoading ? <span className="si-spinner" /> : "Continue with email"}
+                  </button>
+
+                  <Link className="si-secondary-link" href={personalSignupUrl}>
+                    Create a personal account
+                  </Link>
+                </form>
 
                 <motion.button
                   className="si-google-btn"
@@ -588,14 +667,6 @@ function SignInContent() {
                   </svg>
                   Register / sign in as Organisation
                 </Link>
-
-                <div className="si-trust">
-                  <div className="si-trust-item"><Shield size={12} /><span>Secure OAuth</span></div>
-                  <div className="si-trust-dot" />
-                  <div className="si-trust-item"><Zap size={12} /><span>No password</span></div>
-                  <div className="si-trust-dot" />
-                  <div className="si-trust-item"><Users size={12} /><span>Free forever</span></div>
-                </div>
 
                 <p className="si-terms">
                   By continuing you agree to our{" "}

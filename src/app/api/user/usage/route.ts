@@ -20,8 +20,6 @@ export async function GET() {
       personalPlanType:          true,
       personalMonthlyMsgCount:   true,
       personalMonthlyMsgLimit:   true,
-      personalMonthlyTokenCount: true,
-      personalMonthlyTokenLimit: true,
       creditsExhaustedAt:        true,
     },
   });
@@ -44,8 +42,6 @@ export async function GET() {
     planType:       user.personalPlanType ?? "free",
     msgCount:       user.personalMonthlyMsgCount,
     msgLimit:       user.personalMonthlyMsgLimit,
-    tokenCount:     user.personalMonthlyTokenCount,
-    tokenLimit:     user.personalMonthlyTokenLimit,
     creditsExhaustedAt: user.creditsExhaustedAt?.toISOString() ?? null,
     hardBlocked,
     graceRemaining,

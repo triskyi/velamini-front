@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Building2, Check, ChevronRight, ArrowRight,
@@ -145,11 +145,6 @@ export default function OnboardingPage() {
 
   if (status === "loading") return <Spinner isDark={isDark} />;
 
-  const handleGoogleSignIn = () => {
-    try { localStorage.setItem("ob_account_type", selectedType ?? ""); } catch {}
-    signIn("google", { callbackUrl: "/onboarding" });
-  };
-
   const toggleTheme = () => {
     const next = !isDark;
     setIsDark(next);
@@ -166,9 +161,8 @@ export default function OnboardingPage() {
 
       if (selectedType === "personal") {
         if (status !== "authenticated") {
-          // Not signed in — send to Google sign-in, then back to onboarding
-          try { localStorage.setItem("ob_account_type", "personal"); } catch {}
-          router.push("/auth/signin?callbackUrl=/onboarding");
+          // Not signed in — personal accounts continue to dashboard after login
+          router.push("/auth/signin?callbackUrl=/Dashboard");
           return;
         }
         await submit();
@@ -559,7 +553,7 @@ export default function OnboardingPage() {
                             if (selectedType === "organization") {
                               router.push("/auth/org/login");
                             } else {
-                              router.push("/auth/signin?callbackUrl=/onboarding");
+                              router.push("/auth/signin?callbackUrl=/Dashboard");
                             }
                           }}
                         >

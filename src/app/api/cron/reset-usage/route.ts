@@ -12,15 +12,6 @@ const PLAN_LIMITS: Record<string, number> = {
   scale:   25_000,
 };
 
-// ── Token limits (keep in sync with webhook/route.ts) ───────────────────────
-// DeepSeek blended cost ≈ 900 RWF/M tokens; budgeted at 35 % of plan price.
-const ORG_TOKEN_LIMITS: Record<string, number> = {
-  free:    200_000,
-  trial:   100_000,
-  starter: 2_000_000,
-  pro:     6_000_000,
-  scale:   14_000_000,
-};
 
 /**
  * GET /api/cron/reset-usage
@@ -47,10 +38,7 @@ export async function GET(req: NextRequest) {
         data: {
           monthlyMessageCount: 0,
           monthlyMessageLimit: limit,
-          monthlyTokenCount:   0,
-          monthlyTokenLimit:   ORG_TOKEN_LIMITS[planType] ?? 1_000_000,
           lastResetDate:       new Date(),
-          tokensExhaustedAt:   null, // Clear grace period on monthly reset
         },
       })
     )
@@ -60,7 +48,6 @@ export async function GET(req: NextRequest) {
   await prisma.user.updateMany({
     data: {
       personalMonthlyMsgCount:   0,
-      personalMonthlyTokenCount: 0,
       creditsExhaustedAt:        null, // Clear grace period on monthly reset
     },
   });
@@ -84,23 +71,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Send end-of-month reset notification to org owners
-  const orgs = await prisma.organization.findMany({
-    where:  { isActive: true },
-    select: { id: true, ownerId: true, monthlyTokenLimit: true, planType: true },
-  });
-  for (const org of orgs) {
-    if (!org.ownerId) continue;
-    await prisma.notification.create({
-      data: {
-        userId:         org.ownerId,
-        organizationId: org.id,
-        type:           "info",
-        scope:          "org",
-        title:          "Monthly token quota reset",
-        body:           `Your organisation's monthly AI token quota has been refreshed (${(org.monthlyTokenLimit ?? 1_000_000).toLocaleString()} tokens). Upgrade your plan in Billing to get a larger quota.`,
-      },
-    }).catch(() => {});
-  }
+  // Removed org token quota reset notification
 
   const totalReset = results.reduce((sum, r) => sum + r.count, 0);
   console.log(`[cron/reset-usage] Reset ${totalReset} organisations at ${new Date().toISOString()}`);

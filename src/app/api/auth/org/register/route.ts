@@ -2,28 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-
-const PERSONAL_DOMAINS = new Set([
-  "gmail.com",
-  "yahoo.com",
-  "hotmail.com",
-  "outlook.com",
-  "icloud.com",
-  "live.com",
-  "msn.com",
-  "aol.com",
-  "protonmail.com",
-  "me.com",
-  "ymail.com",
-  "googlemail.com",
-  "mail.com",
-  "inbox.com",
-]);
-
-function isPersonalEmail(email: string): boolean {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return !!domain && PERSONAL_DOMAINS.has(domain);
-}
+import { quickReject, verifyEmail } from "@/lib/email-verify";
+import { areSignupsAllowed } from "@/lib/signup-settings";
 
 const registerSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -33,17 +13,25 @@ const registerSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const signupsAllowed = await areSignupsAllowed();
+    if (!signupsAllowed) {
+      return NextResponse.json({ error: "New signups are currently disabled." }, { status: 403 });
+    }
+
     const parsed = registerSchema.safeParse(await req.json());
     if (!parsed.success) {
       return NextResponse.json({ error: "Name, email and password are required." }, { status: 400 });
     }
 
     const normalizedEmail = parsed.data.email.toLowerCase().trim();
-    if (isPersonalEmail(normalizedEmail)) {
-      return NextResponse.json(
-        { error: "Organisation accounts require a work/business email address." },
-        { status: 400 }
-      );
+    const quickError = quickReject(normalizedEmail);
+    if (quickError) {
+      return NextResponse.json({ error: quickError }, { status: 400 });
+    }
+
+    const verification = await verifyEmail(normalizedEmail);
+    if (!verification.accept) {
+      return NextResponse.json({ error: verification.message }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });

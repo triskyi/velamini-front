@@ -89,7 +89,7 @@ export const ORG_PLANS = [
     badge: "Recommended",
     features: [
       { t: "2,000 messages / month",        ok: true },
-      { t: "2M AI tokens / month",          ok: true },
+      // Removed token feature
       { t: "1 AI agent",                    ok: true },
       { t: "API + Embed",                   ok: true },
       { t: "Data Insights",                 ok: true },
@@ -110,7 +110,7 @@ export const ORG_PLANS = [
     badge: "Most Popular",
     features: [
       { t: "8,000 messages / month",        ok: true },
-      { t: "6M AI tokens / month",          ok: true },
+      // Removed token feature
       { t: "1 AI agent",                    ok: true },
       { t: "API + Embed",                   ok: true },
       { t: "Analytics",                     ok: true },
@@ -132,7 +132,7 @@ export const ORG_PLANS = [
     badge: "Best Value",
     features: [
       { t: "25,000 messages / month",       ok: true },
-      { t: "14M AI tokens / month",         ok: true },
+      // Removed token feature
       { t: "1 AI agent",                    ok: true },
       { t: "API + Embed",                   ok: true },
       { t: "Analytics",                     ok: true },

@@ -5,6 +5,7 @@ model Resume {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 generator client {
   provider   = "prisma-client-js"
   engineType = "library"
@@ -36,7 +37,7 @@ model Message {
   chatId     String
   role       String // "user" or "assistant"
   content    String   @db.Text
-  tokenCount Int?     // AI tokens used for this message exchange
+  tokenCount Int? // AI tokens used for this message exchange
   createdAt  DateTime @default(now())
   chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
@@ -44,13 +45,13 @@ model Message {
 }
 
 model Feedback {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id              String   @id @default(cuid())
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   virtualSelfSlug String?
-  rating    Int
-  comment   String?  @db.Text
-  createdAt DateTime @default(now())
+  rating          Int
+  comment         String?  @db.Text
+  createdAt       DateTime @default(now())
 }
 
 model KnowledgeBase {
@@ -136,12 +137,12 @@ model Organization {
   planType String  @default("trial") // "trial", "starter", "business", "enterprise"
 
   // Limits & Usage (based on plan)
-  monthlyMessageLimit Int      @default(100) // Messages per month
-  monthlyMessageCount Int      @default(0) // Current month usage
-  monthlyTokenLimit   Int      @default(200000) // Token budget per month
-  monthlyTokenCount   Int      @default(0)      // Tokens consumed this month
-  tokensExhaustedAt   DateTime?                // Set when tokens first hit 0; cleared on payment or reset
-  lastResetDate       DateTime @default(now()) // When counter was last reset
+  monthlyMessageLimit Int       @default(100) // Messages per month
+  monthlyMessageCount Int       @default(0) // Current month usage
+  monthlyTokenLimit   Int       @default(200000) // Token budget per month
+  monthlyTokenCount   Int       @default(0) // Tokens consumed this month
+  tokensExhaustedAt   DateTime? // Set when tokens first hit 0; cleared on payment or reset
+  lastResetDate       DateTime  @default(now()) // When counter was last reset
 
   // Agent configuration
   agentName        String?
@@ -188,17 +189,17 @@ model Organization {
 }
 
 model BillingRecord {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  plan           String   // "starter" | "pro" | "scale"
-  amountRWF      Int      // Amount in RWF
-  periodMonths   Int      @default(1) // 1 = monthly, 6 = semi-annual, 12 = yearly
-  txRef          String   @unique // Flutterwave transaction reference
-  flwRef         String?  // Flutterwave internal reference (after verify)
-  status         String   @default("pending") // "pending" | "success" | "failed"
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  plan           String // "starter" | "pro" | "scale"
+  amountRWF      Int // Amount in RWF
+  periodMonths   Int          @default(1) // 1 = monthly, 6 = semi-annual, 12 = yearly
+  txRef          String       @unique // Flutterwave transaction reference
+  flwRef         String? // Flutterwave internal reference (after verify)
+  status         String       @default("pending") // "pending" | "success" | "failed"
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([organizationId])
   @@index([txRef])
@@ -253,23 +254,23 @@ model Session {
 }
 
 model User {
-  id                 String         @id @default(cuid())
+  id                 String    @id @default(cuid())
   name               String?
-  email              String?        @unique
+  email              String?   @unique
   emailVerified      DateTime?
   image              String?
-  accountType        String         @default("personal") // "personal" or "organization"
-  onboardingComplete Boolean        @default(false) // Track if user completed onboarding
-  status             String         @default("active") // "active" | "pending" | "banned" | "flagged"
-  role               String         @default("user")   // "user" | "admin"
-  passwordHash       String?        // Only set for admin credential accounts
-  createdAt          DateTime       @default(now())
+  accountType        String    @default("personal") // "personal" or "organization"
+  onboardingComplete Boolean   @default(false) // Track if user completed onboarding
+  status             String    @default("active") // "active" | "pending" | "banned" | "flagged"
+  role               String    @default("user") // "user" | "admin"
+  passwordHash       String? // Only set for admin credential accounts
+  createdAt          DateTime  @default(now())
 
   // Personal billing
-  personalPlanType          String    @default("free")  // "free" | "plus"
+  personalPlanType          String    @default("free") // "free" | "plus"
   personalMonthlyMsgCount   Int       @default(0)
   personalMonthlyMsgLimit   Int       @default(200)
-  personalMonthlyTokenCount Int       @default(0)      // Tokens consumed this month
+  personalMonthlyTokenCount Int       @default(0) // Tokens consumed this month
   personalMonthlyTokenLimit Int       @default(400000) // Token budget per month
   personalPlanRenewalDate   DateTime?
   creditsExhaustedAt        DateTime? // Set when credits first hit 0; cleared on payment or monthly reset
@@ -277,21 +278,22 @@ model User {
   accounts           Account[]
   sessions           Session[]
   knowledgeBase      KnowledgeBase?
-  virtualSelfChats   Chat[]         @relation("VirtualSelfChats")
+  virtualSelfChats   Chat[]              @relation("VirtualSelfChats")
   organizations      Organization[] // Organizations owned by this user
-  swag               Swag[]         // Swag items created by this user
+  swag               Swag[] // Swag items created by this user
   generatedResumes   GeneratedResume[]
   userBillingRecords UserBillingRecord[]
   notifications      Notification[]
   moderationReports  ModerationReport[]
   feedbacks          Feedback[]
+  verifyTokens       VerifyToken[]
 }
 
 model UserBillingRecord {
   id           String   @id @default(cuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan         String   // "plus"
+  plan         String // "plus"
   amountRWF    Int
   periodMonths Int      @default(1) // 1 = monthly, 6 = semi-annual, 12 = yearly
   txRef        String   @unique
@@ -303,7 +305,6 @@ model UserBillingRecord {
   @@index([userId])
   @@index([txRef])
 }
-
 
 model Swag {
   id        String   @id @default(cuid())
@@ -322,15 +323,28 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model VerifyToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  token     String   @unique
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId, createdAt])
+}
+
 model ModerationReport {
   id           String    @id @default(cuid())
-  type         String    // "message" | "profile" | "content" | "feedback"
+  type         String // "message" | "profile" | "content" | "feedback"
   severity     String    @default("medium") // "high" | "medium" | "low"
   status       String    @default("pending") // "pending" | "resolved" | "dismissed"
   reason       String
   excerpt      String?   @db.Text
-  reporter     String?   // Reporter name/email or "System"
-  target       String?   // Description of the reported entity
+  reporter     String? // Reporter name/email or "System"
+  target       String? // Description of the reported entity
   targetUserId String?
   targetUser   User?     @relation(fields: [targetUserId], references: [id], onDelete: SetNull)
   resolvedBy   String?
@@ -363,7 +377,7 @@ model GeneratedResume {
 
 // Admin-sent notifications to users and/or organizations
 model Notification {
-  id      String  @id @default(cuid())
+  id             String        @id @default(cuid())
   // Targeting: null = broadcast to all personal users; string = specific userId
   userId         String?
   user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -372,13 +386,13 @@ model Notification {
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   // "system" | "billing" | "info" | "warning"
-  type    String  @default("info")
+  type      String   @default("info")
   // "personal" | "org" | "all" — describes the broadcast scope used at send time
-  scope   String  @default("all")
-  title   String
-  body    String  @db.Text
+  scope     String   @default("all")
+  title     String
+  body      String   @db.Text
   // Whether this was read by the recipient (for 1-1 notifications)
-  isRead  Boolean @default(false)
+  isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@index([userId])

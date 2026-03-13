@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
+import { signIn, useSession } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { ShieldCheck, Eye, EyeOff, Lock, Mail, AlertCircle, Moon, Sun, CheckCircle2 } from "lucide-react";

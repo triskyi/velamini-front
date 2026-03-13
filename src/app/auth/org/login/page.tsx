@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth-client";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";

@@ -37,6 +37,100 @@ const onboardingBodySchema = z.object({
   agentPersonality: z.union([z.string().trim().max(2000), z.literal("")]).optional(),
 });
 
+function isAbortedRequestError(error: unknown): boolean {
+  const err = error as { code?: string; name?: string; message?: string };
+  return (
+    err?.code === "ECONNRESET" ||
+    err?.name === "AbortError" ||
+    err?.message?.toLowerCase().includes("aborted") === true
+  );
+}
+
+function isTransientDbError(error: unknown): boolean {
+  const err = error as { code?: string; message?: string };
+  const msg = err?.message?.toLowerCase() ?? "";
+  return (
+    err?.code === "ECONNRESET" ||
+    err?.code === "P1001" || // Can't reach database server
+    err?.code === "P1017" || // Server has closed the connection
+    err?.code === "P2028" || // Transaction API timeout / start timeout
+    msg.includes("server has closed the connection") ||
+    msg.includes("connection terminated unexpectedly") ||
+    msg.includes("unable to start a transaction")
+  );
+}
+
+async function withTransientRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (!isTransientDbError(error)) throw error;
+    // One immediate retry for short-lived DB connection resets.
+    return await fn();
+  }
+}
+
+function isTransactionStartTimeout(error: unknown): boolean {
+  const err = error as { code?: string; message?: string };
+  const msg = err?.message?.toLowerCase() ?? "";
+  return err?.code === "P2028" && msg.includes("unable to start a transaction");
+}
+
+type OrgOnboardingResult = {
+  user: { accountType: string; onboardingComplete: boolean };
+  orgId: string;
+};
+
+async function completeOrgOnboardingWithoutTransaction(args: {
+  userId: string;
+  organizationName: string;
+  contactEmail: string;
+  industry?: string;
+  website?: string;
+  description?: string;
+  agentName: string;
+  agentPersonality?: string;
+  apiKey: string;
+}): Promise<OrgOnboardingResult> {
+  const existingOrg = await prisma.organization.findFirst({
+    where: { ownerId: args.userId },
+    select: { id: true },
+  });
+
+  const orgId =
+    existingOrg?.id ??
+    (
+      await prisma.organization.create({
+        data: {
+          name: args.organizationName,
+          contactEmail: args.contactEmail,
+          industry: args.industry,
+          website: args.website,
+          description: args.description,
+          agentName: args.agentName,
+          agentPersonality: args.agentPersonality,
+          apiKey: args.apiKey,
+          ownerId: args.userId,
+        },
+        select: { id: true },
+      })
+    ).id;
+
+  const user = await prisma.user.update({
+    where: { id: args.userId },
+    data: {
+      accountType: "organization",
+      onboardingComplete: true,
+    },
+    select: {
+      accountType: true,
+      onboardingComplete: true,
+    },
+  });
+
+  return { user, orgId };
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -44,7 +138,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const bodyResult = onboardingBodySchema.safeParse(await req.json());
+    let requestJson: unknown;
+    try {
+      requestJson = await req.json();
+    } catch (error) {
+      if (isAbortedRequestError(error)) {
+        return NextResponse.json({ ok: false, error: "Request was aborted" }, { status: 400 });
+      }
+      throw error;
+    }
+
+    const bodyResult = onboardingBodySchema.safeParse(requestJson);
     if (!bodyResult.success) {
       return NextResponse.json({ error: "Invalid onboarding payload" }, { status: 400 });
     }
@@ -85,49 +189,76 @@ export async function POST(req: Request) {
       const { randomUUID } = await import("crypto");
       const apiKey = `vela_${randomUUID().replace(/-/g, "")}`;
 
-      const result = await prisma.$transaction(async (tx) => {
-        const existingOrg = await tx.organization.findFirst({
-          where: { ownerId: session.user.id },
-          select: { id: true },
-        });
+      const orgArgs = {
+        userId: session.user.id,
+        organizationName: organizationName!,
+        contactEmail: contactEmail!,
+        industry: industry || undefined,
+        website: website || undefined,
+        description: description || undefined,
+        agentName: agentName!,
+        agentPersonality: agentPersonality || undefined,
+        apiKey,
+      };
 
-        const user = await tx.user.update({
-          where: { id: session.user.id },
-          data: {
-            accountType: "organization",
-            onboardingComplete: true,
-          },
-          select: {
-            accountType: true,
-            onboardingComplete: true,
-          },
-        });
+      let result: OrgOnboardingResult;
+      try {
+        result = await withTransientRetry(() =>
+          prisma.$transaction(
+            async (tx) => {
+              const existingOrg = await tx.organization.findFirst({
+                where: { ownerId: session.user.id },
+                select: { id: true },
+              });
 
-        if (existingOrg) {
-          return { user, orgId: existingOrg.id };
-        }
+              const user = await tx.user.update({
+                where: { id: session.user.id },
+                data: {
+                  accountType: "organization",
+                  onboardingComplete: true,
+                },
+                select: {
+                  accountType: true,
+                  onboardingComplete: true,
+                },
+              });
 
-        const org = await tx.organization.create({
-          data: {
-            name: organizationName!,
-            contactEmail: contactEmail!,
-            industry: industry || undefined,
-            website: website || undefined,
-            description: description || undefined,
-            agentName: agentName!,
-            agentPersonality: agentPersonality || undefined,
-            apiKey,
-            ownerId: session.user.id,
-          },
-          select: { id: true },
-        });
-        return { user, orgId: org.id };
-      });
+              if (existingOrg) {
+                return { user, orgId: existingOrg.id };
+              }
+
+              const org = await tx.organization.create({
+                data: {
+                  name: orgArgs.organizationName,
+                  contactEmail: orgArgs.contactEmail,
+                  industry: orgArgs.industry,
+                  website: orgArgs.website,
+                  description: orgArgs.description,
+                  agentName: orgArgs.agentName,
+                  agentPersonality: orgArgs.agentPersonality,
+                  apiKey: orgArgs.apiKey,
+                  ownerId: session.user.id,
+                },
+                select: { id: true },
+              });
+              return { user, orgId: org.id };
+            },
+            { maxWait: 10_000, timeout: 15_000 }
+          )
+        );
+      } catch (error) {
+        if (!isTransactionStartTimeout(error)) throw error;
+        // Fallback when the DB cannot start an interactive transaction quickly.
+        result = await withTransientRetry(() =>
+          completeOrgOnboardingWithoutTransaction(orgArgs)
+        );
+      }
 
       updatedUser = result.user;
       createdOrgId = result.orgId;
     } else {
-      updatedUser = await prisma.user.update({
+      updatedUser = await withTransientRetry(() =>
+        prisma.user.update({
         where: { id: session.user.id },
         data: {
           accountType: "personal",
@@ -137,7 +268,7 @@ export async function POST(req: Request) {
           accountType: true,
           onboardingComplete: true,
         },
-      });
+      }));
     }
 
     // Send welcome notification
@@ -172,6 +303,9 @@ export async function POST(req: Request) {
       }
     });
   } catch (error: unknown) {
+    if (isAbortedRequestError(error)) {
+      return NextResponse.json({ ok: false, error: "Request was aborted" }, { status: 400 });
+    }
     const prismaError = error as { code?: string };
     if (prismaError?.code === "P2025") {
       return NextResponse.json(

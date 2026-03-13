@@ -3,6 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  async rewrites() {
+    return [
+      {
+        source: "/api/accounts/:path*",
+        destination: "/api/auth/:path*",
+      },
+    ];
+  },
   async redirects() {
     return [
       {
@@ -13,11 +21,6 @@ const nextConfig: NextConfig = {
       {
         source: "/signin",
         destination: "/",
-        permanent: true,
-      },
-      {
-        source: "/Dashboard/:path*",
-        destination: "/dashboard/:path*",
         permanent: true,
       },
     ];

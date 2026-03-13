@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, User, BarChart2, ShieldAlert, ShieldCheck, Settings,
   Menu, X, Moon, Sun, LogOut, ChevronRight, Bell, Building2, TrendingUp, CreditCard
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "@/lib/auth-client";
 import AdminOverview       from "./overview";
 import AdminUsers          from "./user";
 import AdminAnalytics      from "./analytics";
@@ -295,7 +295,7 @@ export default function AdminWrapper() {
                 {isDark ? <Sun size={12}/> : <Moon size={12}/>}
                 {isDark ? "Light" : "Dark"}
               </button>
-              <button className="aw-act aw-act--danger" onClick={() => signOut({ callbackUrl:"/" })}>
+              <button className="aw-act aw-act--danger" onClick={() => signOut({ callbackUrl: "/auth/signin?loggedOut=1" })}>
                 <LogOut size={12}/> Out
               </button>
             </div>
@@ -328,7 +328,7 @@ export default function AdminWrapper() {
                   <button className="aw-dact" onClick={toggleTheme}>
                     {isDark ? <Sun size={12}/> : <Moon size={12}/>} {isDark ? "Light" : "Dark"}
                   </button>
-                  <button className="aw-dact aw-dact--danger" onClick={() => signOut({ callbackUrl:"/" })}>
+                  <button className="aw-dact aw-dact--danger" onClick={() => signOut({ callbackUrl: "/auth/signin?loggedOut=1" })}>
                     <LogOut size={12}/> Sign out
                   </button>
                 </div>
@@ -374,7 +374,7 @@ export default function AdminWrapper() {
                 <img src={user?.image || "/logo.png"} alt="Admin" className="aw-nb-av"/>
                 <span className="aw-nb-name">{user?.name ?? "Admin"}</span>
               </div>
-              <button className="aw-logout" onClick={() => signOut({ callbackUrl:"/" })}>
+              <button className="aw-logout" onClick={() => signOut({ callbackUrl: "/auth/signin?loggedOut=1" })}>
                 <LogOut size={12}/> Sign out
               </button>
             </div>

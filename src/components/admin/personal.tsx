@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Search, User, ChevronLeft, ChevronRight, RefreshCw,
-  Zap, Crown, MoreHorizontal, MessageSquare, Brain,
+  Zap, Crown, MoreHorizontal, MessageSquare,
   Users, UserX, CheckCircle, AlertCircle, ChevronDown, ChevronUp,
-  X, ShieldOff, ShieldCheck, Flag, Check,
+  X, ShieldOff, ShieldCheck, Flag,
 } from "lucide-react";
 
 /* ── Types ──────────────────────────────────────────────────────── */
@@ -24,8 +24,6 @@ interface PersonalUser {
   personalPlanType: PlanType;
   personalMonthlyMsgCount: number;
   personalMonthlyMsgLimit: number;
-  personalMonthlyTokenCount: number;
-  personalMonthlyTokenLimit: number;
   personalPlanRenewalDate: string | null;
   creditsExhaustedAt: string | null;
   _count: { virtualSelfChats: number };
@@ -42,8 +40,8 @@ interface Stats {
 const PAGE_SIZE = 10;
 
 const PLAN_META: Record<PlanType, { label: string; color: string; Icon: any }> = {
-  free: { label: "Free",  color: "#34D399", Icon: Zap   },
-  plus: { label: "Plus",  color: "#818CF8", Icon: Crown },
+  free: { label: "Free", color: "#34D399", Icon: Zap   },
+  plus: { label: "Plus", color: "#818CF8", Icon: Crown },
 };
 
 const STATUS_META: Record<Status, { label: string; color: string; bg: string }> = {
@@ -60,7 +58,7 @@ const fmtDate = (s: string) =>
 const fmtK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
 
 function UsageBar({ used, limit, color }: { used: number; limit: number; color: string }) {
-  const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+  const pct    = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const danger = pct >= 90;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 90 }}>
@@ -86,19 +84,19 @@ function Avatar({ name, image, size = 32 }: { name: string | null; image: string
 
 /* ── Component ──────────────────────────────────────────────────── */
 export default function AdminPersonal() {
-  const [stats,   setStats]   = useState<Stats | null>(null);
-  const [users,   setUsers]   = useState<PersonalUser[]>([]);
-  const [total,   setTotal]   = useState(0);
-  const [pages,   setPages]   = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [stats,    setStats]    = useState<Stats | null>(null);
+  const [users,    setUsers]    = useState<PersonalUser[]>([]);
+  const [total,    setTotal]    = useState(0);
+  const [pages,    setPages]    = useState(1);
+  const [loading,  setLoading]  = useState(true);
 
   const [search,   setSearch]   = useState("");
   const [plan,     setPlan]     = useState<"all" | PlanType>("all");
   const [status,   setStatus]   = useState<"all" | Status>("all");
   const [page,     setPage]     = useState(1);
 
-  const [menu,     setMenu]     = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [menu,      setMenu]      = useState<string | null>(null);
+  const [expanded,  setExpanded]  = useState<string | null>(null);
   const [actioning, setActioning] = useState<string | null>(null);
 
   /* ── Fetch ──────────────────────────────────────────────────── */
@@ -139,9 +137,7 @@ export default function AdminPersonal() {
       body: JSON.stringify(body),
     })
       .then(r => r.json())
-      .then(d => {
-        if (d.ok) fetchUsers(search, plan, status, page);
-      })
+      .then(d => { if (d.ok) fetchUsers(search, plan, status, page); })
       .catch(() => {})
       .finally(() => { setActioning(null); setMenu(null); });
   };
@@ -166,8 +162,7 @@ export default function AdminPersonal() {
         .ap-stat {
           background:var(--c-surface); border:1px solid var(--c-border); border-radius:16px;
           padding:16px 16px 14px; display:flex; flex-direction:column; gap:10px;
-          position:relative; overflow:hidden;
-          animation: ap-fade .35s ease both;
+          position:relative; overflow:hidden; animation: ap-fade .35s ease both;
         }
         .ap-stat::before {
           content:''; position:absolute; top:0; left:0; right:0; height:2px;
@@ -235,7 +230,7 @@ export default function AdminPersonal() {
           padding:2px 9px; border-radius:20px;
         }
         .ap-tbl-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-        table.ap-tbl { width:100%; border-collapse:collapse; font-size:.8rem; min-width:700px; }
+        table.ap-tbl { width:100%; border-collapse:collapse; font-size:.8rem; min-width:600px; }
         table.ap-tbl th {
           text-align:left; font-size:.62rem; font-weight:800; letter-spacing:.09em;
           text-transform:uppercase; color:var(--c-muted); padding:10px 16px;
@@ -252,7 +247,7 @@ export default function AdminPersonal() {
         /* Cells */
         .ap-user-cell { display:flex; align-items:center; gap:10px; }
         .ap-user-info { display:flex; flex-direction:column; gap:1px; }
-        .ap-user-name { font-size:.83rem; font-weight:700; color:var(--c-text); }
+        .ap-user-name  { font-size:.83rem; font-weight:700; color:var(--c-text); }
         .ap-user-email { font-size:.69rem; color:var(--c-muted); }
         .ap-plan-badge {
           display:inline-flex; align-items:center; gap:5px;
@@ -268,7 +263,8 @@ export default function AdminPersonal() {
         /* Expand row */
         .ap-expand-td { padding:0 !important; }
         .ap-expand-inner {
-          padding:16px 20px; background:color-mix(in srgb,var(--c-accent) 4%,var(--c-surface));
+          padding:16px 20px;
+          background:color-mix(in srgb,var(--c-accent) 4%,var(--c-surface));
           border-top:1px solid var(--c-border);
           display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;
         }
@@ -297,13 +293,13 @@ export default function AdminPersonal() {
           color:var(--c-muted); background:none; border:none;
           width:100%; text-align:left; font-family:inherit; transition:all .1s;
         }
-        .ap-mi:hover { background:var(--c-surface-2); color:var(--c-text); }
-        .ap-mi.ok:hover     { background:var(--c-success-soft); color:var(--c-success); }
-        .ap-mi.danger:hover { background:var(--c-danger-soft);  color:var(--c-danger);  }
-        .ap-mi.warn:hover   { background:var(--c-warn-soft);    color:var(--c-warn);    }
+        .ap-mi:hover           { background:var(--c-surface-2);      color:var(--c-text);    }
+        .ap-mi.ok:hover        { background:var(--c-success-soft);   color:var(--c-success); }
+        .ap-mi.danger:hover    { background:var(--c-danger-soft);    color:var(--c-danger);  }
+        .ap-mi.warn:hover      { background:var(--c-warn-soft);      color:var(--c-warn);    }
         .ap-mi svg { width:13px; height:13px; flex-shrink:0; }
-        .ap-mdiv { height:1px; background:var(--c-border); margin:4px 6px; }
-        .ap-msec { padding:5px 11px 3px; font-size:.6rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--c-muted); }
+        .ap-mdiv  { height:1px; background:var(--c-border); margin:4px 6px; }
+        .ap-msec  { padding:5px 11px 3px; font-size:.6rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--c-muted); }
 
         /* Expand toggle */
         .ap-expbtn {
@@ -354,10 +350,10 @@ export default function AdminPersonal() {
         <div className="ap-stats">
           {stats ? (
             <>
-              <StatCard Icon={Users}        color="#38AECC"         label="Total Users"  val={stats.total.toLocaleString()}       delay={0} />
-              <StatCard Icon={Crown}        color="#818CF8"         label="Plus Plan"    val={stats.activePlus.toLocaleString()}   delay={1} />
-              <StatCard Icon={Zap}          color="#34D399"         label="Free Plan"    val={stats.activeFree.toLocaleString()}   delay={2} />
-              <StatCard Icon={UserX}        color="var(--c-danger)" label="Banned"       val={stats.banned.toLocaleString()}       delay={3} />
+              <StatCard Icon={Users} color="#38AECC"         label="Total Users" val={stats.total.toLocaleString()}      delay={0}/>
+              <StatCard Icon={Crown} color="#818CF8"         label="Plus Plan"   val={stats.activePlus.toLocaleString()} delay={1}/>
+              <StatCard Icon={Zap}   color="#34D399"         label="Free Plan"   val={stats.activeFree.toLocaleString()} delay={2}/>
+              <StatCard Icon={UserX} color="var(--c-danger)" label="Banned"      val={stats.banned.toLocaleString()}     delay={3}/>
             </>
           ) : (
             Array.from({ length: 4 }).map((_, i) => (
@@ -437,7 +433,6 @@ export default function AdminPersonal() {
                     <th>User</th>
                     <th>Plan</th>
                     <th>Messages</th>
-                    <th>Tokens</th>
                     <th>Chats</th>
                     <th>Status</th>
                     <th>Joined</th>
@@ -451,10 +446,12 @@ export default function AdminPersonal() {
                     const isExpanded = expanded === u.id;
                     return (
                       <React.Fragment key={u.id}>
-                        <tr key={u.id} style={{ animationDelay: `${idx * .02}s` }}>
+                        <tr style={{ animationDelay: `${idx * .02}s` }}>
+
                           {/* Expand toggle */}
                           <td>
-                            <button className="ap-expbtn" onClick={() => setExpanded(p => p === u.id ? null : u.id)}>
+                            <button className="ap-expbtn"
+                              onClick={() => setExpanded(p => p === u.id ? null : u.id)}>
                               {isExpanded ? <ChevronUp size={11}/> : <ChevronDown size={11}/>}
                             </button>
                           </td>
@@ -472,7 +469,8 @@ export default function AdminPersonal() {
 
                           {/* Plan */}
                           <td>
-                            <span className="ap-plan-badge" style={{ background: `${pm.color}18`, color: pm.color, borderColor: `${pm.color}30` }}>
+                            <span className="ap-plan-badge"
+                              style={{ background: `${pm.color}18`, color: pm.color, borderColor: `${pm.color}30` }}>
                               <span className="ap-plan-dot" style={{ background: pm.color }}/>
                               <pm.Icon size={10}/>
                               {pm.label}
@@ -481,12 +479,11 @@ export default function AdminPersonal() {
 
                           {/* Messages */}
                           <td>
-                            <UsageBar used={u.personalMonthlyMsgCount} limit={u.personalMonthlyMsgLimit} color="#38AECC"/>
-                          </td>
-
-                          {/* Tokens */}
-                          <td>
-                            <UsageBar used={u.personalMonthlyTokenCount} limit={u.personalMonthlyTokenLimit} color="#818CF8"/>
+                            <UsageBar
+                              used={u.personalMonthlyMsgCount}
+                              limit={u.personalMonthlyMsgLimit}
+                              color="#38AECC"
+                            />
                           </td>
 
                           {/* Chats */}
@@ -505,7 +502,9 @@ export default function AdminPersonal() {
                           </td>
 
                           {/* Joined */}
-                          <td style={{ whiteSpace: "nowrap", fontSize: ".77rem" }}>{fmtDate(u.createdAt)}</td>
+                          <td style={{ whiteSpace: "nowrap", fontSize: ".77rem" }}>
+                            {fmtDate(u.createdAt)}
+                          </td>
 
                           {/* Actions */}
                           <td>
@@ -522,34 +521,40 @@ export default function AdminPersonal() {
                                 <div className="ap-menu">
                                   <div className="ap-msec">Change plan</div>
                                   {u.personalPlanType !== "plus" && (
-                                    <button className="ap-mi ok" onClick={() => patch(u.id, { personalPlanType: "plus" })}>
+                                    <button className="ap-mi ok"
+                                      onClick={() => patch(u.id, { personalPlanType: "plus" })}>
                                       <Crown size={13}/> Upgrade to Plus
                                     </button>
                                   )}
                                   {u.personalPlanType !== "free" && (
-                                    <button className="ap-mi" onClick={() => patch(u.id, { personalPlanType: "free" })}>
+                                    <button className="ap-mi"
+                                      onClick={() => patch(u.id, { personalPlanType: "free" })}>
                                       <Zap size={13}/> Downgrade to Free
                                     </button>
                                   )}
                                   <div className="ap-mdiv"/>
                                   <div className="ap-msec">Account status</div>
                                   {u.status !== "active" && (
-                                    <button className="ap-mi ok" onClick={() => patch(u.id, { status: "active" })}>
+                                    <button className="ap-mi ok"
+                                      onClick={() => patch(u.id, { status: "active" })}>
                                       <CheckCircle size={13}/> Set Active
                                     </button>
                                   )}
                                   {u.status !== "flagged" && (
-                                    <button className="ap-mi warn" onClick={() => patch(u.id, { status: "flagged" })}>
+                                    <button className="ap-mi warn"
+                                      onClick={() => patch(u.id, { status: "flagged" })}>
                                       <Flag size={13}/> Flag User
                                     </button>
                                   )}
                                   {u.status !== "banned" && (
-                                    <button className="ap-mi danger" onClick={() => patch(u.id, { status: "banned" })}>
+                                    <button className="ap-mi danger"
+                                      onClick={() => patch(u.id, { status: "banned" })}>
                                       <ShieldOff size={13}/> Ban User
                                     </button>
                                   )}
                                   {u.status === "banned" && (
-                                    <button className="ap-mi ok" onClick={() => patch(u.id, { status: "active" })}>
+                                    <button className="ap-mi ok"
+                                      onClick={() => patch(u.id, { status: "active" })}>
                                       <ShieldCheck size={13}/> Unban User
                                     </button>
                                   )}
@@ -562,15 +567,14 @@ export default function AdminPersonal() {
                         {/* Expanded detail row */}
                         {isExpanded && (
                           <tr key={`${u.id}-exp`}>
-                            <td colSpan={9} className="ap-expand-td">
+                            <td colSpan={8} className="ap-expand-td">
                               <div className="ap-expand-inner">
-                                <DetailItem label="User ID"        val={u.id} mono />
-                                <DetailItem label="Role"           val={u.role} />
-                                <DetailItem label="Onboarded"      val={u.onboardingComplete ? "Yes" : "No"} />
-                                <DetailItem label="Plan Renewal"   val={u.personalPlanRenewalDate ? fmtDate(u.personalPlanRenewalDate) : "—"} />
-                                <DetailItem label="Credits XH At"  val={u.creditsExhaustedAt ? fmtDate(u.creditsExhaustedAt) : "—"} />
-                                <DetailItem label="Msg Used / Limit" val={`${u.personalMonthlyMsgCount} / ${u.personalMonthlyMsgLimit}`} />
-                                <DetailItem label="Token Used / Limit" val={`${fmtK(u.personalMonthlyTokenCount)} / ${fmtK(u.personalMonthlyTokenLimit)}`} />
+                                <DetailItem label="User ID"          val={u.id} mono />
+                                <DetailItem label="Role"             val={u.role} />
+                                <DetailItem label="Onboarded"        val={u.onboardingComplete ? "Yes" : "No"} />
+                                <DetailItem label="Plan Renewal"     val={u.personalPlanRenewalDate ? fmtDate(u.personalPlanRenewalDate) : "—"} />
+                                <DetailItem label="Credits XH At"    val={u.creditsExhaustedAt ? fmtDate(u.creditsExhaustedAt) : "—"} />
+                                <DetailItem label="Msgs Used / Limit" val={`${u.personalMonthlyMsgCount} / ${u.personalMonthlyMsgLimit}`} />
                               </div>
                             </td>
                           </tr>
@@ -604,7 +608,8 @@ export default function AdminPersonal() {
                   return range.map((item, i) =>
                     item === "…"
                       ? <span key={`e${i}`} className="ap-pnum-ellipsis">…</span>
-                      : <button key={item} className={`ap-pnum-page${page === item ? " active" : ""}`}
+                      : <button key={item}
+                          className={`ap-pnum-page${page === item ? " active" : ""}`}
                           onClick={() => page !== item && setPage(item as number)}>
                           {item}
                         </button>
@@ -617,6 +622,7 @@ export default function AdminPersonal() {
             </div>
           )}
         </div>
+
       </div>
     </>
   );
@@ -641,7 +647,9 @@ function DetailItem({ label, val, mono }: { label: string; val: string; mono?: b
   return (
     <div className="ap-detail-item">
       <span className="ap-detail-lbl">{label}</span>
-      <span className="ap-detail-val" style={mono ? { fontFamily: "ui-monospace,monospace", fontSize: ".75rem" } : {}}>{val}</span>
+      <span className="ap-detail-val" style={mono ? { fontFamily: "ui-monospace,monospace", fontSize: ".75rem" } : {}}>
+        {val}
+      </span>
     </div>
   );
 }

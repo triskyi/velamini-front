@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth-client";
 import { Settings, Share2, Plus, Copy, Check, Package, Trash2, AlertTriangle, X } from "lucide-react";
 
 const SettingsPage: React.FC = () => {
@@ -70,7 +70,7 @@ const SettingsPage: React.FC = () => {
     try {
       const res = await fetch("/api/user", { method: "DELETE" });
       if (res.ok) {
-        await signOut({ callbackUrl: "/" });
+        await signOut({ callbackUrl: "/auth/signin?loggedOut=1" });
       }
     } catch {}
     finally { setIsDeletingAccount(false); }

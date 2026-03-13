@@ -290,7 +290,7 @@ export default function AdminSettings() {
               <span className="as-section-title">Danger Zone</span>
             </div>
             <div className="as-row">
-              <div><div className="as-row-lbl">Maintenance Mode</div><div className="as-row-sub">Shows a maintenance page to all users</div></div>
+              <div><div className="as-row-lbl">Maintenance Mode</div><div className="as-row-sub">Shows maintenance page to non-admin users after you click Save Changes (admins still have access)</div></div>
               <Toggle on={settings.maintenanceMode as boolean} onChange={() => toggle("maintenanceMode")} />
             </div>
             <div className="as-row">

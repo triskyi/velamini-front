@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, RefreshCw, Key, Globe, Code2, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { Copy, Check, RefreshCw, Key, Globe, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Organization } from "@/types/organization/org-type";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
@@ -25,7 +25,7 @@ export default function OrgApi({ org, onKeyRotated }: Props) {
   const apiKey     = currentKey || "vela_live_xxxxxxxxxxxxxxxxxxxx";
   const agentName  = org.agentName || org.name;
   const maskedKey  = apiKey.slice(0, 10) + "••••••••••••••••" + apiKey.slice(-4);
-  const API_BASE_URL = PUBLIC_APP_URL;
+  const API_BASE_URL = `${PUBLIC_APP_URL}/api/agent/${org.id}`;
 
   const copy = async (text: string, id: string) => {
     try { await navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(null), 1600); } catch {}
@@ -52,8 +52,8 @@ export default function OrgApi({ org, onKeyRotated }: Props) {
   };
 
   const restSnippet =
-`// POST /api/agent/chat
-fetch("${API_BASE_URL}/api/agent/chat", {
+`// POST ${API_BASE_URL}
+fetch("${API_BASE_URL}", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -73,7 +73,7 @@ fetch("${API_BASE_URL}/api/agent/chat", {
   const embedSnippet =
 `<!-- Paste before </body> on any page -->
 <script
-  src="${API_BASE_URL}/embed/agent.js"
+  src="${PUBLIC_APP_URL}/embed/agent.js"
   data-agent-key="${apiKey}"
   data-agent-name="${agentName}"
   data-theme="auto"
@@ -82,32 +82,32 @@ fetch("${API_BASE_URL}/api/agent/chat", {
 </script>`;
 
   const reactSnippet =
-`import { useState } from "react";
+`// src/hooks/useAgentChat.ts
+import { useState, useRef } from "react";
 
-export default function AgentChat() {
-  const [msg, setMsg] = useState("");
-  const [reply, setReply] = useState("");
+const KEY  = process.env.NEXT_PUBLIC_AGENT_KEY!;
+const BASE = "${PUBLIC_APP_URL}/api/agent/${org.id}";
 
-  const ask = async () => {
-    const res = await fetch("/api/agent/chat", {
+export function useAgentChat() {
+  const [messages, setMessages] = useState<{ role:string; content:string }[]>([]);
+  const [loading,  setLoading]  = useState(false);
+  const sessionId = useRef<string | undefined>(undefined);
+
+  const send = async (text: string) => {
+    setMessages(m => [...m, { role:"user", content:text }]);
+    setLoading(true);
+    const res = await fetch(BASE, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Agent-Key": "${apiKey}"
-      },
-      body: JSON.stringify({ message: msg, sessionId: "user_1" })
+      headers: { "Content-Type":"application/json", "X-Agent-Key":KEY },
+      body: JSON.stringify({ message:text, sessionId:sessionId.current }),
     });
     const data = await res.json();
-    setReply(data.reply);
+    sessionId.current = data.sessionId;
+    setMessages(m => [...m, { role:"assistant", content:data.reply }]);
+    setLoading(false);
   };
 
-  return (
-    <div>
-      <input value={msg} onChange={e => setMsg(e.target.value)} />
-      <button onClick={ask}>Ask ${agentName}</button>
-      {reply && <p>{reply}</p>}
-    </div>
-  );
+  return { messages, loading, send };
 }`;
 
   const snippets: Record<CodeTab, string> = { rest: restSnippet, embed: embedSnippet, react: reactSnippet };
@@ -250,14 +250,14 @@ export default function AgentChat() {
         <motion.div className="od-card"
           initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.18 }}>
           <div className="od-card-title">Base URL</div>
-          <div className="od-card-sub">Your agent's unique endpoint for this organisation.</div>
+          <div className="od-card-sub">Your agent&apos;s unique endpoint for this organisation.</div>
           <div className="oapi-key-row">
             <div className="oapi-key-ic"><Globe size={12}/></div>
-            <span className="oapi-key-val">{API_BASE_URL}/api/agent/{org.id}</span>
+            <span className="oapi-key-val">{API_BASE_URL}</span>
             <div className="oapi-key-actions">
               <button className={`oapi-icon-btn ${copied === "url" ? "oapi-icon-btn--done" : ""}`}
-                onClick={() => copy(`${API_BASE_URL}/api/agent/${org.id}`, "url")}>
-                {copied === "url" ? <Check size={11}/> : <Copy size={11}/>}
+                onClick={() => copy(API_BASE_URL, "url")}> 
+                {copied === "url" ? <Check size={11}/> : <Copy size={11}/>} 
               </button>
             </div>
           </div>

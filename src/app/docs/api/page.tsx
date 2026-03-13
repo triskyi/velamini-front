@@ -12,20 +12,20 @@ export default function DocsApiPage() {
       eyebrow="Documentation"
       title="API Reference"
       description="Overview of the main Velamini API capabilities."
-      updatedAt="March 9, 2026"
+      updatedAt="March 10, 2026"
       sections={[
         {
           title: "Authentication",
           paragraphs: [
-            "Authenticate requests with your API key using the Authorization header.",
+            "Authenticate requests with your API key using the X-Agent-Key header.",
             "Keep secrets server-side and rotate keys immediately when exposure is suspected.",
           ],
         },
         {
           title: "Core endpoints",
           paragraphs: [
-            "Chat, session history, and feedback endpoints are available for agent-driven workflows.",
-            "Endpoint examples and payload formats are documented in the main docs page.",
+            "Use POST /api/agent/chat, GET /api/agent/sessions, GET /api/agent/history, and POST /api/agent/feedback.",
+            "The React hook pattern in the docs uses these endpoints directly for custom chat widgets.",
           ],
         },
         {

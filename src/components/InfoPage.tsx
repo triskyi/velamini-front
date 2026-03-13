@@ -17,6 +17,7 @@ type InfoPageProps = {
     label: string;
     href: string;
   };
+  hideFooter?: boolean;
 };
 
 export default function InfoPage({
@@ -26,6 +27,7 @@ export default function InfoPage({
   updatedAt,
   sections,
   primaryCta,
+  hideFooter = false,
 }: InfoPageProps) {
   return (
     <>
@@ -165,7 +167,7 @@ export default function InfoPage({
             </div>
           )}
         </main>
-        <Footer />
+        {!hideFooter && <Footer />}
       </div>
     </>
   );

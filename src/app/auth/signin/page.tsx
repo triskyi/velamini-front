@@ -63,11 +63,6 @@ function SignInContent() {
       ? rawCallbackUrl
       : "/Dashboard";
   const isBanned = searchParams?.get("error") === "banned";
-  const personalSignupUrl = `/auth/signup?callbackUrl=${encodeURIComponent(
-    rawCallbackUrl && rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
-      ? rawCallbackUrl
-      : "/onboarding"
-  )}`;
   const [isDark, setIsDark] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [email, setEmail] = useState("");

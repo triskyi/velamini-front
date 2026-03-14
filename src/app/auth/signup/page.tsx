@@ -4,6 +4,7 @@ import { useEmailVerify } from "@/hooks/useEmailVerify";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Moon, Sparkles, Sun, UserRound } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
 
 function SignupContent() {
@@ -230,7 +231,9 @@ function SignupContent() {
 
       <nav className="ps-nav">
         <Link href="/" className="ps-brand">
-          <div className="ps-brand-logo"><img src="/logo.png" alt="Velamini" /></div>
+          <div className="ps-brand-logo">
+            <Image src="/logo.png" alt="Velamini" width={30} height={30} />
+          </div>
           <span className="ps-brand-name">Velamini</span>
         </Link>
         <button className="ps-theme-btn" onClick={toggleTheme} title="Toggle theme">

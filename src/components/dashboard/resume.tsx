@@ -357,7 +357,7 @@ Generate a complete, polished resume now:`;
         stopThinkingTicker();
         setPhase("streaming");
         setStreamedText("");
-        let pos = 0;
+        const pos = 0;
 
         while (true) {
           const { done, value } = await reader.read();

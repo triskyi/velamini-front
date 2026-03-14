@@ -39,16 +39,6 @@ function normalizeDashboardPath(pathname: string): string {
   return pathname;
 }
 
-function getSafeCallbackPath(
-  rawCallbackUrl: string | null,
-  fallback: string
-): string {
-  if (!rawCallbackUrl) return fallback;
-  if (!rawCallbackUrl.startsWith("/")) return fallback;
-  if (rawCallbackUrl.startsWith("//")) return fallback;
-  return normalizeDashboardPath(rawCallbackUrl);
-}
-
 export const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET, // Added this line
   basePath: "/api/auth",
@@ -65,7 +55,14 @@ export const authConfig: NextAuthConfig = {
     // Map custom JWT fields into session.user so the middleware's authorized callback
     // can read them. No DB calls here — just pass-through from token.
     async session({ session, token }) {
-      const sessionUser = session.user as any;
+      const sessionUser = session.user as unknown as {
+        id?: string;
+        isAdminAuth?: boolean;
+        status?: string;
+        emailVerified?: string | null;
+        accountType?: string;
+        onboardingComplete?: boolean;
+      };
 
       if (token.id) sessionUser.id = token.id as string;
       if (token.isAdminAuth) sessionUser.isAdminAuth = token.isAdminAuth as boolean;

@@ -92,7 +92,8 @@ TWILIO_PHONE_NUMBER="whatsapp:+14155238886"
 # ── Search (optional — needed for web-search tool in personal chat) ──────────
 TAVILY_API_KEY="your-tavily-api-key"
 
-# ── Payment / Flutterwave (optional — needed for billing flows) ──────────────
+# ── Payment / Flutterwave (optiona
+l — needed for billing flows) ──────────────
 FLUTTERWAVE_SECRET_KEY="your-flutterwave-secret-key"
 FLUTTERWAVE_PUBLIC_KEY="your-flutterwave-public-key"
 

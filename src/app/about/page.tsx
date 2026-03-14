@@ -22,40 +22,7 @@ function AnimNum({ target, suffix = "" }: { target: number; suffix?: string }) {
   return <>{val.toLocaleString()}{suffix}</>;
 }
 
-const TEAM = [
-  {
-    name: "ISHIMWE Tresor Berthrand",
-    role: "Co-founder & CEO",
-    bio: "Former software engineer at Coodic. Obsessed with making AI accessible to every African business owner.",
-    initials: "ME",
-    color: "#38AECC",
-    location: "Kigali, Rwanda",
-  },
-  {
-    name: "Jules ",
-    role: "Co-founder & CTO",
-    bio: "Built distributed systems for 6 years before pivoting to AI infrastructure. Leads all things technical at Velamini.",
-    initials: "UC",
-    color: "#818CF8",
-    location: "Kigali, Rwanda",
-  },
-  {
-    name: "BUGINGO Christian",
-    role: "Head of Product",
-    bio: "Product thinker with a background in UX research across East Africa. Champions the voice of our customers.",
-    initials: "NA",
-    color: "#34D399",
-    location: "Kigali, Rwanda",
-  },
-  {
-    name: "Ingabire Sophie",
-    role: "Head of Growth",
-    bio: "Growth strategist who scaled two SaaS companies in Africa before joining Velamini at founding.",
-    initials: "IS",
-    color: "#F59E0B",
-    location: "Nairobi, Kenya",
-  },
-];
+
 
 const VALUES = [
   {
@@ -421,25 +388,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Team */}
-        <div className="asec">
-          <div className="asec-hd">
-            <div className="asec-line"/><span className="asec-label">The Team</span><div className="asec-line"/>
-          </div>
-          <div className="ateam">
-            {TEAM.map(({ name, role, bio, initials, color, location }) => (
-              <div key={name} className="atm">
-                <div className="atm-avatar" style={{ background:`linear-gradient(135deg, ${color}, ${color}99)` }}>
-                  {initials}
-                </div>
-                <div className="atm-name">{name}</div>
-                <div className="atm-role">{role}</div>
-                <div className="atm-bio">{bio}</div>
-                <span className="atm-loc"><MapPin size={9}/>{location}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        
 
         {/* Timeline */}
         <div className="asec">

@@ -269,6 +269,23 @@ export function useAgentChat() {
             </div>
           </div>
         </motion.div>
+
+        {/* ── Embed App Origin ── */}
+        <motion.div className="od-card"
+          initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.22 }}>
+          <div className="od-card-title">Embed App Origin</div>
+          <div className="od-card-sub">Use this value as <code style={{ fontFamily:"monospace", fontSize:".78rem", color:"var(--c-accent)" }}>data-api-base</code> when embedding on WordPress, Shopify, Webflow, and other external websites.</div>
+          <div className="oapi-key-row">
+            <div className="oapi-key-ic"><Globe size={12}/></div>
+            <span className="oapi-key-val">{PUBLIC_APP_URL}</span>
+            <div className="oapi-key-actions">
+              <button className={`oapi-icon-btn ${copied === "api-base" ? "oapi-icon-btn--done" : ""}`}
+                onClick={() => copy(PUBLIC_APP_URL, "api-base")}>
+                {copied === "api-base" ? <Check size={11}/> : <Copy size={11}/>}
+              </button>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </>
   );

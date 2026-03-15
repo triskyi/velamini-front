@@ -10,7 +10,6 @@ const GREETING = "Hey! I'm Codi, Coodic's AI assistant. Ask me anything about wh
 const SUGGESTIONS = [
   "What does Coodic do?",
   "How do I get started?",
-  "What's on the free plan?",
 ];
 
 function nowTime() {
@@ -35,7 +34,7 @@ function TypingDots() {
 
 export default function LandingDemo() {
   const { messages, loading, send } = useAgentChat({
-    agentKey: process.env.NEXT_PUBLIC_EMBED_AGENT_KEY,
+    agentKey: process.env.NEXT_PUBLIC_EMBED_AGENT_KEY_DEMO,
     baseUrl: "/api/agent",
   });
   const [input, setInput]   = useState("");
@@ -367,7 +366,7 @@ export default function LandingDemo() {
               <div className="ld-chathead">
                 <div className="ld-av">C</div>
                 <div style={{ flex:1 }}>
-                  <div className="ld-agname">Codi · Coodic Agent</div>
+                  <div className="ld-agname">codi</div>
                   <div className="ld-agstatus">
                     <div className="ld-greendot"/>
                     <span>Online now</span>

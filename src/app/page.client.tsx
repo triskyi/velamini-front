@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import Image from "next/image";
 import Footer from "@/components/footer";
+import LandingDemo from "@/components/LandingDemo";
+import Testimonials from "@/components/Testimonials";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
 import {
@@ -75,7 +77,7 @@ const ORG_CARD_FEATS       = ["Trained on your FAQs & docs", "REST API + embed w
 
 /* ─── PAGE ──────────────────────────────────────────────────── */
 export default function Home() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean | undefined>(undefined);
   const [mode, setMode]             = useState<"personal" | "org">("personal");
   const containerRef                = useRef(null);
   const { scrollYProgress }         = useScroll({ target: containerRef });
@@ -138,7 +140,8 @@ export default function Home() {
 
 
   const handleThemeToggle = () => setIsDarkMode(prev => {
-    const next = !prev;
+    const current = prev ?? true; // Default to true if undefined
+    const next = !current;
     applyTheme(next);
     try { localStorage.setItem("theme", next ? "dark" : "light"); } catch {}
     return next;
@@ -606,6 +609,11 @@ export default function Home() {
         </section>
 
         {/* ══════════════════════════════════════════════════════
+            LIVE DEMO - VIRAL GROWTH SECTION
+        ══════════════════════════════════════════════════════ */}
+        <LandingDemo />
+
+        {/* ══════════════════════════════════════════════════════
             STATS TICKER
         ══════════════════════════════════════════════════════ */}
         <div className="ticker-band">
@@ -716,6 +724,11 @@ export default function Home() {
             </div>
           </section>
         </div>
+
+        {/* ══════════════════════════════════════════════════════
+            TESTIMONIALS
+        ══════════════════════════════════════════════════════ */}
+        <Testimonials />
 
         {/* ══════════════════════════════════════════════════════
             CTA

@@ -16,6 +16,12 @@ export default async function OrganizationDetailPage({
     redirect("/auth/signin");
   }
 
+  // Fetch user data for profile display
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { name: true, email: true, image: true },
+  });
+
   const organization = await prisma.organization.findFirst({
     where: { id, ownerId: session.user.id },
     include: {
@@ -85,5 +91,5 @@ export default async function OrganizationDetailPage({
       : null,
   };
 
-  return <OrgWrapper orgId={id} initialOrg={serializedOrg as unknown as Organization} initialStats={stats} />;
+  return <OrgWrapper orgId={id} initialOrg={serializedOrg as unknown as Organization} initialStats={stats} user={user} />;
 }

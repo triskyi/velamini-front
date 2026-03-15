@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Navbar, { applyTheme } from "@/components/Navbar";
+import Footer from "@/components/footer";
 import { ArrowRight, MapPin, Zap, Heart, Globe, Shield, TrendingUp, Sparkles, Users } from "lucide-react";
 
 const BENEFITS = [
@@ -14,15 +15,21 @@ const BENEFITS = [
   { Icon:Shield,     color:"#38AECC", title:"Paid Leave",          body:"25 days annual leave + all Rwandan public holidays + mental health days." },
 ];
 
+function getInitialTheme(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return (localStorage.getItem("theme") || "dark") === "dark";
+  } catch {
+    return true;
+  }
+}
+
 export default function CareersPage() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(getInitialTheme);
 
   useEffect(() => {
-    try {
-      const d = (localStorage.getItem("theme") || "dark") === "dark";
-      setIsDark(d); applyTheme(d);
-    } catch {}
-  }, []);
+    applyTheme(isDark);
+  }, [isDark]);
 
   const toggleTheme = () => setIsDark(p => {
     const n = !p; applyTheme(n);
@@ -311,7 +318,7 @@ export default function CareersPage() {
             Build the <em>future of AI</em><br/>in Africa with us
           </h1>
           <p className="carh-sub">
-            We're a small, high-trust team building AI infrastructure for African businesses. If you're excited about real impact, real equity, and real ownership — you'll fit right in.
+            We&apos;re a small, high-trust team building AI infrastructure for African businesses. If you&apos;re excited about real impact, real equity, and real ownership — you&apos;ll fit right in.
           </p>
           <div className="carh-chips">
             <span className="carh-chip"><MapPin size={12} style={{ color:"var(--ac)" }}/>Kigali, Rwanda</span>
@@ -325,10 +332,10 @@ export default function CareersPage() {
           <div className="carculture-main">
             <h2>A team that ships, learns, and cares</h2>
             <p>
-              Velamini was founded by people who were frustrated that the best AI tools were built for Silicon Valley — not for Kigali, Lagos, or Nairobi. We're fixing that.
+              Velamini was founded by people who were frustrated that the best AI tools were built for Silicon Valley — not for Kigali, Lagos, or Nairobi or Anywhere in Africa. We&apos;re fixing that.
             </p>
             <p>
-              We move fast, take ownership seriously, and genuinely celebrate each other's wins. If you've spent time in corporate environments wondering why things take so long — you'll love it here.
+              We move fast, take ownership seriously, and genuinely celebrate each other&apos;s wins. If you&apos;ve spent time in corporate environments wondering why things take so long — you&apos;ll love it here.
             </p>
             <div className="carculture-stats">
               <div><div className="carstat-num">12</div><div className="carstat-lbl">Team members</div></div>
@@ -338,7 +345,7 @@ export default function CareersPage() {
           </div>
           <div className="carculture-imgs">
             {[
-              { icon:"🖥️", text:"Weekly all-hands every Friday — remote-friendly" },
+              { icon:"🖥️", text:"Weekly every day — remote-friendly" },
               { icon:"🚀", text:"Ship something real in your first two weeks" },
               { icon:"🌍", text:"Built for Africa, used across the continent" },
               { icon:"🤝", text:"Flat structure — direct access to founders" },
@@ -384,6 +391,9 @@ export default function CareersPage() {
             </Link>
           </div>
         </div>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   );

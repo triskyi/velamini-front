@@ -84,7 +84,7 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
       }),
     });
     const dsJson = await dsRes.json();
-    let text = dsJson.choices?.[0]?.message?.content || "";
+    const text = dsJson.choices?.[0]?.message?.content || "";
     // Log DeepSeek response for debugging
     console.log("DeepSeek raw response:", text);
     let parseError = null;

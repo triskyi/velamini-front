@@ -1,9 +1,10 @@
 "use client";
 
-import { Zap, Brain, Code2, BarChart3, Settings, Sun, Moon, Building2, ChevronRight, X, MessageSquare, CreditCard, Database } from "lucide-react";
+import Image from "next/image";
+import { Zap, Brain, Code2, BarChart3, Settings, Building2, ChevronRight, X, MessageSquare, CreditCard, Database } from "lucide-react";
 import type { OrgTab } from "@/types/organization/org-type";
 
-export const ORG_ASIDE_TABS: { id: OrgTab; label: string; Icon: any }[] = [
+export const ORG_ASIDE_TABS: { id: OrgTab; label: string; Icon: React.ElementType }[] = [
   { id: "overview",  label: "Overview",      Icon: Zap           },
   { id: "agent",     label: "Train Agent",   Icon: Brain         },
   { id: "chat",      label: "Test Chat",     Icon: MessageSquare },
@@ -46,10 +47,15 @@ export const ORG_ASIDE_CSS = `
   .oa-arr{opacity:0;color:var(--c-org);transition:opacity .13s}
   .oa-item--on .oa-arr{opacity:1}
 
-  .oa-foot{flex-shrink:0;padding:10px 10px 14px;border-top:1px solid var(--c-border);display:flex;flex-direction:column;gap:6px}
-  .oa-thm{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:8px 10px;border-radius:9px;border:1px solid var(--c-border);background:transparent;color:var(--c-muted);font-size:.74rem;font-weight:600;font-family:inherit;cursor:pointer;transition:all .13s}
-  .oa-thm:hover{color:var(--c-accent);border-color:var(--c-accent);background:var(--c-accent-soft)}
-  .oa-thm svg{width:13px;height:13px}
+  .oa-foot{flex-shrink:0;padding:10px 10px 14px;border-top:1px solid var(--c-border)}
+  
+  /* User profile in sidebar */
+  .oa-user{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--c-surface-2);border:1px solid var(--c-border)}
+  .oa-user-av{width:36px;height:36px;border-radius:50%;background:var(--c-org-soft);display:flex;align-items:center;justify-content:center;color:var(--c-org);font-weight:600;font-size:.85rem;flex-shrink:0;overflow:hidden}
+  .oa-user-av img{width:100%;height:100%;object-fit:cover}
+  .oa-user-info{flex:1;min-width:0}
+  .oa-user-name{font-size:.8rem;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .oa-user-email{font-size:.65rem;color:var(--c-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 `;
 
 interface OrgAsideProps {
@@ -57,11 +63,21 @@ interface OrgAsideProps {
   isActive:       boolean;
   activeTab:      OrgTab;
   onTabChange:    (tab: OrgTab) => void;
-  isDark:         boolean;
-  mounted:        boolean;
-  onToggleTheme:  () => void;
-  /** Passing onClose shows the X button — used inside the mobile drawer */
+  isDark?:        boolean;
+  mounted?:        boolean;
+  onToggleTheme?: () => void;
   onClose?:       () => void;
+  user?:          { name: string | null; email: string | null; image: string | null } | null;
+}
+
+function getInitials(name: string | null, email: string | null): string {
+  if (name) {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  }
+  if (email) {
+    return email[0].toUpperCase();
+  }
+  return "?";
 }
 
 export default function OrgAside({
@@ -69,11 +85,11 @@ export default function OrgAside({
   isActive,
   activeTab,
   onTabChange,
-  isDark,
-  mounted,
-  onToggleTheme,
   onClose,
+  user,
 }: OrgAsideProps) {
+  const initials = getInitials(user?.name ?? null, user?.email ?? null);
+
   return (
     <div className="oa-root">
       {/* Header */}
@@ -109,13 +125,22 @@ export default function OrgAside({
         ))}
       </nav>
 
-      {/* Footer */}
+      {/* Footer with User Profile */}
       <div className="oa-foot">
-        {mounted && (
-          <button className="oa-thm" onClick={onToggleTheme}>
-            {isDark ? <Sun /> : <Moon />}
-            {isDark ? "Light mode" : "Dark mode"}
-          </button>
+        {user && (
+          <div className="oa-user">
+            <div className="oa-user-av">
+              {user.image ? (
+                <Image src={user.image} alt={user.name || "Profile"} width={36} height={36} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                initials
+              )}
+            </div>
+            <div className="oa-user-info">
+              <div className="oa-user-name">{user.name || "User"}</div>
+              <div className="oa-user-email">{user.email}</div>
+            </div>
+          </div>
         )}
       </div>
     </div>

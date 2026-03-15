@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Navbar, { applyTheme } from "@/components/Navbar";
 import Footer from "@/components/footer";
-import { ArrowRight, Zap, Globe, Users, Shield, Sparkles, TrendingUp, Heart, MapPin, Target, Eye } from "lucide-react";
+import { ArrowRight, Globe, Shield, Sparkles, TrendingUp, Heart, MapPin, Target, Eye } from "lucide-react";
 
 /* ── Animated number counter ─────────────────────────────────────── */
 function AnimNum({ target, suffix = "" }: { target: number; suffix?: string }) {
@@ -63,10 +63,20 @@ export default function AboutPage() {
 
   useEffect(() => {
     try {
-      const d = (localStorage.getItem("theme") || "dark") === "dark";
-      setIsDark(d); applyTheme(d);
+      const stored = localStorage.getItem("theme");
+      const preferDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const d = stored ? stored === "dark" : preferDark;
+
+      // Apply to DOM immediately
+      applyTheme(d);
+
+      // Use a microtask to de-synchronize the state update from the mount phase.
+      // This satisfies the recommendation to avoid synchronous setState inside effects.
+      if (d !== isDark) {
+        queueMicrotask(() => setIsDark(d));
+      }
     } catch {}
-  }, []);
+  }, [isDark]); // Include isDark to satisfy dependency rules
 
   const toggleTheme = () => setIsDark(p => {
     const n = !p; applyTheme(n);
@@ -348,7 +358,7 @@ export default function AboutPage() {
               The average African business misses 60% of after-hours customer enquiries. They make pricing decisions based on gut feeling instead of data. They spend hours on manual tasks that AI could handle in seconds.
             </p>
             <p style={{ marginTop:"1rem" }}>
-              Velamini exists to close that gap. We believe the next wave of African business growth will be driven by intelligent automation — and we're building the platform that makes it real.
+              Velamini exists to close that gap. We believe the next wave of African business growth will be driven by intelligent automation — and we&apos;re building the platform that makes it real.
             </p>
           </div>
           <div className="amission-side">

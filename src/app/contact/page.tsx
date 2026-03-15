@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
 import Navbar, { applyTheme } from "@/components/Navbar";
 import Footer from "@/components/footer";
-import { Mail, MessageSquare, Phone, MapPin, ArrowRight, Clock, Zap, Building2, Users, BookOpen, ChevronDown, Send, Check } from "lucide-react";
+import { Mail, MessageSquare, Phone, MapPin, Building, BookOpen, ChevronDown, Send, Check } from "lucide-react";
 
 const CHANNELS = [
   {
@@ -26,7 +25,7 @@ const CHANNELS = [
     href: "#",
   },
   {
-    Icon: Building2,
+    Icon: Building,
     color: "#34D399",
     title: "Sales & Partnerships",
     value: "hello@velamini.com",
@@ -93,8 +92,17 @@ export default function ContactPage() {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) return;
     setStatus("sending");
-    await new Promise(r => setTimeout(r, 1600));
-    setStatus("sent");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
   };
 
   return (
@@ -365,7 +373,7 @@ export default function ContactPage() {
         {/* Hero */}
         <section className="ch">
           <div className="ch-pill"><Mail size={9}/> Contact</div>
-          <h1 className="ch-h1">We're here to <em>help</em></h1>
+          <h1 className="ch-h1">We&apos;re here to <em>help</em></h1>
           <p className="ch-sub">
             From a quick question to a complex integration — reach out and the team will get back to you fast.
           </p>
@@ -399,7 +407,7 @@ export default function ContactPage() {
               <div className="csent">
                 <div className="csent-icon"><Check size={26} style={{ color:"#34D399" }}/></div>
                 <div className="csent-h">Message sent!</div>
-                <p className="csent-sub">We'll get back to you at {form.email} within a few hours.</p>
+                <p className="csent-sub">We&apos;ll get back to you at {form.email} within a few hours.</p>
                 <button
                   onClick={() => { setStatus("idle"); setForm({ name:"", email:"", subject:"general", message:"" }); }}
                   style={{ fontSize:".78rem", color:"var(--ac)", background:"none", border:"none", cursor:"pointer", textDecoration:"underline" }}
@@ -410,7 +418,7 @@ export default function ContactPage() {
             ) : (
               <>
                 <div className="cform-title">Send us a message</div>
-                <p className="cform-sub">Fill in the form and we'll reply within 4 hours on business days.</p>
+                <p className="cform-sub">Fill in the form and we&apos;ll reply within 4 hours on business days.</p>
                 <form ref={formRef} onSubmit={handleSubmit}>
                   <div className="cform-row">
                     <div className="cform-group">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {  useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Menu, Bell, CheckCheck, Info, AlertTriangle, Sparkles, LogOut, MessageSquare } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
@@ -20,9 +20,19 @@ import type { Organization, Stats, OrgTab } from "@/types/organization/org-type"
 
 /* ── Notifications ───────────────────────────────────────────────── */
 type NotifType = "info" | "success" | "warning" | "system" | "billing";
+
+interface ApiNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
 interface Notif { id: string; type: NotifType; title: string; body: string; time: string; read: boolean }
 
-const notifIcon:  Record<string, any>    = { info: Info, success: Sparkles, warning: AlertTriangle, system: Bell, billing: Info };
+const notifIcon: Record<string, React.ElementType> = { info: Info, success: Sparkles, warning: AlertTriangle, system: Bell, billing: Info };
 const notifColor: Record<string, string> = { info: "#29A9D4", success: "#10B981", warning: "#F59E0B", system: "#8B5CF6", billing: "#0EA5E9" };
 
 function fmtTimeAgo(ts: number, now: number): string {
@@ -198,17 +208,18 @@ interface OrgWrapperProps {
   orgId:        string;
   initialOrg:   Organization;
   initialStats: Stats | null;
+  user?:        { name: string | null; email: string | null; image: string | null } | null;
 }
 
 /* ── Component ───────────────────────────────────────────────────── */
-export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapperProps) {
-  const router       = useRouter();
+export default function OrgWrapper({ orgId, initialOrg, initialStats, user }: OrgWrapperProps) {
+
   const searchParams = useSearchParams();
 
   const [org,        setOrg]        = useState<Organization>(initialOrg);
   const [stats,      setStats]      = useState<Stats | null>(initialStats);
   const [tab,        setTab]        = useState<OrgTab>("overview");
-  const [isDark,     setIsDark]     = useState(true);
+  const [isDark,     setIsDark]     = useState<boolean | undefined>(undefined);
   const [mounted,    setMounted]    = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifs,     setNotifs]     = useState<Notif[]>([]);
@@ -245,7 +256,7 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
       .then(d => {
         if (d?.ok && Array.isArray(d.notifications)) {
           const now = Date.now();
-          setNotifs(d.notifications.map((n: any) => ({
+          setNotifs(d.notifications.map((n: ApiNotification) => ({
             id: n.id, type: n.type as NotifType,
             title: n.title, body: n.body,
             time: fmtTimeAgo(new Date(n.createdAt).getTime(), now),
@@ -352,9 +363,7 @@ export default function OrgWrapper({ orgId, initialOrg, initialStats }: OrgWrapp
     isActive:      org.isActive,
     activeTab:     tab,
     onTabChange:   (t: OrgTab) => { setTab(t); setMobileOpen(false); },
-    isDark,
-    mounted,
-    onToggleTheme: toggleTheme,
+    user,
   };
 
   return (

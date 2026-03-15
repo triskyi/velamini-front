@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const { org } = auth;
 
   // ── 5: Parse + sanitise body ─────────────────────────────────────────────
-  let body: any;
+  let body: Record<string, unknown>;
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON body." }, { status: 400, headers: cors }); }
 

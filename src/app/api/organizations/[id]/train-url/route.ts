@@ -76,7 +76,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     });
     const dsJson = await dsRes.json();
     // Try to extract JSON from the response
-    let text = dsJson.choices?.[0]?.message?.content || "";
+    const text = dsJson.choices?.[0]?.message?.content || "";
     // Find first JSON array in the text
     const match = text.match(/\[.*\]/s);
     if (match) {

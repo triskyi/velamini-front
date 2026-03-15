@@ -9,18 +9,6 @@ export const config = {
   // (webpack-hmr, RSC prefetches, _next/*) and causes all pages to 404.
   matcher: [
     // Protected app areas
-    "/Dashboard/:path*",
-    "/training/:path*",
-    "/profile/:path*",
-    "/settings/:path*",
-    // Auth flows (redirect to Dashboard if already signed in)
-    "/auth/:path*",
-    "/admin/:path*",
-    // Email verification gate
-    "/verify-email",
-    // Onboarding
-    "/onboarding",
-    // Maintenance mode page
-    "/maintenance",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*$).*)",
   ],
 }

@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import Image from "next/image";
 import Footer from "@/components/footer";
+import LandingDemo from "@/components/LandingDemo";
+import Testimonials from "@/components/Testimonials";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
 import {
@@ -75,32 +77,11 @@ const ORG_CARD_FEATS       = ["Trained on your FAQs & docs", "REST API + embed w
 
 /* ─── PAGE ──────────────────────────────────────────────────── */
 export default function Home() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean | undefined>(undefined);
   const [mode, setMode]             = useState<"personal" | "org">("personal");
   const containerRef                = useRef(null);
   const { scrollYProgress }         = useScroll({ target: containerRef });
   const lineW                       = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
-
-  useEffect(() => {
-    const stored     = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
-    const useDark    = stored === "dark" || (!stored && prefersDark);
-    applyTheme(useDark);
-    setIsDarkMode(useDark);
-  }, []);
-
-  useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_EMBED_AGENT_KEY;
-    if (!key || document.getElementById("vela-widget")) return;
-    const embedScriptSrc = `${PUBLIC_APP_URL}/embed/agent.js`;
-    const s = Object.assign(document.createElement("script"), {
-      src: embedScriptSrc, async: true, id: "vela-widget",
-    });
-    (s as any).dataset.agentKey  = key;
-    (s as any).dataset.agentName = process.env.NEXT_PUBLIC_EMBED_AGENT_NAME || "Velamini";
-    (s as any).dataset.theme     = "auto";
-    document.body.appendChild(s);
-  }, []);
 
   function applyTheme(dark: boolean) {
     const r = document.documentElement;
@@ -130,8 +111,37 @@ export default function Home() {
     r.style.setProperty("--footer-copy",   dark ? "rgba(212,238,255,.18)" : "rgba(9,24,40,.22)");
   }
 
+  useEffect(() => {
+    const stored = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+    const useDark = stored === "dark" || (!stored && prefersDark);
+    
+    // Apply to DOM immediately
+    applyTheme(useDark);
+    
+    // Use a microtask to de-synchronize the state update.
+    if (useDark !== isDarkMode) {
+      queueMicrotask(() => setIsDarkMode(useDark));
+    }
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_EMBED_AGENT_KEY;
+    if (!key || document.getElementById("vela-widget")) return;
+    const embedScriptSrc = `${PUBLIC_APP_URL}/embed/agent.js`;
+    const s = Object.assign(document.createElement("script"), {
+      src: embedScriptSrc, async: true, id: "vela-widget",
+    });
+    s.dataset.agentKey  = key;
+    s.dataset.agentName = process.env.NEXT_PUBLIC_EMBED_AGENT_NAME || "Velamini";
+    s.dataset.theme     = "auto";
+    document.body.appendChild(s);
+  }, []);
+
+
   const handleThemeToggle = () => setIsDarkMode(prev => {
-    const next = !prev;
+    const current = prev ?? true; // Default to true if undefined
+    const next = !current;
     applyTheme(next);
     try { localStorage.setItem("theme", next ? "dark" : "light"); } catch {}
     return next;
@@ -599,6 +609,11 @@ export default function Home() {
         </section>
 
         {/* ══════════════════════════════════════════════════════
+            LIVE DEMO - VIRAL GROWTH SECTION
+        ══════════════════════════════════════════════════════ */}
+        <LandingDemo />
+
+        {/* ══════════════════════════════════════════════════════
             STATS TICKER
         ══════════════════════════════════════════════════════ */}
         <div className="ticker-band">
@@ -684,7 +699,7 @@ export default function Home() {
                 <span className="eyebrow" style={{ color:accentColor }}>Process</span>
                 <h2 style={{ fontSize:"clamp(2rem,5vw,3.6rem)",fontWeight:800,lineHeight:1,letterSpacing:"-.03em" }}>
                   Three steps.<br/>
-                  <span className="serif" style={{ fontStyle:"italic",fontWeight:400,color:"var(--muted)" }}>That's all it takes.</span>
+                  <span className="serif" style={{ fontStyle:"italic",fontWeight:400,color:"var(--muted)" }}>That&apos;s all it takes.</span>
                 </h2>
               </motion.div>
 
@@ -709,6 +724,11 @@ export default function Home() {
             </div>
           </section>
         </div>
+
+        {/* ══════════════════════════════════════════════════════
+            TESTIMONIALS
+        ══════════════════════════════════════════════════════ */}
+        <Testimonials />
 
         {/* ══════════════════════════════════════════════════════
             CTA

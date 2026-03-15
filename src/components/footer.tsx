@@ -63,9 +63,9 @@ export default function Footer() {
     try {
       const savedLocale = localStorage.getItem("velamini_locale");
       const savedCurrency = localStorage.getItem("velamini_currency");
-      if (savedLocale) setLocale(savedLocale);
-      if (savedCurrency) setCurrency(savedCurrency);
-    } catch (_) {}
+      if (savedLocale) queueMicrotask(() => setLocale(savedLocale));
+      if (savedCurrency) queueMicrotask(() => setCurrency(savedCurrency));
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -81,12 +81,12 @@ export default function Footer() {
 
   const setLocaleAndSave = (value: string) => {
     setLocale(value);
-    try { localStorage.setItem("velamini_locale", value); } catch (_) {}
+    try { localStorage.setItem("velamini_locale", value); } catch {}
   };
 
   const setCurrencyAndSave = (value: string) => {
     setCurrency(value);
-    try { localStorage.setItem("velamini_currency", value); } catch (_) {}
+    try { localStorage.setItem("velamini_currency", value); } catch {}
   };
 
   return (
@@ -367,7 +367,7 @@ export default function Footer() {
               </div>
               <div>
                 <div className="vf-community-title">Join the Velamini community</div>
-                <div className="vf-community-sub">Connect with builders, get help, and share what you're creating</div>
+                <div className="vf-community-sub">Connect with builders, get help, and share what you&apos;re creating</div>
               </div>
             </div>
             <div className="vf-community-right">
@@ -415,7 +415,7 @@ export default function Footer() {
               <div key={heading}>
                 <div className="vf-col-title">{heading}</div>
                 <ul className="vf-col-links">
-                  {links.map(({ label, href, external, badge }: any) => (
+                  {links.map(({ label, href, external, badge }: { label: string; href: string; external?: boolean; badge?: string }) => (
                     <li key={label}>
                       {external ? (
                         <a href={href} target="_blank" rel="noopener noreferrer" className="vf-link">

@@ -78,6 +78,7 @@ fetch("${API_BASE_URL}", {
   data-agent-name="${agentName}"
   data-theme="auto"
   data-position="bottom-right"
+  data-api-base="${PUBLIC_APP_URL}"
   defer>
 </script>`;
 
@@ -204,7 +205,7 @@ export function useAgentChat() {
         <motion.div className="od-card"
           initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.07 }}>
           <div className="od-card-title">Integration Examples</div>
-          <div className="od-card-sub">Copy-paste ready code to connect your agent to any platform.</div>
+          <div className="od-card-sub">Copy-paste ready code to connect your agent to any platform. For WordPress, Shopify, Webflow, and other CMS tools, use the Embed Widget snippet and keep <code>data-api-base</code> set to your Velamini domain.</div>
 
           <div className="oapi-code-tabs">
             {codeTabs.map(({ id, label }) => (
@@ -223,6 +224,12 @@ export function useAgentChat() {
               {copied === codeTab ? <Check size={11}/> : <Copy size={11}/>}
             </button>
           </div>
+          {codeTab === "embed" && (
+            <div className="oapi-warn" style={{ marginTop:12 }}>
+              <Globe size={13}/>
+              <span><strong>CMS install tip.</strong> If the widget runs on a different website from Velamini, <code>data-api-base</code> must point to your Velamini app domain or chat requests will be sent to the wrong site.</span>
+            </div>
+          )}
         </motion.div>
 
         {/* ── Endpoints ── */}

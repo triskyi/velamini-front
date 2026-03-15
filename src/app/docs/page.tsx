@@ -336,6 +336,9 @@ const r2 = await fetch("${API_BASE_URL}/api/agent/chat", {
     <>
       <H title="Embed Widget" sub="One script tag — instant chat bubble on any webpage, no build step."/>
       <P c="The widget is self-contained vanilla JS. It calls /api/agent/chat automatically, persists sessions across page loads, adapts to dark/light mode, and is fully mobile-responsive."/>
+      <Note warn>
+        If you install the widget on WordPress, Shopify, Webflow, or any site that is not hosted on Velamini itself, set <IC v="data-api-base"/> to your Velamini app domain so API requests go back to Velamini instead of the host website.
+      </Note>
       <H3 t="Installation"/>
       <CodeBlock lang="html" code={`<!-- Paste before </body> on any HTML page -->
 <script
@@ -343,6 +346,7 @@ const r2 = await fetch("${API_BASE_URL}/api/agent/chat", {
   data-agent-key="vela_your_key_here"
   data-agent-name="Support Bot"
   data-theme="auto"
+  data-api-base="${API_BASE_URL}"
   defer>
 </script>`}/>
       <H3 t="Configuration attributes"/>
@@ -351,8 +355,17 @@ const r2 = await fetch("${API_BASE_URL}/api/agent/chat", {
         ["data-agent-name", "string", false, "Name shown in the chat header."],
         ["data-theme",      "string", false, "auto (default) | light | dark."],
         ["data-position",   "string", false, "bottom-right (default) | bottom-left."],
-        ["data-api-base",   "string", false, "Override the API origin for self-hosted setups."],
+        ["data-api-base",   "string", false, "App origin used for API calls, e.g. https://velamini.com. Strongly recommended for CMS installs."],
       ]}/>
+      <H3 t="WordPress / CMS example"/>
+      <CodeBlock lang="html" code={`<script
+  src="https://velamini.com/embed/agent.js"
+  data-agent-key="vela_your_key_here"
+  data-agent-name="Support Bot"
+  data-theme="auto"
+  data-api-base="https://velamini.com"
+  defer>
+</script>`}/>
       <H3 t="Next.js injection"/>
       <CodeBlock lang="ts" code={`"use client";
 import { useEffect } from "react";
@@ -364,6 +377,7 @@ export function AgentWidget() {
     });
     s.dataset.agentKey = process.env.NEXT_PUBLIC_AGENT_KEY!;
     s.dataset.theme    = "auto";
+    s.dataset.apiBase  = "${API_BASE_URL}";
     document.body.appendChild(s);
   }, []);
   return null;
@@ -474,7 +488,7 @@ export default function SupportPage() {
         ["data-agent-name", "string", false, "Header title in chat panel. Falls back to org agentName."],
         ["data-theme",      "string", false, "auto | light | dark. auto follows prefers-color-scheme."],
         ["data-position",   "string", false, "bottom-right | bottom-left. Default bottom-right."],
-        ["data-api-base",   "string", false, "Full origin override e.g. https://my-instance.com."],
+        ["data-api-base",   "string", false, "Full origin override e.g. https://velamini.com. Use this when embedding on external CMS sites."],
       ]}/>
       <H3 t="Widget behaviour"/>
       <div style={{ overflowX:"auto", borderRadius:10, border:"1px solid var(--br)", marginBottom:14 }}>
@@ -487,6 +501,7 @@ export default function SupportPage() {
               ["Keyboard shortcuts",  "Enter to send · Shift+Enter for newline · Esc to close."],
               ["Context window",      "Sends last 8 messages as history for coherent multi-turn replies."],
               ["Typing indicator",    "Animated dots while the agent is thinking."],
+              ["CMS compatibility",   "Works in WordPress, Webflow, Shopify, and similar tools when data-api-base points to your Velamini domain."],
               ["API compatibility",   "sessionId from the widget works with /sessions and /history."],
             ].map(([f,d]) => (
               <tr key={f}>
